@@ -1,45 +1,48 @@
 package autobotz;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ClienteDAO {
-    
-    public void cadastrar(Cliente c) {
-        String sql = "INSERT INTO clientes (nome, cpf, telefone, email) VALUES (?, ?, ?, ?)";
-        try (Connection con = ConexaoBanco.obterConexao();
-             PreparedStatement stmt = con.prepareStatement(sql)) {
-            stmt.setString(1, c.getNome());
-            stmt.setString(2, c.getCpf());
-            stmt.setString(3, c.getTelefone());
-            stmt.setString(4, c.getEmail());
-            stmt.execute();
-            System.out.println("Cliente cadastrado com sucesso!");
-        } catch (Exception e) {
-            System.out.println("Erro ao cadastrar cliente: " + e.getMessage());
+    private static final String ARQUIVO = "clientes.txt";
+
+    public void salvar(Cliente cliente) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARQUIVO, true))) {
+            // Salva todos os atributos separados por ponto e vírgula
+            writer.write(cliente.getId() + ";" + 
+                         cliente.getNome() + ";" + 
+                         cliente.getCpf() + ";" + 
+                         cliente.getTelefone() + ";" + 
+                         cliente.getEmail());
+            writer.newLine();
+        } catch (IOException e) {
+            System.err.println("Erro ao salvar no arquivo .txt: " + e.getMessage());
         }
     }
 
     public List<Cliente> listar() {
         List<Cliente> lista = new ArrayList<>();
-        String sql = "SELECT * FROM clientes";
-        try (Connection con = ConexaoBanco.obterConexao();
-             PreparedStatement stmt = con.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                lista.add(new Cliente(
-                    rs.getInt("id_cliente"),
-                    rs.getString("nome"),
-                    rs.getString("cpf"),
-                    rs.getString("telefone"),
-                    rs.getString("email")
-                ));
+        File file = new File(ARQUIVO);
+        if (!file.exists()) return lista;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(ARQUIVO))) {
+            String linha;
+            while ((linha = reader.readLine()) != null) {
+                String[] dados = linha.split(";");
+                // Verifica se a linha possui os 5 campos esperados
+                if (dados.length >= 5) {
+                    lista.add(new Cliente(
+                        Integer.parseInt(dados[0]), // id
+                        dados[1],                   // nome
+                        dados[2],                   // cpf
+                        dados[3],                   // telefone
+                        dados[4]                    // email
+                    ));
+                }
             }
-        } catch (Exception e) {
-            System.out.println("Erro ao listar clientes: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("Erro ao ler o arquivo .txt: " + e.getMessage());
         }
         return lista;
     }
