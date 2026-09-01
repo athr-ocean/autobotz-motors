@@ -79,7 +79,7 @@ public class Main {
                     String telefone = scanner.nextLine();
                     System.out.print("Email: ");
                     String email = scanner.nextLine();
-                    clienteDAO.cadastrar(new Cliente(nome, cpf, telefone, email));
+                    clienteDAO.salvar(new Cliente(nome, cpf, telefone, email));
                     break;
 
                 case 6:
