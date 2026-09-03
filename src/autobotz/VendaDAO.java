@@ -17,6 +17,21 @@ public class VendaDAO {
     }
 
     public List<String> listarVendas() {
-        return new ArrayList<>();
+        List<String> lista = new ArrayList<>();
+        File file = new File(ARQUIVO);
+        if (!file.exists()) return lista;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(ARQUIVO))) {
+            String linha;
+            while ((linha = reader.readLine()) != null) {
+                String[] dados = linha.split(";");
+                if (dados.length >= 3) {
+                    lista.add("ID Cliente: " + dados[0] + " | ID Veículo: " + dados[1] + " | Valor Final: R$" + dados[2]);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Erro ao ler o arquivo txt: " + e.getMessage());
+        }
+        return lista;
     }
 }
