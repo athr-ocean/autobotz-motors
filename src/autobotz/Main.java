@@ -19,6 +19,32 @@ public class Main {
         // Correção aplicada: uso de Locale.of() em vez do construtor depreciado new Locale()
         Locale locale = (langOpcao == 2) ? Locale.of("en", "US") : Locale.of("pt", "BR");
         ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
+        /*
+         * ==========================================================
+         * AUTENTICAÇÃO - FRENTE 7
+         * ==========================================================
+         */
+
+        UsuarioDAO usuarioDAO = new UsuarioDAO();
+        AuthService authService = new AuthService(usuarioDAO);
+
+        LoginMenu loginMenu =
+                new LoginMenu(scanner, authService);
+
+        boolean loginSucesso = loginMenu.executar();
+
+        if (!loginSucesso) {
+            System.out.println("Acesso negado.");
+            scanner.close();
+            return;
+        }
+
+        /*
+         * ==========================================================
+         * MENU ORIGINAL DO ERP
+         * ==========================================================
+         */
+
 
         VeiculoDAO veiculoDAO = new VeiculoDAO();
         ClienteDAO clienteDAO = new ClienteDAO();

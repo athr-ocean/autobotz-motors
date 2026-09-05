@@ -1,5 +1,6 @@
 package autobotz;
 
-public class PerfilUsuario {
-
+public enum PerfilUsuario {
+    ADMIN,
+    VENDEDOR
 }
