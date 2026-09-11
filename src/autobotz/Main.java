@@ -22,7 +22,6 @@ public class Main {
         VeiculoDAO veiculoDAO = new VeiculoDAO();
         ClienteDAO clienteDAO = new ClienteDAO();
         VendaDAO vendaDAO = new VendaDAO();
-        VendaService vendaService = new VendaService();
 
         int opcao = -1;
 
@@ -116,7 +115,7 @@ public class Main {
                         int idVeiculo = scanner.nextInt();
                         System.out.print(bundle.getString("venda.valor_final"));
                         double valorFinal = scanner.nextDouble();
-                        vendaService.realizarVenda(idCliente, idVeiculo, valorFinal);
+                        vendaDAO.registrarVenda(idCliente, idVeiculo, valorFinal);
                         break;
 
                     case 8:
