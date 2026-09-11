@@ -6,11 +6,11 @@ public class Cliente {
     private String cpf;
     private String telefone;
     private String email;
-    
+
     public void setId(int id) {
         this.id = id;
-    } 
-    
+    }
+
     public Cliente(int id, String nome) {
         this.id = id;
         this.nome = nome;

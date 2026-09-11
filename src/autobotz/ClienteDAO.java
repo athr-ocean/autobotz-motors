@@ -1,66 +1,59 @@
 package autobotz;
 
-import java.io.*;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ClienteDAO {
-    private static final String ARQUIVO = "clientes.txt";
-    
-    private int gerarProximoId() {
-        List<Cliente> clientes = listar();
 
-        int maxId = 0;
-
-        for (Cliente c : clientes) {
-            if (c.getId() > maxId) {
-                maxId = c.getId();
-            }
+    public void salvar(Cliente cliente) throws SQLException {
+        if (buscarPorCpf(cliente.getCpf()) != null) {
+            throw new SQLException("Ja existe um cliente cadastrado com o CPF " + cliente.getCpf() + ".");
         }
-
-        return maxId + 1;
-    }
-    
-    public void salvar(Cliente cliente) {
-    	
-    	cliente.setId(gerarProximoId());
-    	
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARQUIVO, true))) {
-            // Salva todos os atributos separados por ponto e vírgula
-            writer.write(cliente.getId() + ";" + 
-                         cliente.getNome() + ";" + 
-                         cliente.getCpf() + ";" + 
-                         cliente.getTelefone() + ";" + 
-                         cliente.getEmail());
-            writer.newLine();
-        } catch (IOException e) {
-            System.err.println("Erro ao salvar no arquivo .txt: " + e.getMessage());
+        String sql = "INSERT INTO clientes (nome, cpf, telefone, email) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+            stmt.setString(1, cliente.getNome());
+            stmt.setString(2, cliente.getCpf());
+            stmt.setString(3, cliente.getTelefone());
+            stmt.setString(4, cliente.getEmail());
+            stmt.executeUpdate();
         }
     }
 
-    public List<Cliente> listar() {
+    public List<Cliente> listar() throws SQLException {
         List<Cliente> lista = new ArrayList<>();
-        File file = new File(ARQUIVO);
-        if (!file.exists()) return lista;
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(ARQUIVO))) {
-            String linha;
-            while ((linha = reader.readLine()) != null) {
-                String[] dados = linha.split(";");
-                // Verifica se a linha possui os 5 campos esperados
-                if (dados.length >= 5) {
-                    lista.add(new Cliente(
-                        Integer.parseInt(dados[0]), // id
-                        dados[1],                   // nome
-                        dados[2],                   // cpf
-                        dados[3],                   // telefone
-                        dados[4]                    // email
-                    ));
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Erro ao ler o arquivo .txt: " + e.getMessage());
+        String sql = "SELECT id_cliente, nome, cpf, telefone, email FROM clientes ORDER BY id_cliente";
+        try (Statement stmt = ConexaoBanco.getConexao().createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) lista.add(mapear(rs));
         }
         return lista;
+    }
+
+    public Cliente buscarPorId(int id) throws SQLException {
+        String sql = "SELECT id_cliente, nome, cpf, telefone, email FROM clientes WHERE id_cliente = ?";
+        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return mapear(rs);
+            }
+        }
+        return null;
+    }
+
+    public Cliente buscarPorCpf(String cpf) throws SQLException {
+        String sql = "SELECT id_cliente, nome, cpf, telefone, email FROM clientes WHERE cpf = ?";
+        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+            stmt.setString(1, cpf);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return mapear(rs);
+            }
+        }
+        return null;
+    }
+
+    private Cliente mapear(ResultSet rs) throws SQLException {
+        return new Cliente(rs.getInt("id_cliente"), rs.getString("nome"),
+                rs.getString("cpf"), rs.getString("telefone"), rs.getString("email"));
     }
 }
