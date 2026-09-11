@@ -6,8 +6,25 @@ import java.util.List;
 
 public class ClienteDAO {
     private static final String ARQUIVO = "clientes.txt";
+    
+    private int gerarProximoId() {
+        List<Cliente> clientes = listar();
 
+        int maxId = 0;
+
+        for (Cliente c : clientes) {
+            if (c.getId() > maxId) {
+                maxId = c.getId();
+            }
+        }
+
+        return maxId + 1;
+    }
+    
     public void salvar(Cliente cliente) {
+    	
+    	cliente.setId(gerarProximoId());
+    	
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARQUIVO, true))) {
             // Salva todos os atributos separados por ponto e vírgula
             writer.write(cliente.getId() + ";" + 
