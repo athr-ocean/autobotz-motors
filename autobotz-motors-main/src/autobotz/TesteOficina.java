@@ -8,8 +8,8 @@ public class TesteOficina {
 
         ServicoDAO servicoDAO = new ServicoDAO();
  
-        Servico servico1 = new Servico("Troca de óleo", 150.00);
-        Servico servico2 = new Servico("Alinhamento", 100.00);
+        Servico servico1 = new Servico("Troca de pneu", 250.00);
+        Servico servico2 = new Servico("Alinhamento", 120.00);
      
         servicoDAO.inserir(servico1);
         servicoDAO.inserir(servico2);
@@ -20,8 +20,8 @@ public class TesteOficina {
         OrdemServicoDAO ordemServicoDAO = new OrdemServicoDAO();
 
         OrdemServico os = new OrdemServico(
-            1,
-            1,
+            2,
+            2,
             LocalDate.now(),
             "Aberta"
         );
