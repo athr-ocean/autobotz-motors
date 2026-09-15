@@ -1,67 +1,77 @@
 package autobotz.service;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
+import autobotz.dao.AuditoriaDAO;
+import autobotz.model.LogAuditoria;
 import autobotz.util.ConexaoBanco;
 
 public class RelatorioService {
-
-    // Extrai o faturamento agrupando por ano e mês usando SUM e GROUP BY
-    public void gerarRelatorioFaturamentoMensal() {
-        // Ajustado para a tabela oficial de vendas da equipe
-        String sql = "SELECT YEAR(data_venda) AS ano, MONTH(data_venda) AS mes, SUM(valor_venda) AS total_faturado " +
-                     "FROM vendas " +
-                     "GROUP BY ano, mes " +
-                     "ORDER BY ano DESC, mes DESC";
-
-        try (Connection conn = ConexaoBanco.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            System.out.println("\n=== RELATÓRIO DE FATURAMENTO MENSAL ===");
-            while (rs.next()) {
-                int ano = rs.getInt("ano");
-                int mes = rs.getInt("mes");
-                double total = rs.getDouble("total_faturado");
-                System.out.printf("Mês/Ano: %02d/%d | Faturamento: R$ %.2f\n", mes, ano, total);
-            }
-            System.out.println("=======================================\n");
-
-        } catch (SQLException e) {
-            System.err.println("Erro ao gerar relatório de faturamento: " + e.getMessage());
-        }
-    }
-    
-    // Filtra carros no pátio há mais de X dias usando DATEDIFF e HAVING
-    public void listarVeiculosEncalhados(int diasTolerancia) {
-        String sql = "SELECT marca, modelo, ano, DATEDIFF(NOW(), data_cadastro) AS dias_parados " +
-                     "FROM veiculos " +
-                     "WHERE status = 'Disponível' " +
-                     "HAVING dias_parados >= ? " +
-                     "ORDER BY dias_parados DESC";
-
-        try (Connection conn = ConexaoBanco.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, diasTolerancia);
-            
+    public List<String> faturamento(LocalDate inicio, LocalDate fim) throws SQLException {
+        validarPeriodo(inicio, fim);
+        String sql = "SELECT DATE_FORMAT(data_venda, '%Y-%m') AS periodo, "
+                + "SUM(valor_final) AS faturamento, COUNT(*) AS quantidade "
+                + "FROM vendas WHERE data_venda BETWEEN ? AND ? "
+                + "GROUP BY DATE_FORMAT(data_venda, '%Y-%m') "
+                + "HAVING SUM(valor_final) > 0 ORDER BY periodo";
+        List<String> linhas = new ArrayList<>();
+        try (Connection conexao = ConexaoBanco.getConexao();
+                PreparedStatement stmt = conexao.prepareStatement(sql)) {
+            stmt.setDate(1, Date.valueOf(inicio));
+            stmt.setDate(2, Date.valueOf(fim));
             try (ResultSet rs = stmt.executeQuery()) {
-                System.out.println("\n=== VEÍCULOS ENCALHADOS (+" + diasTolerancia + " dias) ===");
-                while (rs.next()) {
-                    String marca = rs.getString("marca");
-                    String modelo = rs.getString("modelo");
-                    int ano = rs.getInt("ano");
-                    int dias = rs.getInt("dias_parados");
-                    System.out.printf("%s %s (%d) - Parado há %d dias\n", marca, modelo, ano, dias);
-                }
-                System.out.println("===================================================\n");
+                while (rs.next()) linhas.add(String.format("%s | vendas: %d | faturamento: %.2f",
+                        rs.getString("periodo"), rs.getInt("quantidade"), rs.getDouble("faturamento")));
             }
+        }
+        return linhas;
+    }
 
-        } catch (SQLException e) {
-            System.err.println("Erro ao buscar veículos encalhados: " + e.getMessage());
+    public List<String> curvaEstoque() throws SQLException {
+        String sql = "SELECT status, COUNT(*) AS quantidade, SUM(preco) AS valor_total "
+                + "FROM veiculos GROUP BY status HAVING COUNT(*) > 0 ORDER BY quantidade DESC";
+        List<String> linhas = new ArrayList<>();
+        try (Connection conexao = ConexaoBanco.getConexao();
+                PreparedStatement stmt = conexao.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) linhas.add(String.format("%s | quantidade: %d | valor: %.2f",
+                    rs.getString("status"), rs.getInt("quantidade"), rs.getDouble("valor_total")));
+        }
+        return linhas;
+    }
+
+    public List<String> veiculacao() throws SQLException {
+        String sql = "SELECT ve.marca, ve.modelo, COUNT(v.id_venda) AS vendas, "
+                + "SUM(v.valor_final) AS faturamento, "
+                + "AVG(DATEDIFF(CURRENT_DATE, v.data_venda)) AS dias_medio "
+                + "FROM vendas v JOIN veiculos ve ON ve.id = v.id_veiculo "
+                + "GROUP BY ve.marca, ve.modelo HAVING COUNT(v.id_venda) > 0 "
+                + "ORDER BY vendas DESC, faturamento DESC";
+        List<String> linhas = new ArrayList<>();
+        try (Connection conexao = ConexaoBanco.getConexao();
+                PreparedStatement stmt = conexao.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) linhas.add(String.format("%s %s | vendas: %d | faturamento: %.2f | dias: %.1f",
+                    rs.getString("marca"), rs.getString("modelo"), rs.getInt("vendas"),
+                    rs.getDouble("faturamento"), rs.getDouble("dias_medio")));
+        }
+        return linhas;
+    }
+
+    public List<LogAuditoria> auditoriaRecente(int limite) throws SQLException {
+        return new AuditoriaDAO().listarRecentes(limite);
+    }
+
+    private void validarPeriodo(LocalDate inicio, LocalDate fim) {
+        if (inicio == null || fim == null || fim.isBefore(inicio)) {
+            throw new IllegalArgumentException("Periodo de relatorio invalido.");
         }
     }
 }
