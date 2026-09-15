@@ -7,8 +7,8 @@ import java.sql.SQLException;
 
 public class ConexaoBanco {
 	private static final String URL = "jdbc:mysql://localhost:3306/autobotz_db?useTimezone=true&serverTimezone=UTC";
-	private static final String USUARIO = "root";
-	private static final String SENHA = ""; // TODO: ajustar para a senha real do seu MySQL local
+	private static final String USUARIO = System.getenv().getOrDefault("AUTOBOTZ_DB_USER", "root");
+	private static final String SENHA = System.getenv().getOrDefault("AUTOBOTZ_DB_PASSWORD", "");
 
 	private static Connection conexao;
 
