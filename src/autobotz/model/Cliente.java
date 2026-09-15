@@ -1,4 +1,4 @@
-package autobotz;
+package autobotz.model;
 
 public class Cliente {
     private int id;
@@ -6,6 +6,7 @@ public class Cliente {
     private String cpf;
     private String telefone;
     private String email;
+    private boolean ativo;
 
     public void setId(int id) {
         this.id = id;
@@ -14,6 +15,7 @@ public class Cliente {
     public Cliente(int id, String nome) {
         this.id = id;
         this.nome = nome;
+        this.ativo = true;
     }
 
     public Cliente(String nome, String cpf, String telefone, String email) {
@@ -21,6 +23,7 @@ public class Cliente {
         this.cpf = cpf;
         this.telefone = telefone;
         this.email = email;
+        this.ativo = true;
     }
 
     public Cliente(int id, String nome, String cpf, String telefone, String email) {
@@ -29,6 +32,12 @@ public class Cliente {
         this.cpf = cpf;
         this.telefone = telefone;
         this.email = email;
+        this.ativo = true;
+    }
+
+    public Cliente(int id, String nome, String cpf, String telefone, String email, boolean ativo) {
+        this(id, nome, cpf, telefone, email);
+        this.ativo = ativo;
     }
 
     public int getId() { return id; }
@@ -36,4 +45,6 @@ public class Cliente {
     public String getCpf() { return cpf; }
     public String getTelefone() { return telefone; }
     public String getEmail() { return email; }
+    public boolean isAtivo() { return ativo; }
+    public void setAtivo(boolean ativo) { this.ativo = ativo; }
 }

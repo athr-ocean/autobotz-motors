@@ -1,5 +1,5 @@
 // src/autobotz/ConexaoBanco.java
-package autobotz;
+package autobotz.util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
