@@ -1,21 +1,14 @@
 package autobotz;
 
 public class SessaoUsuario {
-
-    private static SessaoUsuario instancia;
-
+    private static final SessaoUsuario INSTANCIA = new SessaoUsuario();
     private Usuario usuario;
 
     private SessaoUsuario() {
     }
 
     public static SessaoUsuario getInstancia() {
-
-        if (instancia == null) {
-            instancia = new SessaoUsuario();
-        }
-
-        return instancia;
+        return INSTANCIA;
     }
 
     public void setUsuario(Usuario usuario) {
@@ -32,5 +25,9 @@ public class SessaoUsuario {
 
     public boolean estaLogado() {
         return usuario != null;
+    }
+
+    public boolean possuiPerfil(PerfilUsuario perfil) {
+        return usuario != null && usuario.getPerfil() == perfil;
     }
 }

@@ -1,176 +1,71 @@
 package autobotz;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import autobotz.util.ConexaoBanco;
 
 public class UsuarioDAO {
 
-    private static final String ARQUIVO = obterCaminhoArquivo();
+    public void salvar(Usuario usuario) throws SQLException {
 
-    private static String obterCaminhoArquivo() {
+        String sql =
+                "INSERT INTO usuarios " +
+                "(nome_usuario, senha_hash, perfil) " +
+                "VALUES (?, ?, ?)";
 
-        try {
-            File pastaBin = new File(
-                    UsuarioDAO.class
-                            .getProtectionDomain()
-                            .getCodeSource()
-                            .getLocation()
-                            .toURI()
-            );
+        try (PreparedStatement stmt =
+                     ConexaoBanco.getConexao()
+                             .prepareStatement(
+                                     sql,
+                                     Statement.RETURN_GENERATED_KEYS)) {
 
-            // bin -> pasta do projeto
-            File pastaProjeto = pastaBin.getParentFile();
+            stmt.setString(1, usuario.getNomeUsuario());
+            stmt.setString(2, usuario.getSenhaHash());
+            stmt.setString(3, usuario.getPerfil().name());
 
-            return new File(
-                    pastaProjeto,
-                    "usuarios.txt"
-            ).getAbsolutePath();
+            stmt.executeUpdate();
 
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    "Não foi possível localizar a pasta do projeto.",
-                    e
-            );
-        }
-    }
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
 
-    public void salvar(Usuario usuario) {
-
-        int novoId = proximoId();
-        usuario.setId(novoId);
-
-        try (BufferedWriter writer = new BufferedWriter(
-                new FileWriter(ARQUIVO, true))) {
-
-            writer.write(
-                    usuario.getId() + ";" +
-                    usuario.getNomeUsuario() + ";" +
-                    usuario.getSenhaHash() + ";" +
-                    usuario.getPerfil().name()
-            );
-
-            writer.newLine();
-
-        } catch (IOException e) {
-            System.out.println(
-                    "Erro ao salvar usuário: "
-                            + e.getMessage()
-            );
-        }
-    }
-
-    public Usuario buscarPorNome(String nomeUsuario) {
-
-        File file = new File(ARQUIVO);
-
-        if (!file.exists()) {
-            return null;
-        }
-
-        try (BufferedReader reader =
-                     new BufferedReader(
-                             new FileReader(ARQUIVO))) {
-
-            String linha;
-
-            while ((linha = reader.readLine()) != null) {
-
-                String[] dados = linha.split(";");
-
-                if (dados.length >= 4 &&
-                        dados[1].equals(nomeUsuario)) {
-
-                    int id = Integer.parseInt(dados[0]);
-                    String nome = dados[1];
-                    String senhaHash = dados[2];
-
-                    PerfilUsuario perfil =
-                            PerfilUsuario.valueOf(dados[3]);
-
-                    return new Usuario(
-                            id,
-                            nome,
-                            senhaHash,
-                            perfil
-                    );
+                if (rs.next()) {
+                    usuario.setId(rs.getInt(1));
                 }
             }
-
-        } catch (IOException |
-                 IllegalArgumentException e) {
-
-            System.out.println(
-                    "Erro ao buscar usuário: "
-                            + e.getMessage()
-            );
         }
-
-        return null;
     }
 
-    private int proximoId() {
+    public Usuario buscarPorNome(String nomeUsuario)
+            throws SQLException {
 
-        List<Usuario> usuarios = listar();
+        String sql =
+                "SELECT id_usuario, nome_usuario, senha_hash, perfil " +
+                "FROM usuarios WHERE nome_usuario = ?";
 
-        int maiorId = 0;
+        try (PreparedStatement stmt =
+                     ConexaoBanco.getConexao()
+                             .prepareStatement(sql)) {
 
-        for (Usuario usuario : usuarios) {
-            if (usuario.getId() > maiorId) {
-                maiorId = usuario.getId();
-            }
-        }
+            stmt.setString(1, nomeUsuario);
 
-        return maiorId + 1;
-    }
+            try (ResultSet rs = stmt.executeQuery()) {
 
-    private List<Usuario> listar() {
+                if (rs.next()) {
 
-        List<Usuario> lista = new ArrayList<>();
-
-        File file = new File(ARQUIVO);
-
-        if (!file.exists()) {
-            return lista;
-        }
-
-        try (BufferedReader reader =
-                     new BufferedReader(
-                             new FileReader(ARQUIVO))) {
-
-            String linha;
-
-            while ((linha = reader.readLine()) != null) {
-
-                String[] dados = linha.split(";");
-
-                if (dados.length >= 4) {
-
-                    int id = Integer.parseInt(dados[0]);
-
-                    PerfilUsuario perfil =
-                            PerfilUsuario.valueOf(dados[3]);
-
-                    lista.add(
-                            new Usuario(
-                                    id,
-                                    dados[1],
-                                    dados[2],
-                                    perfil
+                    return new Usuario(
+                            rs.getInt("id_usuario"),
+                            rs.getString("nome_usuario"),
+                            rs.getString("senha_hash"),
+                            PerfilUsuario.valueOf(
+                                    rs.getString("perfil")
                             )
                     );
                 }
             }
-
-        } catch (IOException |
-                 IllegalArgumentException e) {
-
-            System.out.println(
-                    "Erro ao listar usuários: "
-                            + e.getMessage()
-            );
         }
 
-        return lista;
+        return null;
     }
 }

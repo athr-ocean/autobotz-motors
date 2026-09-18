@@ -5,6 +5,18 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Scanner;
 
+import autobotz.dao.ClienteDAO;
+import autobotz.dao.VeiculoDAO;
+import autobotz.dao.VendaDAO;
+import autobotz.model.Cliente;
+import autobotz.model.Veiculo;
+import autobotz.model.Venda;
+import autobotz.ui.ServicoMenu;
+import autobotz.ui.RelatorioMenu;
+import autobotz.ui.ClienteMenu;
+import autobotz.service.VendaService;
+import autobotz.util.I18nUtils;
+
 public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -17,37 +29,24 @@ public class Main {
         scanner.nextLine();
 
         Locale locale = (langOpcao == 2) ? Locale.of("en", "US") : Locale.of("pt", "BR");
-        ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);
-        /*
-         * ==========================================================
-         * AUTENTICAÇÃO - FRENTE 7
-         * ==========================================================
-         */
+        ResourceBundle bundle = I18nUtils.getBundle(locale);
 
         UsuarioDAO usuarioDAO = new UsuarioDAO();
         AuthService authService = new AuthService(usuarioDAO);
-
-        LoginMenu loginMenu =
-                new LoginMenu(scanner, authService);
-
-        boolean loginSucesso = loginMenu.executar();
-
-        if (!loginSucesso) {
-            System.out.println("Acesso negado.");
+        LoginMenu loginMenu = new LoginMenu(scanner, authService);
+        if (!loginMenu.executar()) {
+            System.out.println("Acesso encerrado.");
             scanner.close();
             return;
         }
 
-        /*
-         * ==========================================================
-         * MENU ORIGINAL DO ERP
-         * ==========================================================
-         */
-
-
         VeiculoDAO veiculoDAO = new VeiculoDAO();
         ClienteDAO clienteDAO = new ClienteDAO();
         VendaDAO vendaDAO = new VendaDAO();
+        VendaService vendaService = new VendaService();
+        ServicoMenu servicoMenu = new ServicoMenu(scanner);
+        RelatorioMenu relatorioMenu = new RelatorioMenu(scanner);
+        ClienteMenu clienteMenu = new ClienteMenu(scanner);
 
         int opcao = -1;
 
@@ -61,6 +60,9 @@ public class Main {
             System.out.println(bundle.getString("menu.opcao6"));
             System.out.println(bundle.getString("menu.opcao7"));
             System.out.println(bundle.getString("menu.opcao8"));
+            System.out.println(bundle.getString("menu.opcao9"));
+            System.out.println(bundle.getString("menu.opcao10"));
+            System.out.println(bundle.getString("menu.opcao11"));
             System.out.println(bundle.getString("menu.opcao0"));
             System.out.print(bundle.getString("menu.escolha"));
             opcao = scanner.nextInt();
@@ -69,6 +71,8 @@ public class Main {
             try {
                 switch (opcao) {
                     case 1:
+                        System.out.print(bundle.getString("veiculo.placa"));
+                        String placa = scanner.nextLine();
                         System.out.print(bundle.getString("veiculo.marca"));
                         String marca = scanner.nextLine();
                         System.out.print(bundle.getString("veiculo.modelo"));
@@ -77,7 +81,7 @@ public class Main {
                         int ano = scanner.nextInt();
                         System.out.print(bundle.getString("veiculo.preco"));
                         double preco = scanner.nextDouble();
-                        veiculoDAO.cadastrar(new Veiculo(marca, modelo, ano, preco));
+                        veiculoDAO.cadastrar(new Veiculo(placa, modelo, marca, ano, preco));
                         break;
 
                     case 2:
@@ -86,7 +90,7 @@ public class Main {
                             System.out.println("ID: " + v.getId()
                                     + " | " + v.getMarca() + " " + v.getModelo()
                                     + " | " + bundle.getString("veiculo.ano_label") + v.getAno()
-                                    + " | R$" + v.getPreco()
+                                    + " | " + I18nUtils.formatCurrency(v.getPreco(), locale)
                                     + " | " + bundle.getString("veiculo.status") + v.getStatus());
                         }
                         break;
@@ -141,14 +145,28 @@ public class Main {
                         int idVeiculo = scanner.nextInt();
                         System.out.print(bundle.getString("venda.valor_final"));
                         double valorFinal = scanner.nextDouble();
-                        vendaDAO.registrarVenda(idCliente, idVeiculo, valorFinal);
+                        vendaService.realizarVenda(idCliente, idVeiculo, valorFinal);
                         break;
 
                     case 8:
                         System.out.println(bundle.getString("venda.historico_titulo"));
-                        for (String v : vendaDAO.listarVendas()) {
-                            System.out.println(v);
+                        for (Venda venda : vendaDAO.listarVendas()) {
+                            System.out.println("Cliente: " + venda.getIdCliente()
+                                    + " | Veiculo: " + venda.getIdVeiculo()
+                                    + " | Valor: " + I18nUtils.formatCurrency(venda.getValorTotal(), locale));
                         }
+                        break;
+
+                    case 9:
+                        servicoMenu.exibirMenu();
+                        break;
+
+                    case 10:
+                        relatorioMenu.exibirMenu();
+                        break;
+
+                    case 11:
+                        clienteMenu.exibirMenu();
                         break;
 
                     case 0:
@@ -158,7 +176,7 @@ public class Main {
                     default:
                         System.out.println(bundle.getString("sistema.opcao_invalida"));
                 }
-            } catch (SQLException e) {
+            } catch (SQLException | IllegalArgumentException e) {
                 System.out.println("Erro: " + e.getMessage());
             }
         }

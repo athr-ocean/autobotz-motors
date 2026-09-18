@@ -1,7 +1,6 @@
 package autobotz;
 
 public class Usuario {
-
     private int id;
     private String nomeUsuario;
     private String senhaHash;
@@ -20,23 +19,9 @@ public class Usuario {
         this.perfil = perfil;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public String getNomeUsuario() {
-        return nomeUsuario;
-    }
-
-    public String getSenhaHash() {
-        return senhaHash;
-    }
-
-    public PerfilUsuario getPerfil() {
-        return perfil;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
+    public int getId() { return id; }
+    public String getNomeUsuario() { return nomeUsuario; }
+    public String getSenhaHash() { return senhaHash; }
+    public PerfilUsuario getPerfil() { return perfil; }
+    public void setId(int id) { this.id = id; }
 }
