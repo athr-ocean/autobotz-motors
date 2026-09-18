@@ -45,13 +45,8 @@ public class Main {
         UsuarioDAO usuarioDAO = new UsuarioDAO();
         AuthService authService = new AuthService(usuarioDAO);
         AutorizacaoService autorizacaoService = new AutorizacaoService();
-        LoginMenu loginMenu = new LoginMenu(scanner, authService);
+        LoginMenu loginMenu = new LoginMenu(scanner, authService, bundle);
 
-        if (!loginMenu.executar()) {
-            System.out.println("Acesso encerrado.");
-            scanner.close();
-            return;
-        }
 
         /*
          * ==============================
@@ -72,6 +67,12 @@ public class Main {
 
         while (opcao != 0) {
 
+            if (!loginMenu.executar()) {
+            System.out.println("Acesso encerrado.");
+            scanner.close();
+            return;
+            }
+
             System.out.println(bundle.getString("menu.titulo"));
             System.out.println(bundle.getString("menu.opcao1"));
             System.out.println(bundle.getString("menu.opcao2"));
@@ -84,6 +85,7 @@ public class Main {
             System.out.println(bundle.getString("menu.opcao9"));
             System.out.println(bundle.getString("menu.opcao10"));
             System.out.println(bundle.getString("menu.opcao11"));
+            System.out.println(bundle.getString("menu.opcao12"));
             System.out.println(bundle.getString("menu.opcao0"));
 
             System.out.print(bundle.getString("menu.escolha"));
@@ -387,10 +389,15 @@ public class Main {
                         clienteMenu.exibirMenu();
 
                         break;
-
-                    case 0:
+                    
+                    case 12:    
 
                     SessaoUsuario.getInstancia().encerrarSessao();
+                        System.out.println("...");
+                        break;
+                    
+                    case 0:
+
 
                         System.out.println(
                                 bundle.getString("sistema.encerrando")
