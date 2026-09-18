@@ -1,23 +1,27 @@
 package autobotz;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
 import java.sql.SQLException;
 import java.util.Scanner;
 
 public class LoginMenu {
     private final Scanner scanner;
     private final AuthService authService;
+    private final ResourceBundle bundle;
 
-    public LoginMenu(Scanner scanner, AuthService authService) {
+    public LoginMenu(Scanner scanner, AuthService authService, ResourceBundle bundle) {
         this.scanner = scanner;
         this.authService = authService;
+        this.bundle = bundle;
     }
 
     public boolean executar() {
         while (true) {
             System.out.println("\n========== AUTENTICACAO ==========");
-            System.out.println("1. Fazer login");
-            System.out.println("2. Cadastrar usuario");
-            System.out.println("0. Sair");
+            System.out.println(bundle.getString("menu.login01"));
+            System.out.println(bundle.getString("menu.login02"));
+            System.out.println(bundle.getString("menu.login03"));
             System.out.print("Escolha: ");
 
             try {
