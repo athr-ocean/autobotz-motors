@@ -44,6 +44,7 @@ public class Main {
 
         UsuarioDAO usuarioDAO = new UsuarioDAO();
         AuthService authService = new AuthService(usuarioDAO);
+        AutorizacaoService autorizacaoService = new AutorizacaoService();
         LoginMenu loginMenu = new LoginMenu(scanner, authService);
 
         if (!loginMenu.executar()) {
@@ -95,6 +96,10 @@ public class Main {
                 switch (opcao) {
 
                     case 1:
+                        if (!autorizacaoService.exigirPermissao( AutorizacaoService.Permissao.CADASTRAR_VEICULO)) {
+                        break;
+                        }
+
 
                         System.out.print(bundle.getString("veiculo.placa"));
                         String placa = scanner.nextLine();
@@ -125,6 +130,11 @@ public class Main {
 
                     case 2:
 
+                        if (!autorizacaoService.exigirPermissao(
+                        AutorizacaoService.Permissao.LISTAR_VEICULOS)) {
+                        break;
+                        }
+
                         System.out.println(
                                 bundle.getString("veiculo.lista_titulo")
                         );
@@ -152,6 +162,11 @@ public class Main {
                         break;
 
                     case 3:
+
+                        if (!autorizacaoService.exigirPermissao(
+                            AutorizacaoService.Permissao.ATUALIZAR_VEICULO)) {
+                         break;
+                        }
 
                         System.out.print(
                                 bundle.getString("veiculo.id_atualizar")
@@ -195,6 +210,10 @@ public class Main {
                         break;
 
                     case 4:
+                        if (!autorizacaoService.exigirPermissao(
+                        AutorizacaoService.Permissao.EXCLUIR_VEICULO)) {
+                        break;
+                        }
 
                         System.out.print(
                                 bundle.getString("veiculo.id_excluir")
@@ -207,6 +226,11 @@ public class Main {
                         break;
 
                     case 5:
+
+                        if (!autorizacaoService.exigirPermissao(
+                        AutorizacaoService.Permissao.CADASTRAR_CLIENTE)) {
+                        break;
+                        }
 
                         System.out.print(
                                 bundle.getString("cliente.nome")
@@ -244,6 +268,10 @@ public class Main {
                         break;
 
                     case 6:
+                        if (!autorizacaoService.exigirPermissao(
+                        AutorizacaoService.Permissao.LISTAR_CLIENTES)) {
+                        break;
+                        }
 
                         System.out.println(
                                 bundle.getString("cliente.lista_titulo")
@@ -267,6 +295,12 @@ public class Main {
                         break;
 
                     case 7:
+
+                        if (!autorizacaoService.exigirPermissao(
+                            AutorizacaoService.Permissao.REALIZAR_VENDA)) {
+                            break;
+                        }
+
 
                         System.out.print(
                                 bundle.getString("venda.id_cliente")
@@ -296,6 +330,11 @@ public class Main {
 
                     case 8:
 
+                        if (!autorizacaoService.exigirPermissao(
+                        AutorizacaoService.Permissao.LISTAR_VENDAS)) {
+                        break;
+                        }
+
                         System.out.println(
                                 bundle.getString("venda.historico_titulo")
                         );
@@ -318,6 +357,10 @@ public class Main {
                         break;
 
                     case 9:
+                        if (!autorizacaoService.exigirPermissao(
+                        AutorizacaoService.Permissao.ACESSAR_OFICINA)) {
+                            break;
+                        }
 
                         System.out.println(
                                 "Modulo da oficina indisponivel no momento."
@@ -326,18 +369,28 @@ public class Main {
                         break;
 
                     case 10:
+                        if (!autorizacaoService.exigirPermissao(
+                        AutorizacaoService.Permissao.ACESSAR_RELATORIOS)) {
+                            break;
+                        }
 
                         relatorioMenu.exibirMenu();
 
                         break;
 
                     case 11:
+                        if (!autorizacaoService.exigirPermissao(
+                        AutorizacaoService.Permissao.ACESSAR_CLIENTE_LGPD)) {
+                        break;
+                        }
 
                         clienteMenu.exibirMenu();
 
                         break;
 
                     case 0:
+
+                    SessaoUsuario.getInstancia().encerrarSessao();
 
                         System.out.println(
                                 bundle.getString("sistema.encerrando")
