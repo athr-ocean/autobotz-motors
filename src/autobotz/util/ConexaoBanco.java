@@ -6,9 +6,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class ConexaoBanco {
-	private static final String URL = "jdbc:mysql://localhost:3306/autobotz_db?useTimezone=true&serverTimezone=UTC";
+	private static final String URL = "jdbc:mariadb://localhost:3306/autobotz_db";
 	private static final String USUARIO = System.getenv().getOrDefault("AUTOBOTZ_DB_USER", "root");
-	private static final String SENHA = System.getenv().getOrDefault("AUTOBOTZ_DB_PASSWORD", "");
+	private static final String SENHA = System.getenv().getOrDefault("AUTOBOTZ_DB_PASSWORD", "joao2160");
 
 	private static Connection conexao;
 
