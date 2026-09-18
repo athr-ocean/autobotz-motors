@@ -6,28 +6,56 @@ import java.util.List;
 
 public class UsuarioDAO {
 
-    private static final String ARQUIVO = "usuarios.txt";
+    private static final String ARQUIVO = obterCaminhoArquivo();
+
+    private static String obterCaminhoArquivo() {
+
+        try {
+            File pastaBin = new File(
+                    UsuarioDAO.class
+                            .getProtectionDomain()
+                            .getCodeSource()
+                            .getLocation()
+                            .toURI()
+            );
+
+            // bin -> pasta do projeto
+            File pastaProjeto = pastaBin.getParentFile();
+
+            return new File(
+                    pastaProjeto,
+                    "usuarios.txt"
+            ).getAbsolutePath();
+
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Não foi possível localizar a pasta do projeto.",
+                    e
+            );
+        }
+    }
 
     public void salvar(Usuario usuario) {
 
         int novoId = proximoId();
         usuario.setId(novoId);
 
-        try (BufferedWriter writer =
-                     new BufferedWriter(new FileWriter(ARQUIVO, true))) {
+        try (BufferedWriter writer = new BufferedWriter(
+                new FileWriter(ARQUIVO, true))) {
 
             writer.write(
-                usuario.getId() + ";" +
-                usuario.getNomeUsuario() + ";" +
-                usuario.getSenhaHash() + ";" +
-                usuario.getPerfil().name()
+                    usuario.getId() + ";" +
+                    usuario.getNomeUsuario() + ";" +
+                    usuario.getSenhaHash() + ";" +
+                    usuario.getPerfil().name()
             );
 
             writer.newLine();
 
         } catch (IOException e) {
-            System.err.println(
-                "Erro ao salvar usuário: " + e.getMessage()
+            System.out.println(
+                    "Erro ao salvar usuário: "
+                            + e.getMessage()
             );
         }
     }
@@ -41,7 +69,8 @@ public class UsuarioDAO {
         }
 
         try (BufferedReader reader =
-                     new BufferedReader(new FileReader(ARQUIVO))) {
+                     new BufferedReader(
+                             new FileReader(ARQUIVO))) {
 
             String linha;
 
@@ -50,28 +79,30 @@ public class UsuarioDAO {
                 String[] dados = linha.split(";");
 
                 if (dados.length >= 4 &&
-                    dados[1].equals(nomeUsuario)) {
+                        dados[1].equals(nomeUsuario)) {
 
                     int id = Integer.parseInt(dados[0]);
-
                     String nome = dados[1];
                     String senhaHash = dados[2];
 
                     PerfilUsuario perfil =
-                        PerfilUsuario.valueOf(dados[3]);
+                            PerfilUsuario.valueOf(dados[3]);
 
                     return new Usuario(
-                        id,
-                        nome,
-                        senhaHash,
-                        perfil
+                            id,
+                            nome,
+                            senhaHash,
+                            perfil
                     );
                 }
             }
 
-        } catch (IOException | IllegalArgumentException e) {
-            System.err.println(
-                "Erro ao buscar usuário: " + e.getMessage()
+        } catch (IOException |
+                 IllegalArgumentException e) {
+
+            System.out.println(
+                    "Erro ao buscar usuário: "
+                            + e.getMessage()
             );
         }
 
@@ -104,7 +135,8 @@ public class UsuarioDAO {
         }
 
         try (BufferedReader reader =
-                     new BufferedReader(new FileReader(ARQUIVO))) {
+                     new BufferedReader(
+                             new FileReader(ARQUIVO))) {
 
             String linha;
 
@@ -117,22 +149,25 @@ public class UsuarioDAO {
                     int id = Integer.parseInt(dados[0]);
 
                     PerfilUsuario perfil =
-                        PerfilUsuario.valueOf(dados[3]);
+                            PerfilUsuario.valueOf(dados[3]);
 
                     lista.add(
-                        new Usuario(
-                            id,
-                            dados[1],
-                            dados[2],
-                            perfil
-                        )
+                            new Usuario(
+                                    id,
+                                    dados[1],
+                                    dados[2],
+                                    perfil
+                            )
                     );
                 }
             }
 
-        } catch (IOException | IllegalArgumentException e) {
-            System.err.println(
-                "Erro ao listar usuários: " + e.getMessage()
+        } catch (IOException |
+                 IllegalArgumentException e) {
+
+            System.out.println(
+                    "Erro ao listar usuários: "
+                            + e.getMessage()
             );
         }
 
