@@ -66,13 +66,13 @@ public class Main {
         int opcao = -1;
 
         while (opcao != 0) {
-
+            if (!SessaoUsuario.getInstancia().estaLogado()) {
             if (!loginMenu.executar()) {
             System.out.println("Acesso encerrado.");
             scanner.close();
             return;
             }
-
+            }
             System.out.println(bundle.getString("menu.titulo"));
             System.out.println(bundle.getString("menu.opcao1"));
             System.out.println(bundle.getString("menu.opcao2"));
