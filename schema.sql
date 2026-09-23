@@ -74,3 +74,16 @@ CREATE TABLE IF NOT EXISTS itens_os (
     CONSTRAINT fk_item_ordem FOREIGN KEY (id_ordem) REFERENCES ordens_servico(id_ordem),
     CONSTRAINT fk_item_servico FOREIGN KEY (id_servico) REFERENCES servicos(id_servico)
 );
+
+CREATE TABLE IF NOT EXISTS projetos (
+    id_projeto INT AUTO_INCREMENT PRIMARY KEY,
+    nome_projeto VARCHAR(150) NOT NULL UNIQUE,
+    responsavel VARCHAR(100) NOT NULL,
+    equipe VARCHAR(100) NOT NULL,
+    status VARCHAR(30) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS membros_projeto (
+    id INT PRIMARY KEY,
+    lista_membros TEXT NOT NULL
+);

@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
+
 public class AutorizacaoService {
 
     public enum Permissao {
@@ -21,7 +22,19 @@ public class AutorizacaoService {
 
         ACESSAR_OFICINA,
         ACESSAR_RELATORIOS,
-        ACESSAR_CLIENTE_LGPD
+        ACESSAR_CLIENTE_LGPD,
+
+        CONSULTAR_MEMBROS,
+        ATUALIZAR_MEMBROS,
+
+
+        CONSULTAR_PROJETOS,
+        CRIAR_PROJETOS,
+        ATUALIZAR_PROJETOS,
+        EXCLUIR_PROJETOS
+
+
+
     }
 
     private final Map<PerfilUsuario, Set<Permissao>> matriz;
@@ -55,7 +68,9 @@ public class AutorizacaoService {
                 Permissao.LISTAR_VEICULOS,
                 Permissao.CADASTRAR_CLIENTE,
                 Permissao.LISTAR_CLIENTES,
-                Permissao.REALIZAR_VENDA
+                Permissao.REALIZAR_VENDA,
+                Permissao.CONSULTAR_MEMBROS,
+                Permissao.CONSULTAR_PROJETOS
             )
         );
     }

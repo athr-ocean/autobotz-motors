@@ -57,6 +57,7 @@ public class Main {
         VeiculoDAO veiculoDAO = new VeiculoDAO();
         ClienteDAO clienteDAO = new ClienteDAO();
         VendaDAO vendaDAO = new VendaDAO();
+        ProjetoDAO projetoDAO = new ProjetoDAO();
 
         VendaService vendaService = new VendaService();
 
@@ -86,7 +87,14 @@ public class Main {
             System.out.println(bundle.getString("menu.opcao10"));
             System.out.println(bundle.getString("menu.opcao11"));
             System.out.println(bundle.getString("menu.opcao12"));
+            System.out.println(bundle.getString("menu.opcao13"));
+            System.out.println(bundle.getString("menu.opcao14"));
+            System.out.println(bundle.getString("menu.opcao15"));
+            System.out.println(bundle.getString("menu.opcao16"));
+            System.out.println(bundle.getString("menu.opcao17"));
+            System.out.println(bundle.getString("menu.opcao18"));
             System.out.println(bundle.getString("menu.opcao0"));
+            
 
             System.out.print(bundle.getString("menu.escolha"));
 
@@ -396,6 +404,101 @@ public class Main {
                         System.out.println("...");
                         break;
                     
+                        
+                    case 13:
+                        if (!autorizacaoService.exigirPermissao( AutorizacaoService.Permissao.CRIAR_PROJETOS)) {
+                        break;
+                        }
+
+                        System.out.print("Nome do projeto: ");
+                        String nomeProjeto = scanner.nextLine();
+
+                        System.out.print("Responsável: ");
+                        String responsavel = scanner.nextLine();
+
+                        System.out.print("Equipe: ");
+                        String equipe = scanner.nextLine();
+
+                        System.out.print("Status: ");
+                        String status = scanner.nextLine();
+
+                        projetoDAO.criarProjeto(
+                                nomeProjeto,
+                                responsavel,
+                                equipe,
+                                status
+                                );
+                    
+                    break;
+                    
+                    
+                    case 14:
+                        if (!autorizacaoService.exigirPermissao( AutorizacaoService.Permissao.ATUALIZAR_PROJETOS)) {
+                        break;
+                        }
+
+                        System.out.print("Nome do projeto: ");
+                        String nomeProjetoAtualizar = scanner.nextLine();
+
+                        System.out.print("Novo responsável: ");
+                        String novoResponsavel = scanner.nextLine();
+
+                        System.out.print("Nova equipe: ");
+                        String novaEquipe = scanner.nextLine();
+
+                        System.out.print("Novo status: ");
+                        String novoStatus = scanner.nextLine();
+
+                        projetoDAO.atualizarProjeto(
+                                nomeProjetoAtualizar,
+                                novoResponsavel,
+                                novaEquipe,
+                                novoStatus
+                        );
+
+                    
+                    break;
+                    
+                    case 15:
+                        if (!autorizacaoService.exigirPermissao( AutorizacaoService.Permissao.EXCLUIR_PROJETOS)) {
+                        break;
+                        }
+                        System.out.print("Nome do projeto: ");
+                        String nomeProjetoExcluir = scanner.nextLine();
+
+                        projetoDAO.deletarProjeto(nomeProjetoExcluir);
+
+ 
+                    break;
+
+                    case 16:
+                        if (!autorizacaoService.exigirPermissao( AutorizacaoService.Permissao.ATUALIZAR_MEMBROS)) {
+                        break;
+                        }
+                        System.out.print("Digite os membros do projeto: ");
+                        String listaMembros = scanner.nextLine();
+
+                        projetoDAO.atualizarMembros(listaMembros);
+                    
+                    break;
+
+                    case 17:
+                        if (!autorizacaoService.exigirPermissao( AutorizacaoService.Permissao.CONSULTAR_MEMBROS)) {
+                        break;
+                        }
+                        projetoDAO.consultarMembros();
+                    
+                    break;
+
+                    case 18:
+                        if (!autorizacaoService.exigirPermissao( AutorizacaoService.Permissao.CONSULTAR_PROJETOS)) {
+                        break;
+                        }
+                        projetoDAO.consultarProjetos();
+                    
+                    break;
+
+
                     case 0:
 
 
