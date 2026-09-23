@@ -1,56 +1,138 @@
 package autobotz.ui;
 
-import autobotz.mock.MockItemOSDAO;
-import autobotz.mock.MockOrdemServicoDAO;
-import autobotz.mock.MockServicoDAO;
-import autobotz.mock.MockVendaDAO;
+import autobotz.dao.OrdemServicoDAO;
+import autobotz.dao.ServicoDAO;
+import autobotz.dao.VendaDAO;
 import autobotz.model.ItemOS;
+import autobotz.model.OrdemServico;
+import autobotz.model.Servico;
 import autobotz.service.ResultadoOS;
 import autobotz.service.ServicoService;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class ServicoMenu {
 
     private final Scanner scanner;
     private final ServicoService servicoService;
+    private final ServicoDAO servicoDAO;
+    private final OrdemServicoDAO ordemServicoDAO;
 
     public ServicoMenu(Scanner scanner) {
         this.scanner = scanner;
-        // TODO: quando o Alexandre terminar os DAOs reais, troque os Mock*
-        // pelos DAOs reais aqui.
+        this.servicoDAO = new ServicoDAO();
+        this.ordemServicoDAO = new OrdemServicoDAO();
         this.servicoService = new ServicoService(
-                new MockOrdemServicoDAO(),
-                new MockItemOSDAO(),
-                new MockServicoDAO(),
-                new MockVendaDAO()
+                ordemServicoDAO,
+                servicoDAO,
+                new VendaDAO()
         );
+    }
+
+    // Chamado pelo Main.java (Arthur integra isso no case da Oficina/OS)
+    public void exibirMenu() {
+        executar();
     }
 
     public void executar() {
         boolean sair = false;
         while (!sair) {
-            System.out.println("\n===== MENU DA OFICINA =====");
-            System.out.println("1. Calcular total de uma Ordem de Servico (dados de exemplo)");
-            System.out.println("2. Testar calculo de garantia com data customizada");
+            System.out.println("\n===== MENU DA OFICINA / OS =====");
+            System.out.println("1. Cadastrar novo tipo de servico");
+            System.out.println("2. Abrir nova Ordem de Servico (OS)");
+            System.out.println("3. Adicionar item a uma OS");
+            System.out.println("4. Consultar itens de uma OS");
+            System.out.println("5. Calcular total da OS (considera garantia)");
             System.out.println("0. Voltar");
             System.out.print("Opcao: ");
 
             int opcao = lerInteiro();
 
             switch (opcao) {
-                case 1 -> calcularOrdemExemplo();
-                case 2 -> testarComDataCustomizada();
+                case 1 -> cadastrarServico();
+                case 2 -> abrirOrdemServico();
+                case 3 -> adicionarItem();
+                case 4 -> consultarOrdemServico();
+                case 5 -> calcularTotal();
                 case 0 -> sair = true;
                 default -> System.out.println("Opcao invalida.");
             }
         }
     }
 
-    private void calcularOrdemExemplo() {
-        System.out.print("Digite o ID da Ordem de Servico (1 ou 2 nos dados de teste): ");
+    private void cadastrarServico() {
+        System.out.print("Nome do servico: ");
+        String nome = scanner.nextLine();
+        System.out.print("Preco (ex: 150.00): ");
+        double preco = lerDouble();
+
+        try {
+            Servico servico = new Servico(nome, preco);
+            servicoDAO.inserir(servico);
+            System.out.println("Servico cadastrado com ID: " + servico.getId());
+        } catch (SQLException e) {
+            System.out.println("Erro ao cadastrar servico: " + e.getMessage());
+        }
+    }
+
+    private void abrirOrdemServico() {
+        System.out.print("ID do cliente: ");
+        int idCliente = lerInteiro();
+        System.out.print("ID do veiculo: ");
+        int idVeiculo = lerInteiro();
+
+        try {
+            OrdemServico ordem = new OrdemServico(idCliente, idVeiculo, LocalDate.now(), "ABERTA");
+            ordemServicoDAO.inserirOrdem(ordem);
+            System.out.println("OS aberta com ID: " + ordem.getId());
+        } catch (SQLException e) {
+            System.out.println("Erro ao abrir OS: " + e.getMessage());
+        }
+    }
+
+    private void adicionarItem() {
+        System.out.print("ID da Ordem de Servico: ");
+        int idOrdem = lerInteiro();
+        System.out.print("ID do servico: ");
+        int idServico = lerInteiro();
+        System.out.print("Quantidade: ");
+        int quantidade = lerInteiro();
+        System.out.print("Preco unitario (ex: 150.00): ");
+        double preco = lerDouble();
+
+        try {
+            ItemOS item = new ItemOS(idOrdem, idServico, quantidade, preco);
+            ordemServicoDAO.inserirItem(item);
+            System.out.println("Item adicionado com ID: " + item.getId());
+        } catch (SQLException e) {
+            System.out.println("Erro ao adicionar item: " + e.getMessage());
+        }
+    }
+
+    private void consultarOrdemServico() {
+        System.out.print("ID da Ordem de Servico: ");
+        int idOrdem = lerInteiro();
+
+        try {
+            List<String> itens = ordemServicoDAO.buscarItensDaOrdem(idOrdem);
+            if (itens.isEmpty()) {
+                System.out.println("Nenhum item encontrado para essa OS.");
+                return;
+            }
+            System.out.println("Itens da OS " + idOrdem + ":");
+            for (String linha : itens) {
+                System.out.println("  - " + linha);
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao consultar OS: " + e.getMessage());
+        }
+    }
+
+    private void calcularTotal() {
+        System.out.print("ID da Ordem de Servico: ");
         int idOrdem = lerInteiro();
 
         try {
@@ -58,19 +140,9 @@ public class ServicoMenu {
             imprimirResultado(resultado);
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
+        } catch (SQLException e) {
+            System.out.println("Erro ao calcular total: " + e.getMessage());
         }
-    }
-
-    private void testarComDataCustomizada() {
-        System.out.print("Ha quantos meses o veiculo foi vendido? ");
-        int meses = lerInteiro();
-        LocalDate dataVenda = LocalDate.now().minusMonths(meses);
-
-        // Simula uma OS com um item de revisao de R$ 400,00
-        ItemOS itemRevisao = new ItemOS(99, 99, 1, 1, 400.0);
-
-        ResultadoOS resultado = servicoService.calcularTotalOS(Arrays.asList(itemRevisao), dataVenda);
-        imprimirResultado(resultado);
     }
 
     private void imprimirResultado(ResultadoOS resultado) {
@@ -93,8 +165,13 @@ public class ServicoMenu {
         return valor;
     }
 
-	public void exibirMenu() {
-		// TODO Auto-generated method stub
-		
-	}
+    private double lerDouble() {
+        while (!scanner.hasNextDouble()) {
+            System.out.print("Digite um valor valido: ");
+            scanner.next();
+        }
+        double valor = scanner.nextDouble();
+        scanner.nextLine();
+        return valor;
+    }
 }

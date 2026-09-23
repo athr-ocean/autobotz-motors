@@ -85,4 +85,56 @@ public class OrdemServicoDAO {
             }
         }
     }
+    public OrdemServico buscarPorId(int id) throws SQLException {
+        String sql = "SELECT id_ordem, id_cliente, id_veiculo, data_abertura, status "
+                + "FROM ordens_servico "
+                + "WHERE id_ordem = ?";
+
+        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+
+                if (rs.next()) {
+                    return new OrdemServico(
+                            rs.getInt("id_ordem"),
+                            rs.getInt("id_cliente"),
+                            rs.getInt("id_veiculo"),
+                            rs.getDate("data_abertura").toLocalDate(),
+                            rs.getString("status")
+                    );
+                }
+            }
+        }
+
+        return null;
+    }
+    public List<ItemOS> buscarItensObjetos(int idOrdem) throws SQLException {
+        String sql = "SELECT id_item, id_ordem, id_servico, quantidade, preco "
+                + "FROM itens_os "
+                + "WHERE id_ordem = ?";
+
+        List<ItemOS> itens = new ArrayList<>();
+
+        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+
+            stmt.setInt(1, idOrdem);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+
+                while (rs.next()) {
+                    itens.add(new ItemOS(
+                            rs.getInt("id_item"),
+                            rs.getInt("id_ordem"),
+                            rs.getInt("id_servico"),
+                            rs.getInt("quantidade"),
+                            rs.getDouble("preco")
+                    ));
+                }
+            }
+        }
+
+        return itens;
+    }
 }

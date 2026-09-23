@@ -1,37 +1,45 @@
 package autobotz.service;
 
-import autobotz.mock.MockItemOSDAO;
-import autobotz.mock.MockOrdemServicoDAO;
-import autobotz.mock.MockServicoDAO;
-import autobotz.mock.MockVendaDAO;
+import autobotz.dao.OrdemServicoDAO;
+import autobotz.dao.ServicoDAO;
+import autobotz.dao.VendaDAO;
 import autobotz.model.ItemOS;
 import autobotz.model.OrdemServico;
 import autobotz.model.Servico;
 import autobotz.model.Venda;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Regras de negocio da Oficina/OS.
+ *
+ * IMPORTANTE: esta classe agora usa os DAOs REAIS (nao mais os Mock*).
+ * Para compilar sem erro, o Alexandre precisa adicionar 3 metodos que
+ * ainda nao existem nos DAOs dele:
+ *
+ *   1) OrdemServicoDAO.buscarPorId(int id)          -> OrdemServico
+ *   2) OrdemServicoDAO.buscarItensObjetos(int idOrdem) -> List<ItemOS>
+ *   3) VendaDAO.buscarPorVeiculoId(int veiculoId)   -> Venda (ou null)
+ *
+ * (Mande a mensagem que o Claude preparou pro Alexandre pedindo esses 3.)
+ */
 public class ServicoService {
 
     // Garantia de 1 ano (365 dias) a partir da data de venda do veiculo
     private static final long DIAS_GARANTIA = 365;
 
-    private final MockOrdemServicoDAO ordemServicoDAO;
-    private final MockItemOSDAO itemOSDAO;
-    private final MockServicoDAO servicoDAO;
-    private final MockVendaDAO vendaDAO;
+    private final OrdemServicoDAO ordemServicoDAO;
+    private final ServicoDAO servicoDAO;
+    private final VendaDAO vendaDAO;
 
-    // Quando o Alexandre terminar os DAOs reais, troque os tipos Mock* aqui
-    // pelos DAOs reais, mantendo os mesmos nomes de metodo usados nesta classe.
-    public ServicoService(MockOrdemServicoDAO ordemServicoDAO,
-                           MockItemOSDAO itemOSDAO,
-                           MockServicoDAO servicoDAO,
-                           MockVendaDAO vendaDAO) {
+    public ServicoService(OrdemServicoDAO ordemServicoDAO,
+                           ServicoDAO servicoDAO,
+                           VendaDAO vendaDAO) {
         this.ordemServicoDAO = ordemServicoDAO;
-        this.itemOSDAO = itemOSDAO;
         this.servicoDAO = servicoDAO;
         this.vendaDAO = vendaDAO;
     }
@@ -39,13 +47,13 @@ public class ServicoService {
     /**
      * Calcula o total de uma Ordem de Servico real, buscando os dados pelas DAOs.
      */
-    public ResultadoOS calcularTotalOS(int idOrdemServico) {
+    public ResultadoOS calcularTotalOS(int idOrdemServico) throws SQLException {
         OrdemServico ordem = ordemServicoDAO.buscarPorId(idOrdemServico);
         if (ordem == null) {
             throw new IllegalArgumentException("Ordem de servico nao encontrada: " + idOrdemServico);
         }
 
-        List<ItemOS> itens = itemOSDAO.buscarPorOrdemServico(ordem.getId());
+        List<ItemOS> itens = ordemServicoDAO.buscarItensObjetos(ordem.getId());
         Venda venda = vendaDAO.buscarPorVeiculoId(ordem.getVeiculoId());
         LocalDate dataVenda = (venda != null) ? venda.getDataVenda() : null;
 
@@ -56,11 +64,11 @@ public class ServicoService {
      * Overload usado para testar a matematica do desconto isoladamente,
      * passando a data de venda direto (sem precisar montar Ordem/DAO).
      */
-    public ResultadoOS calcularTotalOS(List<ItemOS> itens, LocalDate dataVenda) {
+    public ResultadoOS calcularTotalOS(List<ItemOS> itens, LocalDate dataVenda) throws SQLException {
         return calcular(itens, dataVenda);
     }
 
-    private ResultadoOS calcular(List<ItemOS> itens, LocalDate dataVenda) {
+    private ResultadoOS calcular(List<ItemOS> itens, LocalDate dataVenda) throws SQLException {
         boolean garantiaAtiva = estaDentroDaGarantia(dataVenda);
 
         double totalMaoDeObra = 0.0;
