@@ -44,9 +44,9 @@ public class Main {
 
         UsuarioDAO usuarioDAO = new UsuarioDAO();
         AuthService authService = new AuthService(usuarioDAO);
-        AutorizacaoService autorizacaoService = new AutorizacaoService();
+        AutorizacaoService autorizacaoService = new AutorizacaoService(bundle);
         LoginMenu loginMenu = new LoginMenu(scanner, authService, bundle);
-
+        ProjetoDAO projetoDAO = new ProjetoDAO(bundle);
 
         /*
          * ==============================
@@ -57,7 +57,6 @@ public class Main {
         VeiculoDAO veiculoDAO = new VeiculoDAO();
         ClienteDAO clienteDAO = new ClienteDAO();
         VendaDAO vendaDAO = new VendaDAO();
-        ProjetoDAO projetoDAO = new ProjetoDAO();
 
         VendaService vendaService = new VendaService();
 

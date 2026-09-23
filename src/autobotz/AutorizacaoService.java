@@ -4,10 +4,10 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
-
+import java.util.ResourceBundle;
 
 public class AutorizacaoService {
-
+    private final ResourceBundle bundle;
     public enum Permissao {
         CADASTRAR_VEICULO,
         LISTAR_VEICULOS,
@@ -39,7 +39,8 @@ public class AutorizacaoService {
 
     private final Map<PerfilUsuario, Set<Permissao>> matriz;
 
-    public AutorizacaoService() {
+    public AutorizacaoService(ResourceBundle bundle) {
+        this.bundle = bundle;
         matriz = new EnumMap<>(PerfilUsuario.class);
 
         /*
@@ -100,9 +101,7 @@ public class AutorizacaoService {
             return true;
         }
 
-        System.out.println(
-            "Acesso negado. Seu perfil nao possui permissao para esta operacao."
-        );
+        System.out.println(bundle.getString("Autorizacao"));
 
         return false;
     }

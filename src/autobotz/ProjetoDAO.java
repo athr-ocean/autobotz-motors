@@ -4,11 +4,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ResourceBundle;
 
 import autobotz.util.ConexaoBanco;
 
 public class ProjetoDAO {
+    private final ResourceBundle bundle;
 
+    public ProjetoDAO(ResourceBundle bundle){
+        this.bundle = bundle;
+    }
     public void criarProjeto(
             String nomeProjeto,
             String responsavel,
@@ -31,7 +36,7 @@ public class ProjetoDAO {
 
             stmt.executeUpdate();
 
-            System.out.println("Projeto criado com sucesso.");
+            System.out.println(bundle.getString("ProjetoDAO.01"));
         }
     }
 
@@ -60,9 +65,9 @@ public class ProjetoDAO {
             int linhasAfetadas = stmt.executeUpdate();
 
             if (linhasAfetadas == 0) {
-                System.out.println("Projeto não encontrado.");
+                System.out.println(bundle.getString("ProjetoDAO.02"));
             } else {
-                System.out.println("Projeto atualizado com sucesso.");
+                System.out.println(bundle.getString("ProjetoDAO.03"));
             }
         }
     }
