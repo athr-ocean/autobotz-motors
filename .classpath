@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk-26"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="/home/dezin/Área de trabalho/Cicomp/Autobotz/mysql-connector-j-26.7.0/mysql-connector-j-26.7.0.jar"/>
+	<classpathentry kind="lib" path="C:/connector/mariadb-java-client-3.5.10.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
