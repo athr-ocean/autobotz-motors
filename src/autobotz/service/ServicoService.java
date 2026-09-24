@@ -65,7 +65,7 @@ public class ServicoService {
                 );
 
         Venda venda =
-                buscarVendaDoVeiculo(
+                vendaDAO.buscarPorVeiculoId(
                         ordem.getVeiculoId()
                 );
 
@@ -87,28 +87,6 @@ public class ServicoService {
             throws SQLException {
 
         return calcular(itens, dataVenda);
-    }
-
-    private Venda buscarVendaDoVeiculo(int idVeiculo)
-            throws SQLException {
-
-        Venda vendaEncontrada = null;
-
-        for (Venda venda : vendaDAO.listarVendas()) {
-
-            if (venda.getIdVeiculo() != idVeiculo) {
-                continue;
-            }
-
-            if (vendaEncontrada == null
-                    || venda.getDataVenda().isAfter(
-                            vendaEncontrada.getDataVenda())) {
-
-                vendaEncontrada = venda;
-            }
-        }
-
-        return vendaEncontrada;
     }
 
     private ResultadoOS calcular(

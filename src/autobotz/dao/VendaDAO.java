@@ -80,6 +80,48 @@ public class VendaDAO {
         return vendas;
     }
 
+    /**
+     * Busca a venda mais recente de um veiculo.
+     * Utilizado pela regra de garantia da Oficina.
+     */
+    public Venda buscarPorVeiculoId(int idVeiculo)
+            throws SQLException {
+
+        String sql =
+                "SELECT id_venda, id_veiculo, id_cliente, "
+                + "valor_final, data_venda "
+                + "FROM vendas "
+                + "WHERE id_veiculo = ? "
+                + "ORDER BY data_venda DESC "
+                + "LIMIT 1";
+
+        try (Connection conexao =
+                     ConexaoBanco.getConexao();
+             PreparedStatement stmt =
+                     conexao.prepareStatement(sql)) {
+
+            stmt.setInt(1, idVeiculo);
+
+            try (ResultSet rs =
+                         stmt.executeQuery()) {
+
+                if (rs.next()) {
+                    return new Venda(
+                            rs.getInt("id_venda"),
+                            rs.getInt("id_veiculo"),
+                            rs.getInt("id_cliente"),
+                            rs.getDouble("valor_final"),
+                            rs.getDate(
+                                    "data_venda"
+                            ).toLocalDate()
+                    );
+                }
+            }
+        }
+
+        return null;
+    }
+
     public List<Venda> listarVendasPorCliente(int idCliente) throws SQLException {
         List<Venda> vendas = new ArrayList<>();
 
