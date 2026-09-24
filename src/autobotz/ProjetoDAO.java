@@ -87,10 +87,10 @@ public class ProjetoDAO {
             while (rs.next()) {
 
                 System.out.println(
-                        "Projeto: " + rs.getString("nome_projeto")
-                        + " | Responsável: " + rs.getString("responsavel")
-                        + " | Equipe: " + rs.getString("equipe")
-                        + " | Status: " + rs.getString("status")
+                        bundle.getString("projeto.label") + rs.getString("nome_projeto")
+                        + " | " + bundle.getString("projeto.responsavel_label") + rs.getString("responsavel")
+                        + " | " + bundle.getString("projeto.equipe_label") + rs.getString("equipe")
+                        + " | " + bundle.getString("projeto.status_label") + rs.getString("status")
                 );
             }
         }
@@ -112,9 +112,9 @@ public class ProjetoDAO {
             int linhasAfetadas = stmt.executeUpdate();
 
             if (linhasAfetadas == 0) {
-            System.out.println("Projeto não encontrado.");
+            System.out.println(bundle.getString("ProjetoDAO.02"));
             } else {
-            System.out.println("Projeto excluído com sucesso.");
+            System.out.println(bundle.getString("ProjetoDAO.04"));
             }
         }
     }
@@ -135,7 +135,7 @@ public class ProjetoDAO {
 
         stmt.executeUpdate();
 
-        System.out.println("Lista de membros atualizada com sucesso.");
+        System.out.println(bundle.getString("ProjetoDAO.05"));
     }
 }
 
@@ -154,13 +154,13 @@ public void consultarMembros() throws SQLException {
         if (rs.next()) {
 
             System.out.println(
-                    "Membros envolvidos no projeto: "
+                    bundle.getString("projeto.membros_label")
                     + rs.getString("lista_membros")
             );
 
         } else {
 
-            System.out.println("Nenhum membro cadastrado.");
+            System.out.println(bundle.getString("ProjetoDAO.06"));
         }
     }
     }

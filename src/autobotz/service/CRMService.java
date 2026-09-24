@@ -4,6 +4,7 @@ import autobotz.dao.ClienteDAO;
 import autobotz.dao.VendaDAO;
 import autobotz.model.Cliente;
 import autobotz.model.Venda;
+import autobotz.util.I18nUtils;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -18,37 +19,86 @@ public class CRMService {
         this.vendaDAO = new VendaDAO();
     }
 
-    public void exibirHistoricoCliente(int idCliente) throws SQLException {
+    public void exibirHistoricoCliente(int idCliente)
+            throws SQLException {
 
-        Cliente cliente = clienteDAO.buscarPorId(idCliente);
+        Cliente cliente =
+                clienteDAO.buscarPorId(idCliente);
 
         if (cliente == null) {
-            throw new IllegalArgumentException("Cliente não encontrado.");
+            throw new IllegalArgumentException(
+                    I18nUtils.getString(
+                            "crm.cliente_nao_encontrado"
+                    )
+            );
         }
 
-        List<Venda> vendas = vendaDAO.listarVendasPorCliente(idCliente);
+        List<Venda> vendas =
+                vendaDAO.listarVendasPorCliente(
+                        idCliente
+                );
 
         double totalGasto = 0;
 
-        System.out.println("\n===== HISTÓRICO DO CLIENTE =====");
-        System.out.println("Cliente: " + cliente.getNome());
-        System.out.println("CPF: " + cliente.getCpf());
-        System.out.println("Telefone: " + cliente.getTelefone());
-        System.out.println("Email: " + cliente.getEmail());
+        System.out.println(
+                I18nUtils.getString("crm.titulo")
+        );
 
-        System.out.println("\nCompras:");
+        System.out.println(
+                I18nUtils.getString("crm.cliente")
+                + cliente.getNome()
+        );
+
+        System.out.println(
+                I18nUtils.getString("crm.cpf")
+                + cliente.getCpf()
+        );
+
+        System.out.println(
+                I18nUtils.getString("crm.telefone")
+                + cliente.getTelefone()
+        );
+
+        System.out.println(
+                I18nUtils.getString("crm.email")
+                + cliente.getEmail()
+        );
+
+        System.out.println(
+                I18nUtils.getString("crm.compras")
+        );
 
         for (Venda venda : vendas) {
+
             System.out.println(
-                "Veículo ID: " + venda.getIdVeiculo()
-                + " | Valor: R$ " + venda.getValorTotal()
-                + " | Data: " + venda.getDataVenda()
+                    I18nUtils.getString("crm.veiculo")
+                    + venda.getIdVeiculo()
+                    + " | "
+                    + I18nUtils.getString("crm.valor")
+                    + I18nUtils.formatCurrency(
+                            venda.getValorTotal()
+                    )
+                    + " | "
+                    + I18nUtils.getString("crm.data")
+                    + I18nUtils.formatDate(
+                            venda.getDataVenda()
+                    )
             );
 
-            totalGasto += venda.getValorTotal();
+            totalGasto +=
+                    venda.getValorTotal();
         }
 
-        System.out.println("\nQuantidade de compras: " + vendas.size());
-        System.out.println("Total gasto: R$ " + totalGasto);
+        System.out.println(
+                I18nUtils.getString("crm.quantidade")
+                + vendas.size()
+        );
+
+        System.out.println(
+                I18nUtils.getString("crm.total")
+                + I18nUtils.formatCurrency(
+                        totalGasto
+                )
+        );
     }
 }

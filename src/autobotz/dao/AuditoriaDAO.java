@@ -14,6 +14,7 @@ import autobotz.SessaoUsuario;
 import autobotz.Usuario;
 import autobotz.model.LogAuditoria;
 import autobotz.util.ConexaoBanco;
+import autobotz.util.I18nUtils;
 
 public class AuditoriaDAO {
     private static final String INSERT = "INSERT INTO logs_auditoria "
@@ -52,7 +53,11 @@ public class AuditoriaDAO {
     }
 
     public List<LogAuditoria> listarRecentes(int limite) throws SQLException {
-        if (limite < 1) throw new IllegalArgumentException("O limite deve ser positivo.");
+        if (limite < 1) {
+            throw new IllegalArgumentException(
+                    I18nUtils.getString("auditoria.limite_invalido")
+            );
+        }
         String sql = "SELECT id_log, id_usuario, nome_usuario, acao, entidade, entidade_id, detalhes, data_hora "
                 + "FROM logs_auditoria ORDER BY data_hora DESC, id_log DESC LIMIT ?";
         List<LogAuditoria> logs = new ArrayList<>();

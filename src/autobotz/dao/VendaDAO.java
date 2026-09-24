@@ -2,6 +2,7 @@ package autobotz.dao;
 
 import autobotz.model.Venda;
 import autobotz.util.ConexaoBanco;
+import autobotz.util.I18nUtils;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -29,14 +30,14 @@ public class VendaDAO {
                             Statement.RETURN_GENERATED_KEYS)) {
                 clienteStmt.setInt(1, venda.getIdCliente());
                 try (ResultSet rs = clienteStmt.executeQuery()) {
-                    if (!rs.next()) throw new IllegalArgumentException("Cliente nao encontrado.");
+                    if (!rs.next()) throw new IllegalArgumentException(I18nUtils.getString("venda.cliente_nao_encontrado"));
                 }
 
                 veiculoStmt.setInt(1, venda.getIdVeiculo());
                 try (ResultSet rs = veiculoStmt.executeQuery()) {
-                    if (!rs.next()) throw new IllegalArgumentException("Veiculo nao encontrado.");
+                    if (!rs.next()) throw new IllegalArgumentException(I18nUtils.getString("venda.veiculo_nao_encontrado"));
                     String status = rs.getString("status");
-                    if (!disponivel(status)) throw new IllegalArgumentException("Veiculo nao esta disponivel.");
+                    if (!disponivel(status)) throw new IllegalArgumentException(I18nUtils.getString("venda.veiculo_indisponivel"));
                 }
 
                 baixaStmt.setInt(1, venda.getIdVeiculo());
@@ -108,10 +109,10 @@ public class VendaDAO {
     
     private void validarVenda(Venda venda) {
         if (venda == null || venda.getIdCliente() <= 0 || venda.getIdVeiculo() <= 0) {
-            throw new IllegalArgumentException("Cliente e veiculo devem ser validos.");
+            throw new IllegalArgumentException(I18nUtils.getString("venda.ids_invalidos"));
         }
         if (venda.getValorTotal() <= 0 || venda.getDataVenda() == null) {
-            throw new IllegalArgumentException("Valor e data da venda devem ser validos.");
+            throw new IllegalArgumentException(I18nUtils.getString("venda.dados_invalidos"));
         }
     }
 

@@ -7,6 +7,7 @@ import autobotz.model.ItemOS;
 import autobotz.model.OrdemServico;
 import autobotz.model.Servico;
 import autobotz.model.Venda;
+import autobotz.util.I18nUtils;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -51,7 +52,9 @@ public class ServicoService {
 
         if (ordem == null) {
             throw new IllegalArgumentException(
-                    "Ordem de servico nao encontrada: "
+                    I18nUtils.getString(
+                            "oficina.os_nao_encontrada_prefixo"
+                    )
                     + idOrdemServico
             );
         }
@@ -132,7 +135,9 @@ public class ServicoService {
             String nomeServico =
                     servico != null
                             ? servico.getNome()
-                            : "Servico #"
+                            : I18nUtils.getString(
+                                    "oficina.servico_prefixo"
+                            )
                               + item.getServicoId();
 
             double valorItem =
@@ -150,12 +155,14 @@ public class ServicoService {
                 totalDesconto += valorItem;
 
                 detalhes.add(
-                        String.format(
-                                "%s: R$ %.2f -> "
-                                + "R$ 0,00 (garantia)",
-                                nomeServico,
-                                valorItem
-                        )
+                        nomeServico
+                        + ": "
+                        + I18nUtils.formatCurrency(valorItem)
+                        + " -> "
+                        + I18nUtils.formatCurrency(0.0)
+                        + " ("
+                        + I18nUtils.getString("oficina.garantia")
+                        + ")"
                 );
 
             } else {
@@ -163,11 +170,9 @@ public class ServicoService {
                 totalMaoDeObra += valorItem;
 
                 detalhes.add(
-                        String.format(
-                                "%s: R$ %.2f",
-                                nomeServico,
-                                valorItem
-                        )
+                        nomeServico
+                        + ": "
+                        + I18nUtils.formatCurrency(valorItem)
                 );
             }
         }

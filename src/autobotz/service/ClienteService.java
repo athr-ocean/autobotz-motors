@@ -3,6 +3,7 @@ package autobotz.service;
 import java.sql.SQLException;
 
 import autobotz.dao.ClienteDAO;
+import autobotz.util.I18nUtils;
 
 public class ClienteService {
     private final ClienteDAO clienteDAO;
@@ -16,7 +17,11 @@ public class ClienteService {
     }
 
     public boolean anonimizar(int id) throws SQLException {
-        if (id <= 0) throw new IllegalArgumentException("ID do cliente invalido.");
+        if (id <= 0) {
+            throw new IllegalArgumentException(
+                    I18nUtils.getString("cliente.id_invalido")
+            );
+        }
         return clienteDAO.anonimizar(id);
     }
 }

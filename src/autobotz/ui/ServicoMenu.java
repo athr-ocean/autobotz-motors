@@ -8,6 +8,7 @@ import autobotz.model.OrdemServico;
 import autobotz.model.Servico;
 import autobotz.service.ResultadoOS;
 import autobotz.service.ServicoService;
+import autobotz.util.I18nUtils;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -41,15 +42,15 @@ public class ServicoMenu {
         while (!sair) {
 
             System.out.println();
-            System.out.println("===== MENU DA OFICINA =====");
-            System.out.println("1. Cadastrar servico");
-            System.out.println("2. Abrir Ordem de Servico");
-            System.out.println("3. Adicionar item a Ordem de Servico");
-            System.out.println("4. Consultar Ordem de Servico");
-            System.out.println("5. Calcular total e garantia");
-            System.out.println("6. Testar regra de garantia");
-            System.out.println("0. Voltar");
-            System.out.print("Opcao: ");
+            System.out.println(I18nUtils.getString("oficina.titulo"));
+            System.out.println(I18nUtils.getString("oficina.opcao1"));
+            System.out.println(I18nUtils.getString("oficina.opcao2"));
+            System.out.println(I18nUtils.getString("oficina.opcao3"));
+            System.out.println(I18nUtils.getString("oficina.opcao4"));
+            System.out.println(I18nUtils.getString("oficina.opcao5"));
+            System.out.println(I18nUtils.getString("oficina.opcao6"));
+            System.out.println(I18nUtils.getString("comum.voltar"));
+            System.out.print(I18nUtils.getString("comum.opcao"));
 
             int opcao = lerInteiro();
 
@@ -62,32 +63,32 @@ public class ServicoMenu {
                     case 5 -> calcularOrdem();
                     case 6 -> testarComDataCustomizada();
                     case 0 -> sair = true;
-                    default -> System.out.println("Opcao invalida.");
+                    default -> System.out.println(I18nUtils.getString("comum.opcao_invalida"));
                 }
 
             } catch (SQLException | IllegalArgumentException e) {
-                System.out.println("Erro: " + e.getMessage());
+                System.out.println(I18nUtils.getString("comum.erro") + e.getMessage());
             }
         }
     }
 
     private void cadastrarServico() throws SQLException {
 
-        System.out.print("Nome do servico: ");
+        System.out.print(I18nUtils.getString("oficina.nome_servico"));
         String nome = scanner.nextLine().trim();
 
         if (nome.isBlank()) {
             throw new IllegalArgumentException(
-                    "O nome do servico nao pode ser vazio."
+                    I18nUtils.getString("oficina.nome_vazio")
             );
         }
 
-        System.out.print("Preco do servico: ");
+        System.out.print(I18nUtils.getString("oficina.preco_servico"));
         double preco = lerDouble();
 
         if (preco <= 0) {
             throw new IllegalArgumentException(
-                    "O preco deve ser maior que zero."
+                    I18nUtils.getString("oficina.preco_invalido")
             );
         }
 
@@ -97,22 +98,22 @@ public class ServicoMenu {
         servicoDAO.inserir(servico);
 
         System.out.println(
-                "Servico cadastrado com sucesso. ID: "
+                I18nUtils.getString("oficina.servico_cadastrado")
                 + servico.getId()
         );
     }
 
     private void abrirOrdemServico() throws SQLException {
 
-        System.out.print("ID do cliente: ");
+        System.out.print(I18nUtils.getString("oficina.id_cliente"));
         int clienteId = lerInteiro();
 
-        System.out.print("ID do veiculo: ");
+        System.out.print(I18nUtils.getString("oficina.id_veiculo"));
         int veiculoId = lerInteiro();
 
         if (clienteId <= 0 || veiculoId <= 0) {
             throw new IllegalArgumentException(
-                    "Cliente e veiculo devem possuir IDs validos."
+                    I18nUtils.getString("oficina.ids_invalidos")
             );
         }
 
@@ -127,14 +128,14 @@ public class ServicoMenu {
         ordemServicoDAO.inserirOrdem(ordem);
 
         System.out.println(
-                "Ordem de Servico aberta com sucesso. ID: "
+                I18nUtils.getString("oficina.os_aberta")
                 + ordem.getId()
         );
     }
 
     private void adicionarItem() throws SQLException {
 
-        System.out.print("ID da Ordem de Servico: ");
+        System.out.print(I18nUtils.getString("oficina.id_os"));
         int ordemId = lerInteiro();
 
         OrdemServico ordem =
@@ -142,11 +143,11 @@ public class ServicoMenu {
 
         if (ordem == null) {
             throw new IllegalArgumentException(
-                    "Ordem de Servico nao encontrada."
+                    I18nUtils.getString("oficina.os_nao_encontrada")
             );
         }
 
-        System.out.print("ID do servico: ");
+        System.out.print(I18nUtils.getString("oficina.id_servico"));
         int servicoId = lerInteiro();
 
         Servico servico =
@@ -154,16 +155,16 @@ public class ServicoMenu {
 
         if (servico == null) {
             throw new IllegalArgumentException(
-                    "Servico nao encontrado."
+                    I18nUtils.getString("oficina.servico_nao_encontrado")
             );
         }
 
-        System.out.print("Quantidade: ");
+        System.out.print(I18nUtils.getString("oficina.quantidade"));
         int quantidade = lerInteiro();
 
         if (quantidade <= 0) {
             throw new IllegalArgumentException(
-                    "A quantidade deve ser maior que zero."
+                    I18nUtils.getString("oficina.quantidade_invalida")
             );
         }
 
@@ -178,14 +179,14 @@ public class ServicoMenu {
         ordemServicoDAO.inserirItem(item);
 
         System.out.println(
-                "Item adicionado com sucesso. ID: "
+                I18nUtils.getString("oficina.item_adicionado")
                 + item.getId()
         );
     }
 
     private void consultarOrdem() throws SQLException {
 
-        System.out.print("ID da Ordem de Servico: ");
+        System.out.print(I18nUtils.getString("oficina.id_os"));
         int ordemId = lerInteiro();
 
         OrdemServico ordem =
@@ -193,35 +194,37 @@ public class ServicoMenu {
 
         if (ordem == null) {
             throw new IllegalArgumentException(
-                    "Ordem de Servico nao encontrada."
+                    I18nUtils.getString("oficina.os_nao_encontrada")
             );
         }
 
         System.out.println();
-        System.out.println("OS #" + ordem.getId());
-        System.out.println("Cliente: " + ordem.getClienteId());
-        System.out.println("Veiculo: " + ordem.getVeiculoId());
-        System.out.println("Data de abertura: " + ordem.getDataAbertura());
-        System.out.println("Status: " + ordem.getStatus());
+        System.out.println(I18nUtils.getString("oficina.os_prefixo") + ordem.getId());
+        System.out.println(I18nUtils.getString("oficina.cliente_label") + ordem.getClienteId());
+        System.out.println(I18nUtils.getString("oficina.veiculo_label") + ordem.getVeiculoId());
+        System.out.println(I18nUtils.getString("oficina.data_label") + ordem.getDataAbertura());
+        System.out.println(I18nUtils.getString("oficina.status_label") + I18nUtils.formatServiceOrderStatus(
+                        ordem.getStatus()
+                ));
 
         List<String> itens =
                 ordemServicoDAO.buscarItensDaOrdem(ordemId);
 
         if (itens.isEmpty()) {
-            System.out.println("Nenhum item cadastrado nesta OS.");
+            System.out.println(I18nUtils.getString("oficina.sem_itens"));
             return;
         }
 
-        System.out.println("Itens:");
+        System.out.println(I18nUtils.getString("oficina.itens"));
 
         for (String item : itens) {
-            System.out.println("  " + item);
+            System.out.println(item);
         }
     }
 
     private void calcularOrdem() throws SQLException {
 
-        System.out.print("ID da Ordem de Servico: ");
+        System.out.print(I18nUtils.getString("oficina.id_os"));
         int ordemId = lerInteiro();
 
         OrdemServico ordem =
@@ -229,7 +232,7 @@ public class ServicoMenu {
 
         if (ordem == null) {
             throw new IllegalArgumentException(
-                    "Ordem de Servico nao encontrada."
+                    I18nUtils.getString("oficina.os_nao_encontrada")
             );
         }
 
@@ -239,9 +242,9 @@ public class ServicoMenu {
         ResultadoOS resultado =
                 servicoService.calcularTotalOS(ordemId);
 
-        System.out.printf(
-                "Total bruto da OS: R$ %.2f%n",
-                totalBruto
+        System.out.println(
+                I18nUtils.getString("oficina.total_bruto")
+                + I18nUtils.formatCurrency(totalBruto)
         );
 
         imprimirResultado(resultado);
@@ -250,13 +253,13 @@ public class ServicoMenu {
     private void testarComDataCustomizada() throws SQLException {
 
         System.out.print(
-                "Ha quantos meses o veiculo foi vendido? "
+                I18nUtils.getString("oficina.meses_venda")
         );
 
         int meses = lerInteiro();
 
         System.out.print(
-                "ID de um servico de revisao cadastrado: "
+                I18nUtils.getString("oficina.id_revisao")
         );
 
         int servicoId = lerInteiro();
@@ -266,7 +269,7 @@ public class ServicoMenu {
 
         if (servico == null) {
             throw new IllegalArgumentException(
-                    "Servico nao encontrado."
+                    I18nUtils.getString("oficina.servico_nao_encontrado")
             );
         }
 
@@ -293,26 +296,30 @@ public class ServicoMenu {
     private void imprimirResultado(ResultadoOS resultado) {
 
         System.out.println(
-                "Garantia ativa: "
+                I18nUtils.getString("oficina.garantia_ativa")
                 + (resultado.isGarantiaAtiva()
-                    ? "SIM"
-                    : "NAO")
+                    ? I18nUtils.getString("comum.sim")
+                    : I18nUtils.getString("comum.nao"))
         );
 
-        System.out.println("Itens:");
+        System.out.println(I18nUtils.getString("oficina.itens"));
 
         for (String linha : resultado.getDetalhes()) {
-            System.out.println("  - " + linha);
+            System.out.println(linha);
         }
 
-        System.out.printf(
-                "Total mao de obra a cobrar: R$ %.2f%n",
-                resultado.getTotalMaoDeObra()
+        System.out.println(
+                I18nUtils.getString("oficina.total_mao_obra")
+                + I18nUtils.formatCurrency(
+                        resultado.getTotalMaoDeObra()
+                )
         );
 
-        System.out.printf(
-                "Total de desconto por garantia: R$ %.2f%n",
-                resultado.getTotalDesconto()
+        System.out.println(
+                I18nUtils.getString("oficina.total_desconto")
+                + I18nUtils.formatCurrency(
+                        resultado.getTotalDesconto()
+                )
         );
     }
 
@@ -326,7 +333,7 @@ public class ServicoMenu {
 
             } catch (NumberFormatException e) {
                 System.out.print(
-                        "Digite um numero inteiro valido: "
+                        I18nUtils.getString("comum.inteiro_invalido")
                 );
             }
         }
@@ -345,7 +352,7 @@ public class ServicoMenu {
 
             } catch (NumberFormatException e) {
                 System.out.print(
-                        "Digite um valor numerico valido: "
+                        I18nUtils.getString("comum.decimal_invalido")
                 );
             }
         }

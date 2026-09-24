@@ -30,7 +30,7 @@ public final class ConexaoBanco {
 
         if (SENHA == null || SENHA.isBlank()) {
             throw new SQLException(
-                    "A variavel AUTOBOTZ_DB_PASSWORD nao foi definida."
+                    I18nUtils.getString("db.password_ausente")
             );
         }
 
@@ -43,10 +43,7 @@ public final class ConexaoBanco {
                 );
             } catch (SQLException e) {
                 throw new SQLException(
-                        "Nao foi possivel conectar ao MariaDB. "
-                        + "Verifique o servico e as variaveis "
-                        + "AUTOBOTZ_DB_URL, AUTOBOTZ_DB_USER "
-                        + "e AUTOBOTZ_DB_PASSWORD.",
+                        I18nUtils.getString("db.conexao_falhou"),
                         e
                 );
             }

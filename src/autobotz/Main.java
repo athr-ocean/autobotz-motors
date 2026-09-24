@@ -24,10 +24,15 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("Select Language / Selecione o Idioma:");
-        System.out.println("1. Portugues (BR)");
-        System.out.println("2. English (US)");
-        System.out.print("Option / Opcao: ");
+        ResourceBundle inicial =
+                I18nUtils.getBundle(
+                        Locale.of("pt", "BR")
+                );
+
+        System.out.println(inicial.getString("idioma.titulo"));
+        System.out.println(inicial.getString("idioma.pt"));
+        System.out.println(inicial.getString("idioma.en"));
+        System.out.print(inicial.getString("idioma.opcao"));
 
         int langOpcao = scanner.nextInt();
         scanner.nextLine();
@@ -36,6 +41,7 @@ public class Main {
                 ? Locale.of("en", "US")
                 : Locale.of("pt", "BR");
 
+        I18nUtils.setLocale(locale);
         ResourceBundle bundle = I18nUtils.getBundle(locale);
 
         /*
@@ -72,7 +78,7 @@ public class Main {
         while (opcao != 0) {
             if (!SessaoUsuario.getInstancia().estaLogado()) {
             if (!loginMenu.executar()) {
-            System.out.println("Acesso encerrado.");
+            System.out.println(bundle.getString("sistema.acesso_encerrado"));
             scanner.close();
             return;
             }
@@ -156,7 +162,7 @@ public class Main {
                         for (Veiculo v : veiculoDAO.listar()) {
 
                             System.out.println(
-                                    "ID: " + v.getId()
+                                    bundle.getString("comum.id") + v.getId()
                                     + " | " + v.getMarca()
                                     + " " + v.getModelo()
                                     + " | "
@@ -169,7 +175,9 @@ public class Main {
                                     )
                                     + " | "
                                     + bundle.getString("veiculo.status")
-                                    + v.getStatus()
+                                    + I18nUtils.formatVehicleStatus(
+                                            v.getStatus()
+                                    )
                             );
                         }
 
@@ -294,11 +302,14 @@ public class Main {
                         for (Cliente c : clienteDAO.listar()) {
 
                             System.out.println(
-                                    "ID: " + c.getId()
+                                    bundle.getString("comum.id") + c.getId()
                                     + " | "
                                     + bundle.getString("cliente.nome_label")
                                     + c.getNome()
-                                    + " | CPF: "
+                                    + " | "
+                                    + bundle.getString(
+                                            "cliente.cpf_label"
+                                    )
                                     + c.getCpf()
                                     + " | "
                                     + bundle.getString("cliente.tel_label")
@@ -356,11 +367,13 @@ public class Main {
                         for (Venda venda : vendaDAO.listarVendas()) {
 
                             System.out.println(
-                                    "Cliente: "
+                                    bundle.getString("venda.cliente_label")
                                     + venda.getIdCliente()
-                                    + " | Veiculo: "
+                                    + " | "
+                                    + bundle.getString("venda.veiculo_label")
                                     + venda.getIdVeiculo()
-                                    + " | Valor: "
+                                    + " | "
+                                    + bundle.getString("venda.valor_label")
                                     + I18nUtils.formatCurrency(
                                             venda.getValorTotal(),
                                             locale
@@ -403,7 +416,7 @@ public class Main {
                     case 12:    
 
                     SessaoUsuario.getInstancia().encerrarSessao();
-                        System.out.println("...");
+                        System.out.println(bundle.getString("sistema.sessao_encerrada"));
                         break;
                     
                         
@@ -412,16 +425,16 @@ public class Main {
                         break;
                         }
 
-                        System.out.print("Nome do projeto: ");
+                        System.out.print(bundle.getString("projeto.nome_prompt"));
                         String nomeProjeto = scanner.nextLine();
 
-                        System.out.print("Responsável: ");
+                        System.out.print(bundle.getString("projeto.responsavel_prompt"));
                         String responsavel = scanner.nextLine();
 
-                        System.out.print("Equipe: ");
+                        System.out.print(bundle.getString("projeto.equipe_prompt"));
                         String equipe = scanner.nextLine();
 
-                        System.out.print("Status: ");
+                        System.out.print(bundle.getString("projeto.status_prompt"));
                         String status = scanner.nextLine();
 
                         projetoDAO.criarProjeto(
@@ -439,16 +452,16 @@ public class Main {
                         break;
                         }
 
-                        System.out.print("Nome do projeto: ");
+                        System.out.print(bundle.getString("projeto.nome_prompt"));
                         String nomeProjetoAtualizar = scanner.nextLine();
 
-                        System.out.print("Novo responsável: ");
+                        System.out.print(bundle.getString("projeto.novo_responsavel_prompt"));
                         String novoResponsavel = scanner.nextLine();
 
-                        System.out.print("Nova equipe: ");
+                        System.out.print(bundle.getString("projeto.nova_equipe_prompt"));
                         String novaEquipe = scanner.nextLine();
 
-                        System.out.print("Novo status: ");
+                        System.out.print(bundle.getString("projeto.novo_status_prompt"));
                         String novoStatus = scanner.nextLine();
 
                         projetoDAO.atualizarProjeto(
@@ -465,7 +478,7 @@ public class Main {
                         if (!autorizacaoService.exigirPermissao( AutorizacaoService.Permissao.EXCLUIR_PROJETOS)) {
                         break;
                         }
-                        System.out.print("Nome do projeto: ");
+                        System.out.print(bundle.getString("projeto.nome_prompt"));
                         String nomeProjetoExcluir = scanner.nextLine();
 
                         projetoDAO.deletarProjeto(nomeProjetoExcluir);
@@ -477,7 +490,7 @@ public class Main {
                         if (!autorizacaoService.exigirPermissao( AutorizacaoService.Permissao.ATUALIZAR_MEMBROS)) {
                         break;
                         }
-                        System.out.print("Digite os membros do projeto: ");
+                        System.out.print(bundle.getString("projeto.membros_prompt"));
                         String listaMembros = scanner.nextLine();
 
                         projetoDAO.atualizarMembros(listaMembros);
@@ -502,7 +515,7 @@ public class Main {
 
 
                     case 19:
-                        System.out.print("Digite o ID do cliente: ");
+                        System.out.print(bundle.getString("crm.id_cliente_prompt"));
                         int idClienteCRM = scanner.nextInt();
                         scanner.nextLine();
 
@@ -529,7 +542,7 @@ public class Main {
             } catch (SQLException | IllegalArgumentException e) {
 
                 System.out.println(
-                        "Erro: " + e.getMessage()
+                        bundle.getString("comum.erro") + e.getMessage()
                 );
             }
         }

@@ -10,6 +10,7 @@ import java.util.List;
 import autobotz.model.ItemOS;
 import autobotz.model.OrdemServico;
 import autobotz.util.ConexaoBanco;
+import autobotz.util.I18nUtils;
 
 public class OrdemServicoDAO {
     public void inserirOrdem(OrdemServico ordem) throws SQLException {
@@ -62,12 +63,29 @@ public class OrdemServicoDAO {
             stmt.setInt(1, ordemServicoId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    itens.add("OS: " + rs.getInt("id_ordem")
-                            + " | Cliente: " + rs.getString("cliente")
-                            + " | Veiculo: " + rs.getString("marca") + " " + rs.getString("modelo")
-                            + " | Servico: " + rs.getString("servico")
-                            + " | Quantidade: " + rs.getInt("quantidade")
-                            + " | Preco: R$ " + rs.getDouble("preco"));
+                    itens.add(
+                            I18nUtils.getString("oficina.dao.os")
+                            + rs.getInt("id_ordem")
+                            + " | "
+                            + I18nUtils.getString("oficina.dao.cliente")
+                            + rs.getString("cliente")
+                            + " | "
+                            + I18nUtils.getString("oficina.dao.veiculo")
+                            + rs.getString("marca")
+                            + " "
+                            + rs.getString("modelo")
+                            + " | "
+                            + I18nUtils.getString("oficina.dao.servico")
+                            + rs.getString("servico")
+                            + " | "
+                            + I18nUtils.getString("oficina.dao.quantidade")
+                            + rs.getInt("quantidade")
+                            + " | "
+                            + I18nUtils.getString("oficina.dao.preco")
+                            + I18nUtils.formatCurrency(
+                                    rs.getDouble("preco")
+                            )
+                    );
                 }
             }
         }

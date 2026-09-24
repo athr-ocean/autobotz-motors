@@ -9,12 +9,17 @@ import java.util.List;
 
 import autobotz.model.Cliente;
 import autobotz.util.ConexaoBanco;
+import autobotz.util.I18nUtils;
 
 public class ClienteDAO {
 
     public void salvar(Cliente cliente) throws SQLException {
         if (buscarPorCpf(cliente.getCpf()) != null) {
-            throw new SQLException("Ja existe um cliente cadastrado com o CPF " + cliente.getCpf() + ".");
+            throw new SQLException(
+                    I18nUtils.getString("cliente.cpf_duplicado")
+                    + cliente.getCpf()
+                    + "."
+            );
         }
         String sql = "INSERT INTO clientes (nome, cpf, telefone, email, ativo) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {

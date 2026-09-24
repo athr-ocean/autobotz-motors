@@ -5,6 +5,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 
+import autobotz.util.I18nUtils;
+
 public class AuthService {
     private final UsuarioDAO usuarioDAO;
 
@@ -22,7 +24,10 @@ public class AuthService {
             }
             return hexadecimal.toString();
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 nao disponivel.", e);
+            throw new IllegalStateException(
+                    I18nUtils.getString("erro.sha256"),
+                    e
+            );
         }
     }
 
