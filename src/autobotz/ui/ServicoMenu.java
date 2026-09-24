@@ -10,9 +10,13 @@ import autobotz.service.ResultadoOS;
 import autobotz.service.ServicoService;
 
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
+import java.util.ResourceBundle;
+
+import autobotz.util.I18nUtils;
 
 public class ServicoMenu {
 
@@ -20,16 +24,17 @@ public class ServicoMenu {
     private final ServicoService servicoService;
     private final ServicoDAO servicoDAO;
     private final OrdemServicoDAO ordemServicoDAO;
+    private final ResourceBundle bundle;
 
-    public ServicoMenu(Scanner scanner) {
+    public ServicoMenu(Scanner scanner, ResourceBundle bundle) {
         this.scanner = scanner;
+        this.bundle = bundle;
         this.servicoDAO = new ServicoDAO();
         this.ordemServicoDAO = new OrdemServicoDAO();
         this.servicoService = new ServicoService(
                 ordemServicoDAO,
                 servicoDAO,
-                new VendaDAO()
-        );
+                new VendaDAO());
     }
 
     // Chamado pelo Main.java (Arthur integra isso no case da Oficina/OS)
@@ -40,14 +45,14 @@ public class ServicoMenu {
     public void executar() {
         boolean sair = false;
         while (!sair) {
-            System.out.println("\n===== MENU DA OFICINA / OS =====");
-            System.out.println("1. Cadastrar novo tipo de servico");
-            System.out.println("2. Abrir nova Ordem de Servico (OS)");
-            System.out.println("3. Adicionar item a uma OS");
-            System.out.println("4. Consultar itens de uma OS");
-            System.out.println("5. Calcular total da OS (considera garantia)");
-            System.out.println("0. Voltar");
-            System.out.print("Opcao: ");
+            System.out.println(bundle.getString("oficina.titulo"));
+            System.out.println(bundle.getString("oficina.opcao1"));
+            System.out.println(bundle.getString("oficina.opcao2"));
+            System.out.println(bundle.getString("oficina.opcao3"));
+            System.out.println(bundle.getString("oficina.opcao4"));
+            System.out.println(bundle.getString("oficina.opcao5"));
+            System.out.println(bundle.getString("oficina.opcao0"));
+            System.out.print(bundle.getString("oficina.escolha"));
 
             int opcao = lerInteiro();
 
@@ -58,106 +63,154 @@ public class ServicoMenu {
                 case 4 -> consultarOrdemServico();
                 case 5 -> calcularTotal();
                 case 0 -> sair = true;
-                default -> System.out.println("Opcao invalida.");
+                default -> System.out.println(bundle.getString("oficina.opcao_invalida"));
             }
         }
     }
 
     private void cadastrarServico() {
-        System.out.print("Nome do servico: ");
+        System.out.print(bundle.getString("oficina.nome_servico"));
         String nome = scanner.nextLine();
-        System.out.print("Preco (ex: 150.00): ");
+        System.out.print(bundle.getString("oficina.preco"));
         double preco = lerDouble();
 
         try {
             Servico servico = new Servico(nome, preco);
             servicoDAO.inserir(servico);
-            System.out.println("Servico cadastrado com ID: " + servico.getId());
+
+            System.out.println(
+                    MessageFormat.format(
+                            bundle.getString("oficina.servico_cadastrado"),
+                            servico.getId()));
         } catch (SQLException e) {
-            System.out.println("Erro ao cadastrar servico: " + e.getMessage());
+
+            System.out.println(
+                    MessageFormat.format(
+                            bundle.getString("oficina.erro_cadastro"),
+                            e.getMessage()));
         }
     }
 
     private void abrirOrdemServico() {
-        System.out.print("ID do cliente: ");
+        System.out.print(bundle.getString("oficina.id_cliente"));
         int idCliente = lerInteiro();
-        System.out.print("ID do veiculo: ");
+        System.out.print(bundle.getString("oficina.id_veiculo"));
         int idVeiculo = lerInteiro();
 
         try {
             OrdemServico ordem = new OrdemServico(idCliente, idVeiculo, LocalDate.now(), "ABERTA");
             ordemServicoDAO.inserirOrdem(ordem);
-            System.out.println("OS aberta com ID: " + ordem.getId());
+            System.out.println(
+                    MessageFormat.format(
+                            bundle.getString("oficina.os_aberta"),
+                            ordem.getId()));
         } catch (SQLException e) {
-            System.out.println("Erro ao abrir OS: " + e.getMessage());
+            System.out.println(
+                    MessageFormat.format(
+                            bundle.getString("oficina.erro_abrir_os"),
+                            e.getMessage()));
+
         }
     }
 
     private void adicionarItem() {
-        System.out.print("ID da Ordem de Servico: ");
+        System.out.print(bundle.getString("oficina.id_ordem"));
         int idOrdem = lerInteiro();
-        System.out.print("ID do servico: ");
+        System.out.print(bundle.getString("oficina.id_servico"));
         int idServico = lerInteiro();
-        System.out.print("Quantidade: ");
+        System.out.print(bundle.getString("oficina.quantidade"));
         int quantidade = lerInteiro();
-        System.out.print("Preco unitario (ex: 150.00): ");
+        System.out.print(bundle.getString("oficina.preco_unitario"));
         double preco = lerDouble();
 
         try {
             ItemOS item = new ItemOS(idOrdem, idServico, quantidade, preco);
             ordemServicoDAO.inserirItem(item);
-            System.out.println("Item adicionado com ID: " + item.getId());
+            System.out.println(
+                    MessageFormat.format(
+                            bundle.getString("oficina.item_adicionado"),
+                            item.getId()));
         } catch (SQLException e) {
-            System.out.println("Erro ao adicionar item: " + e.getMessage());
+            System.out.println(
+                    MessageFormat.format(
+                            bundle.getString("oficina.erro_item"),
+                            e.getMessage()));
         }
     }
 
     private void consultarOrdemServico() {
-        System.out.print("ID da Ordem de Servico: ");
+        System.out.print(bundle.getString("oficina.id_ordem"));
         int idOrdem = lerInteiro();
 
         try {
             List<String> itens = ordemServicoDAO.buscarItensDaOrdem(idOrdem);
             if (itens.isEmpty()) {
-                System.out.println("Nenhum item encontrado para essa OS.");
+                System.out.println(bundle.getString("oficina.nenhum_item"));
                 return;
             }
-            System.out.println("Itens da OS " + idOrdem + ":");
+            System.out.println(
+                    MessageFormat.format(
+                            bundle.getString("oficina.itens_os"),
+                            idOrdem));
             for (String linha : itens) {
                 System.out.println("  - " + linha);
             }
         } catch (SQLException e) {
-            System.out.println("Erro ao consultar OS: " + e.getMessage());
+            System.out.println(
+                    MessageFormat.format(
+                            bundle.getString("oficina.erro_consulta"),
+                            e.getMessage()));
         }
     }
 
     private void calcularTotal() {
-        System.out.print("ID da Ordem de Servico: ");
+        System.out.print(bundle.getString("oficina.id_ordem"));
         int idOrdem = lerInteiro();
 
         try {
             ResultadoOS resultado = servicoService.calcularTotalOS(idOrdem);
             imprimirResultado(resultado);
         } catch (IllegalArgumentException e) {
-            System.out.println("Erro: " + e.getMessage());
+            System.out.println(
+                    MessageFormat.format(
+                            bundle.getString("oficina.erro"),
+                            e.getMessage()));
         } catch (SQLException e) {
-            System.out.println("Erro ao calcular total: " + e.getMessage());
+            System.out.println(
+                    MessageFormat.format(
+                            bundle.getString("oficina.erro_total"),
+                            e.getMessage()));
         }
     }
 
     private void imprimirResultado(ResultadoOS resultado) {
-        System.out.println("Garantia ativa: " + (resultado.isGarantiaAtiva() ? "SIM" : "NAO"));
-        System.out.println("Itens:");
+        String garantia = resultado.isGarantiaAtiva()
+                ? bundle.getString("oficina.sim")
+                : bundle.getString("oficina.nao");
+
+        System.out.println(
+                bundle.getString("oficina.garantia_ativa") + garantia);
+        System.out.println(bundle.getString("oficina.itens"));
         for (String linha : resultado.getDetalhes()) {
             System.out.println("  - " + linha);
         }
-        System.out.printf("Total mao de obra a cobrar: R$ %.2f%n", resultado.getTotalMaoDeObra());
-        System.out.printf("Total de desconto (garantia): R$ %.2f%n", resultado.getTotalDesconto());
+        System.out.println(
+                MessageFormat.format(
+                        bundle.getString("oficina.total_mao_obra"),
+                        I18nUtils.formatCurrency(
+                                resultado.getTotalMaoDeObra(),
+                                bundle.getLocale())));
+        System.out.println(
+                MessageFormat.format(
+                        bundle.getString("oficina.total_desconto"),
+                        I18nUtils.formatCurrency(
+                                resultado.getTotalDesconto(),
+                                bundle.getLocale())));
     }
 
     private int lerInteiro() {
         while (!scanner.hasNextInt()) {
-            System.out.print("Digite um numero valido: ");
+            System.out.print(bundle.getString("oficina.numero_invalido"));
             scanner.next();
         }
         int valor = scanner.nextInt();
@@ -167,7 +220,7 @@ public class ServicoMenu {
 
     private double lerDouble() {
         while (!scanner.hasNextDouble()) {
-            System.out.print("Digite um valor valido: ");
+            System.out.print(bundle.getString("oficina.valor_invalido"));
             scanner.next();
         }
         double valor = scanner.nextDouble();
