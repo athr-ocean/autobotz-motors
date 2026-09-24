@@ -16,6 +16,7 @@ import autobotz.ui.RelatorioMenu;
 import autobotz.ui.ClienteMenu;
 import autobotz.service.VendaService;
 import autobotz.util.I18nUtils;
+import autobotz.service.CRMService;
 
 public class Main {
     public static void main(String[] args) {
@@ -34,6 +35,8 @@ public class Main {
         UsuarioDAO usuarioDAO = new UsuarioDAO();
         AuthService authService = new AuthService(usuarioDAO);
         LoginMenu loginMenu = new LoginMenu(scanner, authService);
+        CRMService crmService = new CRMService();
+        
         if (!loginMenu.executar()) {
             System.out.println("Acesso encerrado.");
             scanner.close();
@@ -63,6 +66,7 @@ public class Main {
             System.out.println(bundle.getString("menu.opcao9"));
             System.out.println(bundle.getString("menu.opcao10"));
             System.out.println(bundle.getString("menu.opcao11"));
+            System.out.println(bundle.getString("menu.opcao12"));
             System.out.println(bundle.getString("menu.opcao0"));
             System.out.print(bundle.getString("menu.escolha"));
             opcao = scanner.nextInt();
@@ -168,7 +172,12 @@ public class Main {
                     case 11:
                         clienteMenu.exibirMenu();
                         break;
+                    case 12:
+                        System.out.print("Digite o ID do cliente: ");
+                        int idClienteCRM = scanner.nextInt();
+                        crmService.exibirHistoricoCliente(idClienteCRM);
 
+                        break;
                     case 0:
                         System.out.println(bundle.getString("sistema.encerrando"));
                         break;
