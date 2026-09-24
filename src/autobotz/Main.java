@@ -13,6 +13,7 @@ import autobotz.model.Veiculo;
 import autobotz.model.Venda;
 import autobotz.ui.RelatorioMenu;
 import autobotz.ui.ClienteMenu;
+import autobotz.ui.ServicoMenu;
 import autobotz.service.VendaService;
 import autobotz.service.CRMService;
 import autobotz.util.I18nUtils;
@@ -64,6 +65,7 @@ public class Main {
 
         RelatorioMenu relatorioMenu = new RelatorioMenu(scanner);
         ClienteMenu clienteMenu = new ClienteMenu(scanner);
+        ServicoMenu servicoMenu = new ServicoMenu(scanner);
 
         int opcao = -1;
 
@@ -374,9 +376,7 @@ public class Main {
                             break;
                         }
 
-                        System.out.println(
-                                "Modulo da oficina indisponivel no momento."
-                        );
+                        servicoMenu.executar();
 
                         break;
 
