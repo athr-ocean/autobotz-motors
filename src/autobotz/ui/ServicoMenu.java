@@ -1,15 +1,15 @@
 package autobotz.ui;
 
-import autobotz.mock.MockItemOSDAO;
-import autobotz.mock.MockOrdemServicoDAO;
-import autobotz.mock.MockServicoDAO;
-import autobotz.mock.MockVendaDAO;
+import autobotz.dao.OrdemServicoDAO;
+import autobotz.dao.ServicoDAO;
+import autobotz.dao.VendaDAO;
 import autobotz.model.ItemOS;
 import autobotz.service.ResultadoOS;
 import autobotz.service.ServicoService;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class ServicoMenu {
@@ -18,83 +18,222 @@ public class ServicoMenu {
     private final ServicoService servicoService;
 
     public ServicoMenu(Scanner scanner) {
+
         this.scanner = scanner;
-        // TODO: quando o Alexandre terminar os DAOs reais, troque os Mock*
-        // pelos DAOs reais aqui.
-        this.servicoService = new ServicoService(
-                new MockOrdemServicoDAO(),
-                new MockItemOSDAO(),
-                new MockServicoDAO(),
-                new MockVendaDAO()
-        );
+
+        /*
+         * Mantem o menu e a regra de negocio originais
+         * usando agora os DAOs reais da equipe.
+         */
+        this.servicoService =
+                new ServicoService(
+                        new OrdemServicoDAO(),
+                        new ServicoDAO(),
+                        new VendaDAO()
+                );
     }
 
     public void executar() {
+
         boolean sair = false;
+
         while (!sair) {
-            System.out.println("\n===== MENU DA OFICINA =====");
-            System.out.println("1. Calcular total de uma Ordem de Servico (dados de exemplo)");
-            System.out.println("2. Testar calculo de garantia com data customizada");
-            System.out.println("0. Voltar");
-            System.out.print("Opcao: ");
+
+            System.out.println(
+                    "\n===== MENU DA OFICINA ====="
+            );
+
+            System.out.println(
+                    "1. Calcular total de uma Ordem de Servico"
+            );
+
+            System.out.println(
+                    "2. Testar calculo de garantia "
+                    + "com data customizada"
+            );
+
+            System.out.println(
+                    "0. Voltar"
+            );
+
+            System.out.print(
+                    "Opcao: "
+            );
 
             int opcao = lerInteiro();
 
             switch (opcao) {
-                case 1 -> calcularOrdemExemplo();
-                case 2 -> testarComDataCustomizada();
-                case 0 -> sair = true;
-                default -> System.out.println("Opcao invalida.");
+
+                case 1 ->
+                    calcularOrdem();
+
+                case 2 ->
+                    testarComDataCustomizada();
+
+                case 0 ->
+                    sair = true;
+
+                default ->
+                    System.out.println(
+                            "Opcao invalida."
+                    );
             }
         }
     }
 
-    private void calcularOrdemExemplo() {
-        System.out.print("Digite o ID da Ordem de Servico (1 ou 2 nos dados de teste): ");
-        int idOrdem = lerInteiro();
+    private void calcularOrdem() {
+
+        System.out.print(
+                "Digite o ID da Ordem de Servico: "
+        );
+
+        int idOrdem =
+                lerInteiro();
 
         try {
-            ResultadoOS resultado = servicoService.calcularTotalOS(idOrdem);
-            imprimirResultado(resultado);
-        } catch (IllegalArgumentException e) {
-            System.out.println("Erro: " + e.getMessage());
+
+            ResultadoOS resultado =
+                    servicoService
+                            .calcularTotalOS(
+                                    idOrdem
+                            );
+
+            imprimirResultado(
+                    resultado
+            );
+
+        } catch (SQLException
+                 | IllegalArgumentException e) {
+
+            System.out.println(
+                    "Erro: "
+                    + e.getMessage()
+            );
         }
     }
 
     private void testarComDataCustomizada() {
-        System.out.print("Ha quantos meses o veiculo foi vendido? ");
-        int meses = lerInteiro();
-        LocalDate dataVenda = LocalDate.now().minusMonths(meses);
 
-        // Simula uma OS com um item de revisao de R$ 400,00
-        ItemOS itemRevisao = new ItemOS(99, 99, 1, 1, 400.0);
+        System.out.print(
+                "Ha quantos meses "
+                + "o veiculo foi vendido? "
+        );
 
-        ResultadoOS resultado = servicoService.calcularTotalOS(Arrays.asList(itemRevisao), dataVenda);
-        imprimirResultado(resultado);
+        int meses =
+                lerInteiro();
+
+        System.out.print(
+                "ID de um servico "
+                + "de revisao cadastrado: "
+        );
+
+        int idServico =
+                lerInteiro();
+
+        LocalDate dataVenda =
+                LocalDate.now()
+                        .minusMonths(meses);
+
+        /*
+         * Mantem o teste criado para validar a regra
+         * de garantia, agora usando um servico real.
+         */
+        ItemOS itemRevisao =
+                new ItemOS(
+                        0,
+                        idServico,
+                        1,
+                        400.0
+                );
+
+        try {
+
+            ResultadoOS resultado =
+                    servicoService
+                            .calcularTotalOS(
+                                    List.of(
+                                            itemRevisao
+                                    ),
+                                    dataVenda
+                            );
+
+            imprimirResultado(
+                    resultado
+            );
+
+        } catch (SQLException
+                 | IllegalArgumentException e) {
+
+            System.out.println(
+                    "Erro: "
+                    + e.getMessage()
+            );
+        }
     }
 
-    private void imprimirResultado(ResultadoOS resultado) {
-        System.out.println("Garantia ativa: " + (resultado.isGarantiaAtiva() ? "SIM" : "NAO"));
-        System.out.println("Itens:");
-        for (String linha : resultado.getDetalhes()) {
-            System.out.println("  - " + linha);
+    private void imprimirResultado(
+            ResultadoOS resultado) {
+
+        System.out.println(
+                "Garantia ativa: "
+                + (
+                    resultado.isGarantiaAtiva()
+                        ? "SIM"
+                        : "NAO"
+                )
+        );
+
+        System.out.println(
+                "Itens:"
+        );
+
+        for (String linha :
+                resultado.getDetalhes()) {
+
+            System.out.println(
+                    "  - " + linha
+            );
         }
-        System.out.printf("Total mao de obra a cobrar: R$ %.2f%n", resultado.getTotalMaoDeObra());
-        System.out.printf("Total de desconto (garantia): R$ %.2f%n", resultado.getTotalDesconto());
+
+        System.out.printf(
+                "Total mao de obra a cobrar: "
+                + "R$ %.2f%n",
+                resultado
+                        .getTotalMaoDeObra()
+        );
+
+        System.out.printf(
+                "Total de desconto (garantia): "
+                + "R$ %.2f%n",
+                resultado
+                        .getTotalDesconto()
+        );
     }
 
     private int lerInteiro() {
+
         while (!scanner.hasNextInt()) {
-            System.out.print("Digite um numero valido: ");
+
+            System.out.print(
+                    "Digite um numero valido: "
+            );
+
             scanner.next();
         }
-        int valor = scanner.nextInt();
+
+        int valor =
+                scanner.nextInt();
+
         scanner.nextLine();
+
         return valor;
     }
 
-	public void exibirMenu() {
-		// TODO Auto-generated method stub
-		
-	}
+    /*
+     * Mantido por compatibilidade com chamadas
+     * existentes de versões anteriores.
+     */
+    public void exibirMenu() {
+        executar();
+    }
 }
