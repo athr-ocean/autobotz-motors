@@ -136,5 +136,4 @@ public class OrdemServicoDAO {
         }
 
         return itens;
-    }
 }

@@ -79,6 +79,7 @@ public class VendaDAO {
         return vendas;
     }
 
+
     /**
      * Busca a venda mais recente de um veiculo (usada para checar a garantia na Oficina/OS).
      * Retorna null se o veiculo nunca foi vendido.
@@ -99,6 +100,34 @@ public class VendaDAO {
         }
         return null;
     }
+
+    public List<Venda> listarVendasPorCliente(int idCliente) throws SQLException {
+        List<Venda> vendas = new ArrayList<>();
+
+        String sql = "SELECT id_venda, id_veiculo, id_cliente, valor_final, data_venda "
+                   + "FROM vendas WHERE id_cliente = ? ORDER BY data_venda";
+
+        try (Connection conexao = ConexaoBanco.getConexao();
+             PreparedStatement stmt = conexao.prepareStatement(sql)) {
+
+            stmt.setInt(1, idCliente);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    vendas.add(new Venda(
+                        rs.getInt("id_venda"),
+                        rs.getInt("id_veiculo"),
+                        rs.getInt("id_cliente"),
+                        rs.getDouble("valor_final"),
+                        rs.getDate("data_venda").toLocalDate()
+                    ));
+                }
+            }
+        }
+
+        return vendas;
+    }
+    
 
     private void validarVenda(Venda venda) {
         if (venda == null || venda.getIdCliente() <= 0 || venda.getIdVeiculo() <= 0) {
