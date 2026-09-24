@@ -14,6 +14,7 @@ import autobotz.model.Venda;
 import autobotz.ui.RelatorioMenu;
 import autobotz.ui.ClienteMenu;
 import autobotz.service.VendaService;
+import autobotz.service.CRMService;
 import autobotz.util.I18nUtils;
 
 public class Main {
@@ -59,6 +60,7 @@ public class Main {
         VendaDAO vendaDAO = new VendaDAO();
 
         VendaService vendaService = new VendaService();
+        CRMService crmService = new CRMService();
 
         RelatorioMenu relatorioMenu = new RelatorioMenu(scanner);
         ClienteMenu clienteMenu = new ClienteMenu(scanner);
@@ -92,6 +94,7 @@ public class Main {
             System.out.println(bundle.getString("menu.opcao16"));
             System.out.println(bundle.getString("menu.opcao17"));
             System.out.println(bundle.getString("menu.opcao18"));
+            System.out.println(bundle.getString("menu.opcao19"));
             System.out.println(bundle.getString("menu.opcao0"));
             
 
@@ -496,6 +499,15 @@ public class Main {
                         projetoDAO.consultarProjetos();
                     
                     break;
+
+
+                    case 19:
+                        System.out.print("Digite o ID do cliente: ");
+                        int idClienteCRM = scanner.nextInt();
+                        scanner.nextLine();
+
+                        crmService.exibirHistoricoCliente(idClienteCRM);
+                        break;
 
 
                     case 0:
