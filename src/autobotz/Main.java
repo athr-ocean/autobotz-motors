@@ -34,8 +34,11 @@ public class Main {
         System.out.println(inicial.getString("idioma.en"));
         System.out.print(inicial.getString("idioma.opcao"));
 
-        int langOpcao = scanner.nextInt();
-        scanner.nextLine();
+        int langOpcao =
+                lerInteiro(
+                        scanner,
+                        inicial
+                );
 
         Locale locale = (langOpcao == 2)
                 ? Locale.of("en", "US")
@@ -108,8 +111,11 @@ public class Main {
 
             System.out.print(bundle.getString("menu.escolha"));
 
-            opcao = scanner.nextInt();
-            scanner.nextLine();
+            opcao =
+                    lerInteiro(
+                            scanner,
+                            bundle
+                    );
 
             try {
 
@@ -131,10 +137,10 @@ public class Main {
                         String modelo = scanner.nextLine();
 
                         System.out.print(bundle.getString("veiculo.ano"));
-                        int ano = scanner.nextInt();
+                        int ano = lerInteiro(scanner, bundle);
 
                         System.out.print(bundle.getString("veiculo.preco"));
-                        double preco = scanner.nextDouble();
+                        double preco = lerDouble(scanner, bundle);
 
                         veiculoDAO.cadastrar(
                                 new Veiculo(
@@ -194,8 +200,11 @@ public class Main {
                                 bundle.getString("veiculo.id_atualizar")
                         );
 
-                        int idAlt = scanner.nextInt();
-                        scanner.nextLine();
+                        int idAlt =
+                                lerInteiro(
+                                        scanner,
+                                        bundle
+                                );
 
                         System.out.print(
                                 bundle.getString("veiculo.nova_marca")
@@ -213,13 +222,13 @@ public class Main {
                                 bundle.getString("veiculo.novo_ano")
                         );
 
-                        int novoAno = scanner.nextInt();
+                        int novoAno = lerInteiro(scanner, bundle);
 
                         System.out.print(
                                 bundle.getString("veiculo.novo_preco")
                         );
 
-                        double novoPreco = scanner.nextDouble();
+                        double novoPreco = lerDouble(scanner, bundle);
 
                         veiculoDAO.atualizar(
                                 idAlt,
@@ -241,7 +250,7 @@ public class Main {
                                 bundle.getString("veiculo.id_excluir")
                         );
 
-                        int idDel = scanner.nextInt();
+                        int idDel = lerInteiro(scanner, bundle);
 
                         veiculoDAO.deletar(idDel);
 
@@ -331,19 +340,19 @@ public class Main {
                                 bundle.getString("venda.id_cliente")
                         );
 
-                        int idCliente = scanner.nextInt();
+                        int idCliente = lerInteiro(scanner, bundle);
 
                         System.out.print(
                                 bundle.getString("venda.id_veiculo")
                         );
 
-                        int idVeiculo = scanner.nextInt();
+                        int idVeiculo = lerInteiro(scanner, bundle);
 
                         System.out.print(
                                 bundle.getString("venda.valor_final")
                         );
 
-                        double valorFinal = scanner.nextDouble();
+                        double valorFinal = lerDouble(scanner, bundle);
 
                         vendaService.realizarVenda(
                                 idCliente,
@@ -487,23 +496,56 @@ public class Main {
                     break;
 
                     case 16:
-                        if (!autorizacaoService.exigirPermissao( AutorizacaoService.Permissao.ATUALIZAR_MEMBROS)) {
-                        break;
+                        if (!autorizacaoService.exigirPermissao(
+                                AutorizacaoService.Permissao.ATUALIZAR_MEMBROS)) {
+                            break;
                         }
-                        System.out.print(bundle.getString("projeto.membros_prompt"));
-                        String listaMembros = scanner.nextLine();
 
-                        projetoDAO.atualizarMembros(listaMembros);
-                    
-                    break;
+                        System.out.print(
+                                bundle.getString(
+                                        "projeto.nome_prompt"
+                                )
+                        );
+
+                        String nomeProjetoMembros =
+                                scanner.nextLine();
+
+                        System.out.print(
+                                bundle.getString(
+                                        "projeto.membros_prompt"
+                                )
+                        );
+
+                        String listaMembros =
+                                scanner.nextLine();
+
+                        projetoDAO.atualizarMembros(
+                                nomeProjetoMembros,
+                                listaMembros
+                        );
+
+                        break;
 
                     case 17:
-                        if (!autorizacaoService.exigirPermissao( AutorizacaoService.Permissao.CONSULTAR_MEMBROS)) {
-                        break;
+                        if (!autorizacaoService.exigirPermissao(
+                                AutorizacaoService.Permissao.CONSULTAR_MEMBROS)) {
+                            break;
                         }
-                        projetoDAO.consultarMembros();
-                    
-                    break;
+
+                        System.out.print(
+                                bundle.getString(
+                                        "projeto.nome_prompt"
+                                )
+                        );
+
+                        String nomeProjetoConsulta =
+                                scanner.nextLine();
+
+                        projetoDAO.consultarMembros(
+                                nomeProjetoConsulta
+                        );
+
+                        break;
 
                     case 18:
                         if (!autorizacaoService.exigirPermissao( AutorizacaoService.Permissao.CONSULTAR_PROJETOS)) {
@@ -515,9 +557,21 @@ public class Main {
 
 
                     case 19:
-                        System.out.print(bundle.getString("crm.id_cliente_prompt"));
-                        int idClienteCRM = scanner.nextInt();
-                        scanner.nextLine();
+                        if (!autorizacaoService.exigirPermissao(
+                                AutorizacaoService.Permissao.ACESSAR_CRM)) {
+                            break;
+                        }
+
+                        System.out.print(
+                                bundle.getString(
+                                        "crm.id_cliente_prompt"
+                                )
+                        );
+                        int idClienteCRM =
+                                lerInteiro(
+                                        scanner,
+                                        bundle
+                                );
 
                         crmService.exibirHistoricoCliente(idClienteCRM);
                         break;
@@ -549,4 +603,59 @@ public class Main {
 
         scanner.close();
     }
+
+    private static int lerInteiro(
+            Scanner scanner,
+            ResourceBundle bundle) {
+
+        while (true) {
+
+            String entrada =
+                    scanner.nextLine().trim();
+
+            try {
+
+                return Integer.parseInt(
+                        entrada
+                );
+
+            } catch (NumberFormatException e) {
+
+                System.out.print(
+                        bundle.getString(
+                                "comum.inteiro_invalido"
+                        )
+                );
+            }
+        }
+    }
+
+    private static double lerDouble(
+            Scanner scanner,
+            ResourceBundle bundle) {
+
+        while (true) {
+
+            String entrada =
+                    scanner.nextLine()
+                            .trim()
+                            .replace(',', '.');
+
+            try {
+
+                return Double.parseDouble(
+                        entrada
+                );
+
+            } catch (NumberFormatException e) {
+
+                System.out.print(
+                        bundle.getString(
+                                "comum.decimal_invalido"
+                        )
+                );
+            }
+        }
+    }
+
 }

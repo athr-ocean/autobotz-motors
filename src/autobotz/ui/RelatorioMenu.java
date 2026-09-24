@@ -25,8 +25,9 @@ public class RelatorioMenu {
         System.out.println(I18nUtils.getString("relatorio.opcao4"));
         System.out.println(I18nUtils.getString("comum.voltar"));
         System.out.print(I18nUtils.getString("comum.opcao"));
-        int opcao = Integer.parseInt(scanner.nextLine());
         try {
+            int opcao = Integer.parseInt(scanner.nextLine());
+
             switch (opcao) {
                 case 1 -> exibirFaturamento();
                 case 2 -> imprimir(relatorioService.curvaEstoque());
