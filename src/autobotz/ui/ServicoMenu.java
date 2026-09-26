@@ -11,6 +11,7 @@ import autobotz.service.ServicoService;
 import autobotz.util.I18nUtils;
 
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
@@ -98,8 +99,9 @@ public class ServicoMenu {
         servicoDAO.inserir(servico);
 
         System.out.println(
-                I18nUtils.getString("oficina.servico_cadastrado")
-                + servico.getId()
+                MessageFormat.format(
+                        I18nUtils.getString("oficina.servico_cadastrado"),
+                        servico.getId())
         );
     }
 
@@ -128,8 +130,9 @@ public class ServicoMenu {
         ordemServicoDAO.inserirOrdem(ordem);
 
         System.out.println(
-                I18nUtils.getString("oficina.os_aberta")
-                + ordem.getId()
+                MessageFormat.format(
+                        I18nUtils.getString("oficina.os_aberta"),
+                        ordem.getId())
         );
     }
 
@@ -179,8 +182,9 @@ public class ServicoMenu {
         ordemServicoDAO.inserirItem(item);
 
         System.out.println(
-                I18nUtils.getString("oficina.item_adicionado")
-                + item.getId()
+                MessageFormat.format(
+                        I18nUtils.getString("oficina.item_adicionado"),
+                        item.getId())
         );
     }
 
@@ -309,17 +313,15 @@ public class ServicoMenu {
         }
 
         System.out.println(
-                I18nUtils.getString("oficina.total_mao_obra")
-                + I18nUtils.formatCurrency(
-                        resultado.getTotalMaoDeObra()
-                )
+                MessageFormat.format(
+                        I18nUtils.getString("oficina.total_mao_obra"),
+                        I18nUtils.formatCurrency(resultado.getTotalMaoDeObra()))
         );
 
         System.out.println(
-                I18nUtils.getString("oficina.total_desconto")
-                + I18nUtils.formatCurrency(
-                        resultado.getTotalDesconto()
-                )
+                MessageFormat.format(
+                        I18nUtils.getString("oficina.total_desconto"),
+                        I18nUtils.formatCurrency(resultado.getTotalDesconto()))
         );
     }
 
