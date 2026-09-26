@@ -36,7 +36,7 @@ public class RelatorioMenu {
                 case 0 -> { }
                 default -> System.out.println(I18nUtils.getString("comum.opcao_invalida"));
             }
-        } catch (java.sql.SQLException | IllegalArgumentException e) {
+        } catch (java.sql.SQLException | IllegalArgumentException | java.time.DateTimeException e) {
             System.out.println(I18nUtils.getString("relatorio.erro") + e.getMessage());
         }
     }
@@ -53,7 +53,7 @@ public class RelatorioMenu {
         System.out.print(I18nUtils.getString("relatorio.quantidade_logs"));
         int limite = Integer.parseInt(scanner.nextLine());
         for (LogAuditoria log : relatorioService.auditoriaRecente(limite)) {
-            System.out.println(log.getDataHora() + " | " + log.getNomeUsuario() + " | "
+            System.out.println(I18nUtils.formatDateTime(log.getDataHora()) + " | " + log.getNomeUsuario() + " | "
                     + log.getAcao() + " | " + log.getEntidade() + " | " + log.getDetalhes());
         }
     }

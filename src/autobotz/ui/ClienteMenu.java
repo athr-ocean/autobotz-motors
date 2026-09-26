@@ -26,6 +26,7 @@ public class ClienteMenu {
             System.out.println(I18nUtils.getString("cliente.menu.cadastrar"));
             System.out.println(I18nUtils.getString("cliente.menu.listar"));
             System.out.println(I18nUtils.getString("cliente.menu.anonimizar"));
+            System.out.println(I18nUtils.getString("cliente.menu.atualizar"));
             System.out.println(I18nUtils.getString("comum.voltar"));
             System.out.print(I18nUtils.getString("comum.opcao"));
             try {
@@ -34,6 +35,7 @@ public class ClienteMenu {
                     case 1 -> cadastrar();
                     case 2 -> listar();
                     case 3 -> anonimizar();
+                    case 4 -> atualizar();
                     case 0 -> { }
                     default -> System.out.println(I18nUtils.getString("comum.opcao_invalida"));
                 }
@@ -76,6 +78,34 @@ public class ClienteMenu {
                     )
             );
         }
+    }
+
+    private void atualizar() throws SQLException {
+        System.out.print(I18nUtils.getString("cliente.id_prompt"));
+        int id = Integer.parseInt(scanner.nextLine());
+        if (id <= 0) throw new IllegalArgumentException(I18nUtils.getString("cliente.id_invalido"));
+        if (clienteDAO.buscarPorId(id) == null) {
+            System.out.println(I18nUtils.getString("cliente.nao_encontrado"));
+            return;
+        }
+
+        System.out.print(I18nUtils.getString("cliente.nome"));
+        String nome = scanner.nextLine();
+        System.out.print(I18nUtils.getString("cliente.cpf"));
+        String cpf = scanner.nextLine();
+        System.out.print(I18nUtils.getString("cliente.telefone"));
+        String telefone = scanner.nextLine();
+        System.out.print(I18nUtils.getString("cliente.email"));
+        String email = scanner.nextLine();
+        System.out.print(I18nUtils.getString("cliente.ativo_prompt"));
+        int ativo = Integer.parseInt(scanner.nextLine());
+        if (ativo != 0 && ativo != 1) {
+            throw new IllegalArgumentException(I18nUtils.getString("cliente.ativo_invalido"));
+        }
+
+        boolean atualizado = clienteDAO.atualizar(new Cliente(id, nome, cpf, telefone, email, ativo == 1));
+        System.out.println(I18nUtils.getString(
+                atualizado ? "cliente.atualizado" : "cliente.nao_encontrado"));
     }
 
     private void anonimizar() throws SQLException {

@@ -64,6 +64,33 @@ public class ClienteDAO {
         return null;
     }
 
+    // Restaura atualizar(Cliente), de Higor (0219a18), no schema/JDBC integrado.
+    public boolean atualizar(Cliente cliente) throws SQLException {
+        if (cliente.getId() <= 0) {
+            throw new IllegalArgumentException(I18nUtils.getString("cliente.id_invalido"));
+        }
+        Cliente atual = buscarPorId(cliente.getId());
+        if (atual == null) return false;
+
+        // CPF mascarado pode ser compartilhado por clientes anonimizados.
+        if (!java.util.Objects.equals(atual.getCpf(), cliente.getCpf())
+                && buscarPorCpf(cliente.getCpf()) != null) {
+            throw new SQLException(I18nUtils.getString("cliente.cpf_duplicado") + cliente.getCpf() + ".");
+        }
+
+        String sql = "UPDATE clientes SET nome = ?, cpf = ?, telefone = ?, email = ?, ativo = ? "
+                + "WHERE id_cliente = ?";
+        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+            stmt.setString(1, cliente.getNome());
+            stmt.setString(2, cliente.getCpf());
+            stmt.setString(3, cliente.getTelefone());
+            stmt.setString(4, cliente.getEmail());
+            stmt.setBoolean(5, cliente.isAtivo());
+            stmt.setInt(6, cliente.getId());
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
     public boolean anonimizar(int id) throws SQLException {
         String sql = "UPDATE clientes SET nome = ?, cpf = ?, telefone = NULL, email = NULL, ativo = ? "
                 + "WHERE id_cliente = ?";

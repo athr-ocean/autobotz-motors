@@ -2,7 +2,9 @@ package autobotz.util;
 
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -94,10 +96,7 @@ public final class I18nUtils {
                         : locale;
 
         return data.format(
-                DateTimeFormatter.ofPattern(
-                        "dd/MM/yyyy",
-                        idioma
-                )
+                DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(idioma)
         );
     }
 
@@ -108,6 +107,11 @@ public final class I18nUtils {
                 data,
                 currentLocale
         );
+    }
+
+    public static String formatDateTime(LocalDateTime data) {
+        return data == null ? "" : data.format(DateTimeFormatter
+                .ofLocalizedDateTime(FormatStyle.SHORT).withLocale(currentLocale));
     }
 
     public static String formatVehicleStatus(String status) {

@@ -13,6 +13,17 @@ import autobotz.util.ConexaoBanco;
 import autobotz.util.I18nUtils;
 
 public class OrdemServicoDAO {
+    public List<OrdemServico> listar() throws SQLException {
+        List<OrdemServico> ordens = new ArrayList<>();
+        try (var stmt = ConexaoBanco.getConexao().prepareStatement(
+                "SELECT id_ordem, id_cliente, id_veiculo, data_abertura, status FROM ordens_servico ORDER BY id_ordem DESC");
+             var rs = stmt.executeQuery()) {
+            while (rs.next()) ordens.add(new OrdemServico(rs.getInt(1), rs.getInt(2), rs.getInt(3),
+                    rs.getDate(4).toLocalDate(), rs.getString(5)));
+        }
+        return ordens;
+    }
+
     public void inserirOrdem(OrdemServico ordem) throws SQLException {
         String sql = "INSERT INTO ordens_servico "
                 + "(id_cliente, id_veiculo, data_abertura, status) VALUES (?, ?, ?, ?)";
@@ -32,6 +43,12 @@ public class OrdemServicoDAO {
     }
 
     public void inserirItem(ItemOS item) throws SQLException {
+        if (item == null || item.getQuantidade() <= 0) {
+            throw new IllegalArgumentException(I18nUtils.getString("oficina.quantidade_invalida"));
+        }
+        if (!Double.isFinite(item.getPreco()) || item.getPreco() <= 0) {
+            throw new IllegalArgumentException(I18nUtils.getString("oficina.preco_invalido"));
+        }
         String sql = "INSERT INTO itens_os "
                 + "(id_ordem, id_servico, quantidade, preco) VALUES (?, ?, ?, ?)";
         try (PreparedStatement stmt = ConexaoBanco.getConexao()

@@ -86,7 +86,7 @@ public class ServicoMenu {
         System.out.print(I18nUtils.getString("oficina.preco_servico"));
         double preco = lerDouble();
 
-        if (preco <= 0) {
+        if (!Double.isFinite(preco) || preco <= 0) {
             throw new IllegalArgumentException(
                     I18nUtils.getString("oficina.preco_invalido")
             );

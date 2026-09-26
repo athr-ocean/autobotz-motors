@@ -9,6 +9,20 @@ import java.util.ResourceBundle;
 import autobotz.util.ConexaoBanco;
 
 public class ProjetoDAO {
+    public record Resumo(String nome, String responsavel, String equipe, String status, String membros) { }
+
+    public java.util.List<Resumo> listar() throws SQLException {
+        var projetos = new java.util.ArrayList<Resumo>();
+        String sql = "SELECT p.nome_projeto, p.responsavel, p.equipe, p.status, "
+                + "(SELECT m.lista_membros FROM membros_projeto m WHERE m.id_projeto = p.id_projeto "
+                + "ORDER BY m.id DESC LIMIT 1) AS membros FROM projetos p ORDER BY p.nome_projeto";
+        try (var stmt = ConexaoBanco.getConexao().prepareStatement(sql); var rs = stmt.executeQuery()) {
+            while (rs.next()) projetos.add(new Resumo(rs.getString(1), rs.getString(2), rs.getString(3),
+                    rs.getString(4), rs.getString(5)));
+        }
+        return projetos;
+    }
+
     private final ResourceBundle bundle;
 
     public ProjetoDAO(ResourceBundle bundle){

@@ -10,6 +10,14 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class CRMService {
+    public record Historico(Cliente cliente, List<Venda> vendas, double total) { }
+
+    public Historico consultarHistorico(int idCliente) throws SQLException {
+        Cliente cliente = clienteDAO.buscarPorId(idCliente);
+        if (cliente == null) throw new IllegalArgumentException(I18nUtils.getString("crm.cliente_nao_encontrado"));
+        List<Venda> vendas = vendaDAO.listarVendasPorCliente(idCliente);
+        return new Historico(cliente, List.copyOf(vendas), vendas.stream().mapToDouble(Venda::getValorTotal).sum());
+    }
 
     private final ClienteDAO clienteDAO;
     private final VendaDAO vendaDAO;
@@ -22,21 +30,9 @@ public class CRMService {
     public void exibirHistoricoCliente(int idCliente)
             throws SQLException {
 
-        Cliente cliente =
-                clienteDAO.buscarPorId(idCliente);
-
-        if (cliente == null) {
-            throw new IllegalArgumentException(
-                    I18nUtils.getString(
-                            "crm.cliente_nao_encontrado"
-                    )
-            );
-        }
-
-        List<Venda> vendas =
-                vendaDAO.listarVendasPorCliente(
-                        idCliente
-                );
+        Historico historico = consultarHistorico(idCliente);
+        Cliente cliente = historico.cliente();
+        List<Venda> vendas = historico.vendas();
 
         double totalGasto = 0;
 

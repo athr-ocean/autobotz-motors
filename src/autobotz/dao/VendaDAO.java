@@ -153,7 +153,8 @@ public class VendaDAO {
         if (venda == null || venda.getIdCliente() <= 0 || venda.getIdVeiculo() <= 0) {
             throw new IllegalArgumentException(I18nUtils.getString("venda.ids_invalidos"));
         }
-        if (venda.getValorTotal() <= 0 || venda.getDataVenda() == null) {
+        if (!Double.isFinite(venda.getValorTotal()) || venda.getValorTotal() <= 0
+                || venda.getDataVenda() == null || venda.getDataVenda().isAfter(java.time.LocalDate.now())) {
             throw new IllegalArgumentException(I18nUtils.getString("venda.dados_invalidos"));
         }
     }

@@ -190,7 +190,7 @@ public class ServicoService {
                         LocalDate.now()
                 );
 
-        return dias < DIAS_GARANTIA;
+        return dias >= 0 && dias < DIAS_GARANTIA;
     }
 
     private boolean ehRevisao(
