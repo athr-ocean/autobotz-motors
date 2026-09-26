@@ -18,11 +18,11 @@ public class LoginMenu {
 
     public boolean executar() {
         while (true) {
-            System.out.println("\n========== AUTENTICACAO ==========");
+            System.out.println(bundle.getString("login.titulo"));
             System.out.println(bundle.getString("menu.login01"));
             System.out.println(bundle.getString("menu.login02"));
             System.out.println(bundle.getString("menu.login03"));
-            System.out.print("Escolha: ");
+            System.out.print(bundle.getString("comum.escolha"));
 
             try {
                 int opcao = Integer.parseInt(scanner.nextLine());
@@ -34,42 +34,42 @@ public class LoginMenu {
                     }
                     case 2 -> cadastrarUsuario();
                     case 0 -> { return false; }
-                    default -> System.out.println("Opcao invalida.");
+                    default -> System.out.println(bundle.getString("comum.opcao_invalida"));
                 }
             } catch (NumberFormatException e) {
-                System.out.println("Erro: digite uma opcao valida.");
+                System.out.println(bundle.getString("login.opcao_invalida"));
             } catch (SQLException e) {
-                System.out.println("Erro no banco de dados: " + e.getMessage());
+                System.out.println(bundle.getString("comum.erro_banco") + e.getMessage());
                 return false;
             }
         }
     }
 
     private boolean fazerLogin() throws SQLException {
-        System.out.print("Usuario: ");
+        System.out.print(bundle.getString("login.usuario"));
         String nomeUsuario = scanner.nextLine();
-        System.out.print("Senha: ");
+        System.out.print(bundle.getString("login.senha"));
         String senha = scanner.nextLine();
 
         Usuario usuario = authService.autenticar(nomeUsuario, senha);
         if (usuario == null) {
-            System.out.println("Usuario ou senha invalidos.");
+            System.out.println(bundle.getString("login.credenciais_invalidas"));
             return false;
         }
 
         SessaoUsuario.getInstancia().setUsuario(usuario);
-        System.out.println("Login realizado com sucesso! Perfil: " + usuario.getPerfil());
+        System.out.println(bundle.getString("login.sucesso") + usuario.getPerfil());
         return true;
     }
 
     private void cadastrarUsuario() throws SQLException {
-        System.out.print("Novo usuario: ");
+        System.out.print(bundle.getString("login.novo_usuario"));
         String nomeUsuario = scanner.nextLine();
-        System.out.print("Senha: ");
+        System.out.print(bundle.getString("login.senha"));
         String senha = scanner.nextLine();
-        System.out.println("1. ADMIN");
-        System.out.println("2. VENDEDOR");
-        System.out.print("Perfil: ");
+        System.out.println(bundle.getString("login.perfil_admin"));
+        System.out.println(bundle.getString("login.perfil_vendedor"));
+        System.out.print(bundle.getString("login.perfil"));
 
         int opcaoPerfil = Integer.parseInt(scanner.nextLine());
         PerfilUsuario perfil;
@@ -78,14 +78,14 @@ public class LoginMenu {
         } else if (opcaoPerfil == 2) {
             perfil = PerfilUsuario.VENDEDOR;
         } else {
-            System.out.println("Perfil invalido.");
+            System.out.println(bundle.getString("login.perfil_invalido"));
             return;
         }
 
         if (authService.cadastrar(nomeUsuario, senha, perfil)) {
-            System.out.println("Usuario cadastrado com sucesso.");
+            System.out.println(bundle.getString("login.usuario_criado"));
         } else {
-            System.out.println("Esse usuario ja existe.");
+            System.out.println(bundle.getString("login.usuario_existente"));
         }
     }
 }

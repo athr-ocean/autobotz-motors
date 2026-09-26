@@ -9,6 +9,20 @@ import java.util.ResourceBundle;
 import autobotz.util.ConexaoBanco;
 
 public class ProjetoDAO {
+    public record Resumo(String nome, String responsavel, String equipe, String status, String membros) { }
+
+    public java.util.List<Resumo> listar() throws SQLException {
+        var projetos = new java.util.ArrayList<Resumo>();
+        String sql = "SELECT p.nome_projeto, p.responsavel, p.equipe, p.status, "
+                + "(SELECT m.lista_membros FROM membros_projeto m WHERE m.id_projeto = p.id_projeto "
+                + "ORDER BY m.id DESC LIMIT 1) AS membros FROM projetos p ORDER BY p.nome_projeto";
+        try (var stmt = ConexaoBanco.getConexao().prepareStatement(sql); var rs = stmt.executeQuery()) {
+            while (rs.next()) projetos.add(new Resumo(rs.getString(1), rs.getString(2), rs.getString(3),
+                    rs.getString(4), rs.getString(5)));
+        }
+        return projetos;
+    }
+
     private final ResourceBundle bundle;
 
     public ProjetoDAO(ResourceBundle bundle){
@@ -87,10 +101,10 @@ public class ProjetoDAO {
             while (rs.next()) {
 
                 System.out.println(
-                        "Projeto: " + rs.getString("nome_projeto")
-                        + " | Responsável: " + rs.getString("responsavel")
-                        + " | Equipe: " + rs.getString("equipe")
-                        + " | Status: " + rs.getString("status")
+                        bundle.getString("projeto.label") + rs.getString("nome_projeto")
+                        + " | " + bundle.getString("projeto.responsavel_label") + rs.getString("responsavel")
+                        + " | " + bundle.getString("projeto.equipe_label") + rs.getString("equipe")
+                        + " | " + bundle.getString("projeto.status_label") + rs.getString("status")
                 );
             }
         }
@@ -112,56 +126,118 @@ public class ProjetoDAO {
             int linhasAfetadas = stmt.executeUpdate();
 
             if (linhasAfetadas == 0) {
-            System.out.println("Projeto não encontrado.");
+            System.out.println(bundle.getString("ProjetoDAO.02"));
             } else {
-            System.out.println("Projeto excluído com sucesso.");
+            System.out.println(bundle.getString("ProjetoDAO.04"));
             }
         }
     }
 
-    public void atualizarMembros(String listaMembros) throws SQLException {
+    public void atualizarMembros(
+            String nomeProjeto,
+            String listaMembros) throws SQLException {
 
-    String sql = """
-            INSERT INTO membros_projeto (id, lista_membros)
-            VALUES (1, ?)
-            ON DUPLICATE KEY UPDATE lista_membros = ?
-            """;
+        Integer idProjeto = buscarIdProjeto(nomeProjeto);
 
-    try (Connection conexao = ConexaoBanco.getConexao();
-         PreparedStatement stmt = conexao.prepareStatement(sql)) {
+        if (idProjeto == null) {
+            System.out.println(bundle.getString("ProjetoDAO.02"));
+            return;
+        }
 
-        stmt.setString(1, listaMembros);
-        stmt.setString(2, listaMembros);
+        String sql = """
+                UPDATE membros_projeto
+                SET lista_membros = ?
+                WHERE id_projeto = ?
+                """;
 
-        stmt.executeUpdate();
+        try (Connection conexao = ConexaoBanco.getConexao();
+             PreparedStatement stmt = conexao.prepareStatement(sql)) {
 
-        System.out.println("Lista de membros atualizada com sucesso.");
+            stmt.setString(1, listaMembros);
+            stmt.setInt(2, idProjeto);
+
+            int linhas = stmt.executeUpdate();
+
+            if (linhas == 0) {
+                String insert = """
+                        INSERT INTO membros_projeto
+                        (id_projeto, lista_membros)
+                        VALUES (?, ?)
+                        """;
+
+                try (PreparedStatement novo =
+                             conexao.prepareStatement(insert)) {
+
+                    novo.setInt(1, idProjeto);
+                    novo.setString(2, listaMembros);
+                    novo.executeUpdate();
+                }
+            }
+        }
+
+        System.out.println(bundle.getString("ProjetoDAO.05"));
     }
-}
 
-public void consultarMembros() throws SQLException {
+    public void consultarMembros(
+            String nomeProjeto) throws SQLException {
 
-    String sql = """
-            SELECT lista_membros
-            FROM membros_projeto
-            WHERE id = 1
-            """;
+        Integer idProjeto = buscarIdProjeto(nomeProjeto);
 
-    try (Connection conexao = ConexaoBanco.getConexao();
-         PreparedStatement stmt = conexao.prepareStatement(sql);
-         ResultSet rs = stmt.executeQuery()) {
+        if (idProjeto == null) {
+            System.out.println(bundle.getString("ProjetoDAO.02"));
+            return;
+        }
 
-        if (rs.next()) {
+        String sql = """
+                SELECT lista_membros
+                FROM membros_projeto
+                WHERE id_projeto = ?
+                ORDER BY id DESC
+                LIMIT 1
+                """;
 
-            System.out.println(
-                    "Membros envolvidos no projeto: "
-                    + rs.getString("lista_membros")
-            );
+        try (Connection conexao = ConexaoBanco.getConexao();
+             PreparedStatement stmt = conexao.prepareStatement(sql)) {
 
-        } else {
+            stmt.setInt(1, idProjeto);
 
-            System.out.println("Nenhum membro cadastrado.");
+            try (ResultSet rs = stmt.executeQuery()) {
+
+                if (rs.next()) {
+                    System.out.println(
+                            bundle.getString("projeto.membros_label")
+                            + rs.getString("lista_membros")
+                    );
+                } else {
+                    System.out.println(bundle.getString("ProjetoDAO.06"));
+                }
+            }
         }
     }
+
+    private Integer buscarIdProjeto(
+            String nomeProjeto) throws SQLException {
+
+        String sql = """
+                SELECT id_projeto
+                FROM projetos
+                WHERE nome_projeto = ?
+                """;
+
+        try (Connection conexao = ConexaoBanco.getConexao();
+             PreparedStatement stmt = conexao.prepareStatement(sql)) {
+
+            stmt.setString(1, nomeProjeto);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+
+                if (rs.next()) {
+                    return rs.getInt("id_projeto");
+                }
+            }
+        }
+
+        return null;
     }
+
 }

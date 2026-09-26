@@ -12,6 +12,7 @@ import java.util.List;
 import autobotz.dao.AuditoriaDAO;
 import autobotz.model.LogAuditoria;
 import autobotz.util.ConexaoBanco;
+import autobotz.util.I18nUtils;
 
 public class RelatorioService {
     public List<String> faturamento(LocalDate inicio, LocalDate fim) throws SQLException {
@@ -27,8 +28,21 @@ public class RelatorioService {
             stmt.setDate(1, Date.valueOf(inicio));
             stmt.setDate(2, Date.valueOf(fim));
             try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) linhas.add(String.format("%s | vendas: %d | faturamento: %.2f",
-                        rs.getString("periodo"), rs.getInt("quantidade"), rs.getDouble("faturamento")));
+                while (rs.next()) {
+                    linhas.add(
+                            String.format(
+                                    I18nUtils.getCurrentLocale(),
+                                    I18nUtils.getString(
+                                            "relatorio.linha_faturamento"
+                                    ),
+                                    rs.getString("periodo"),
+                                    rs.getInt("quantidade"),
+                                    I18nUtils.formatCurrency(
+                                            rs.getDouble("faturamento")
+                                    )
+                            )
+                    );
+                }
             }
         }
         return linhas;
@@ -41,8 +55,23 @@ public class RelatorioService {
         try (Connection conexao = ConexaoBanco.getConexao();
                 PreparedStatement stmt = conexao.prepareStatement(sql);
                 ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) linhas.add(String.format("%s | quantidade: %d | valor: %.2f",
-                    rs.getString("status"), rs.getInt("quantidade"), rs.getDouble("valor_total")));
+            while (rs.next()) {
+                linhas.add(
+                        String.format(
+                                I18nUtils.getCurrentLocale(),
+                                I18nUtils.getString(
+                                        "relatorio.linha_estoque"
+                                ),
+                                I18nUtils.formatVehicleStatus(
+                                        rs.getString("status")
+                                ),
+                                rs.getInt("quantidade"),
+                                I18nUtils.formatCurrency(
+                                        rs.getDouble("valor_total")
+                                )
+                        )
+                );
+            }
         }
         return linhas;
     }
@@ -58,9 +87,23 @@ public class RelatorioService {
         try (Connection conexao = ConexaoBanco.getConexao();
                 PreparedStatement stmt = conexao.prepareStatement(sql);
                 ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) linhas.add(String.format("%s %s | vendas: %d | faturamento: %.2f | dias: %.1f",
-                    rs.getString("marca"), rs.getString("modelo"), rs.getInt("vendas"),
-                    rs.getDouble("faturamento"), rs.getDouble("dias_medio")));
+            while (rs.next()) {
+                linhas.add(
+                        String.format(
+                                I18nUtils.getCurrentLocale(),
+                                I18nUtils.getString(
+                                        "relatorio.linha_veiculacao"
+                                ),
+                                rs.getString("marca"),
+                                rs.getString("modelo"),
+                                rs.getInt("vendas"),
+                                I18nUtils.formatCurrency(
+                                        rs.getDouble("faturamento")
+                                ),
+                                rs.getDouble("dias_medio")
+                        )
+                );
+            }
         }
         return linhas;
     }
@@ -71,7 +114,11 @@ public class RelatorioService {
 
     private void validarPeriodo(LocalDate inicio, LocalDate fim) {
         if (inicio == null || fim == null || fim.isBefore(inicio)) {
-            throw new IllegalArgumentException("Periodo de relatorio invalido.");
+            throw new IllegalArgumentException(
+                    I18nUtils.getString(
+                            "relatorio.periodo_invalido"
+                    )
+            );
         }
     }
 }

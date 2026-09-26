@@ -31,7 +31,9 @@ public class AutorizacaoService {
         CONSULTAR_PROJETOS,
         CRIAR_PROJETOS,
         ATUALIZAR_PROJETOS,
-        EXCLUIR_PROJETOS
+        EXCLUIR_PROJETOS,
+
+        ACESSAR_CRM
 
 
 
@@ -71,7 +73,8 @@ public class AutorizacaoService {
                 Permissao.LISTAR_CLIENTES,
                 Permissao.REALIZAR_VENDA,
                 Permissao.CONSULTAR_MEMBROS,
-                Permissao.CONSULTAR_PROJETOS
+                Permissao.CONSULTAR_PROJETOS,
+                Permissao.ACESSAR_CRM
             )
         );
     }

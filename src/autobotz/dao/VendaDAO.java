@@ -2,6 +2,7 @@ package autobotz.dao;
 
 import autobotz.model.Venda;
 import autobotz.util.ConexaoBanco;
+import autobotz.util.I18nUtils;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -29,14 +30,14 @@ public class VendaDAO {
                             Statement.RETURN_GENERATED_KEYS)) {
                 clienteStmt.setInt(1, venda.getIdCliente());
                 try (ResultSet rs = clienteStmt.executeQuery()) {
-                    if (!rs.next()) throw new IllegalArgumentException("Cliente nao encontrado.");
+                    if (!rs.next()) throw new IllegalArgumentException(I18nUtils.getString("venda.cliente_nao_encontrado"));
                 }
 
                 veiculoStmt.setInt(1, venda.getIdVeiculo());
                 try (ResultSet rs = veiculoStmt.executeQuery()) {
-                    if (!rs.next()) throw new IllegalArgumentException("Veiculo nao encontrado.");
+                    if (!rs.next()) throw new IllegalArgumentException(I18nUtils.getString("venda.veiculo_nao_encontrado"));
                     String status = rs.getString("status");
-                    if (!disponivel(status)) throw new IllegalArgumentException("Veiculo nao esta disponivel.");
+                    if (!disponivel(status)) throw new IllegalArgumentException(I18nUtils.getString("venda.veiculo_indisponivel"));
                 }
 
                 baixaStmt.setInt(1, venda.getIdVeiculo());
@@ -79,25 +80,45 @@ public class VendaDAO {
         return vendas;
     }
 
-
     /**
-     * Busca a venda mais recente de um veiculo (usada para checar a garantia na Oficina/OS).
-     * Retorna null se o veiculo nunca foi vendido.
+     * Busca a venda mais recente de um veiculo.
+     * Utilizado pela regra de garantia da Oficina.
      */
-    public Venda buscarPorVeiculoId(int idVeiculo) throws SQLException {
-        String sql = "SELECT id_venda, id_veiculo, id_cliente, valor_final, data_venda "
-                + "FROM vendas WHERE id_veiculo = ? ORDER BY data_venda DESC LIMIT 1";
-        try (Connection conexao = ConexaoBanco.getConexao();
-                PreparedStatement stmt = conexao.prepareStatement(sql)) {
+    public Venda buscarPorVeiculoId(int idVeiculo)
+            throws SQLException {
+
+        String sql =
+                "SELECT id_venda, id_veiculo, id_cliente, "
+                + "valor_final, data_venda "
+                + "FROM vendas "
+                + "WHERE id_veiculo = ? "
+                + "ORDER BY data_venda DESC "
+                + "LIMIT 1";
+
+        try (Connection conexao =
+                     ConexaoBanco.getConexao();
+             PreparedStatement stmt =
+                     conexao.prepareStatement(sql)) {
+
             stmt.setInt(1, idVeiculo);
-            try (ResultSet rs = stmt.executeQuery()) {
+
+            try (ResultSet rs =
+                         stmt.executeQuery()) {
+
                 if (rs.next()) {
-                    return new Venda(rs.getInt("id_venda"), rs.getInt("id_veiculo"),
-                            rs.getInt("id_cliente"), rs.getDouble("valor_final"),
-                            rs.getDate("data_venda").toLocalDate());
+                    return new Venda(
+                            rs.getInt("id_venda"),
+                            rs.getInt("id_veiculo"),
+                            rs.getInt("id_cliente"),
+                            rs.getDouble("valor_final"),
+                            rs.getDate(
+                                    "data_venda"
+                            ).toLocalDate()
+                    );
                 }
             }
         }
+
         return null;
     }
 
@@ -128,13 +149,13 @@ public class VendaDAO {
         return vendas;
     }
     
-
     private void validarVenda(Venda venda) {
         if (venda == null || venda.getIdCliente() <= 0 || venda.getIdVeiculo() <= 0) {
-            throw new IllegalArgumentException("Cliente e veiculo devem ser validos.");
+            throw new IllegalArgumentException(I18nUtils.getString("venda.ids_invalidos"));
         }
-        if (venda.getValorTotal() <= 0 || venda.getDataVenda() == null) {
-            throw new IllegalArgumentException("Valor e data da venda devem ser validos.");
+        if (!Double.isFinite(venda.getValorTotal()) || venda.getValorTotal() <= 0
+                || venda.getDataVenda() == null || venda.getDataVenda().isAfter(java.time.LocalDate.now())) {
+            throw new IllegalArgumentException(I18nUtils.getString("venda.dados_invalidos"));
         }
     }
 

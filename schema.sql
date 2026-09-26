@@ -84,6 +84,18 @@ CREATE TABLE IF NOT EXISTS projetos (
 );
 
 CREATE TABLE IF NOT EXISTS membros_projeto (
-    id INT PRIMARY KEY,
-    lista_membros TEXT NOT NULL
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_projeto INT NOT NULL,
+    lista_membros TEXT NOT NULL,
+    CONSTRAINT fk_membros_projeto_projeto
+        FOREIGN KEY (id_projeto)
+        REFERENCES projetos(id_projeto)
+        ON DELETE CASCADE
 );
+
+-- Compatibilidade com bancos criados antes desta correção.
+ALTER TABLE membros_projeto
+    ADD COLUMN IF NOT EXISTS id_projeto INT NULL AFTER id;
+
+ALTER TABLE membros_projeto
+    MODIFY COLUMN id INT NOT NULL AUTO_INCREMENT;

@@ -1,45 +1,56 @@
 # AutoBotz Motors
 
-O AutoBotz Motors é um sistema de gerenciamento para uma concessionária, desenvolvido em Java como projeto acadêmico da disciplina de Administração para Computação.
+ERP acadêmico da Equipe B, desenvolvido em Java, JDBC e MariaDB. O frontend desktop atual é Java Swing; a aplicação de console continua disponível.
 
-A ideia do projeto é reunir em um único sistema operações de venda de veículos, clientes, oficina, controle de acesso, relatórios e outras funções administrativas.
+## Requisitos
 
-O sistema ainda está em fase de integração entre os módulos desenvolvidos pelos integrantes da equipe.
+- JDK 21 ou superior;
+- MariaDB;
+- MariaDB Connector/J 3.5.10.
 
-## Tecnologias
+O launcher procura o driver em `~/.m2/repository/org/mariadb/jdbc/mariadb-java-client/3.5.10/mariadb-java-client-3.5.10.jar`. Para usar outro local, defina `AUTOBOTZ_JDBC_JAR`.
 
-- Java
-- JDBC
-- MariaDB
-- SQL
-- Git e GitHub
-- Eclipse / terminal
+Configure no ambiente, sem versionar credenciais:
 
-## Funcionalidades
+- `AUTOBOTZ_DB_URL`: URL JDBC do banco preparado com `schema.sql`;
+- `AUTOBOTZ_DB_USER`: usuário do banco;
+- `AUTOBOTZ_DB_PASSWORD`: senha desse usuário.
 
-Atualmente o projeto possui módulos para:
+## Executar
 
-- cadastro e gerenciamento de veículos;
-- cadastro e gerenciamento de clientes;
-- registro e consulta de vendas;
-- autenticação de usuários;
-- controle de permissões por perfil;
-- oficina e ordens de serviço;
-- cadastro de serviços;
-- cálculo de valores de ordens de serviço;
-- garantia de serviços;
-- anonimização de dados de clientes;
-- relatórios e auditoria;
-- gerenciamento de projetos e membros;
-- suporte a português e inglês.
+Na raiz do projeto, inicie a aplicação Swing:
 
-Algumas partes ainda estão sendo integradas e testadas em conjunto.
+```bash
+bash scripts/run.sh swing
+```
 
-## Banco de dados
+O console permanece disponível:
 
-O projeto utiliza MariaDB.
+```bash
+bash scripts/run.sh console
+```
 
-O arquivo:
+Para compilar sem iniciar a aplicação:
 
-```text
-schema.sql
+```bash
+bash scripts/run.sh build
+```
+
+O launcher não cria o banco, não instala dependências e não carrega arquivos de credenciais. Aplique `schema.sql` somente ao banco pretendido; se ele já contém dados, faça backup antes.
+
+## Módulos
+
+- autenticação, sessão e autorização por perfil;
+- cadastro, consulta, atualização e anonimização de clientes;
+- cadastro, consulta, atualização e exclusão de veículos conforme as permissões;
+- vendas transacionais e histórico de relacionamento com clientes;
+- serviços e ordens de serviço com itens, totais e regra de garantia;
+- projetos com responsáveis, equipes, status e membros vinculados ao projeto;
+- relatórios e consulta de auditoria;
+- interface em português do Brasil e inglês dos Estados Unidos.
+
+As permissões são definidas por `AutorizacaoService`. A validação e as limitações conhecidas estão registradas em [docs/VALIDACAO.md](docs/VALIDACAO.md); a documentação de autoria e integração está em [docs/AUTORIA_INTEGRACAO.md](docs/AUTORIA_INTEGRACAO.md).
+
+`src/` é a árvore fonte usada pelo launcher. As classes compiladas são gravadas em `build/classes`, e os recursos são lidos de `src/`. `bin/` e `autobotz-motors-main/` são árvores antigas rastreadas e não são usadas por esse launcher. No Eclipse, configure `M2_REPO` para o repositório Maven local e selecione JDK 21 ou superior.
+
+A divergência acadêmica sobre a exigência de Swing no D6 deve ser confirmada com o professor antes da entrega.
