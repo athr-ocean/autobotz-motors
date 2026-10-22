@@ -40,7 +40,8 @@ public final class CriptografiaDadosPessoais {
     }
 
     public static void validarConfiguracao() throws SQLException {
-        chaveMestra();
+        byte[] chave = chaveMestra();
+        Arrays.fill(chave, (byte) 0);
     }
 
     public static String proteger(String valor, String campo) throws SQLException {

@@ -77,6 +77,23 @@ public class CoreRegression {
           "ISOLATED_TEST_DATABASE");
     CriptografiaDadosPessoais.validarConfiguracao();
     check(true, "PII_KEY_CONFIGURED");
+    String cipherProbe = CriptografiaDadosPessoais.proteger("probe", "nome");
+    check("probe".equals(CriptografiaDadosPessoais.revelar(cipherProbe, "nome")),
+          "PII_CIPHER_ROUNDTRIP");
+    try {
+      CriptografiaDadosPessoais.revelar(cipherProbe, "cpf");
+      throw new AssertionError("Campo cifrado foi aceito em outra coluna");
+    } catch (java.sql.SQLException expected) {
+      check(true, "PII_AAD_FIELD_BINDING");
+    }
+    String tamperedProbe = cipherProbe.substring(0, cipherProbe.length() - 1)
+        + (cipherProbe.endsWith("A") ? "B" : "A");
+    try {
+      CriptografiaDadosPessoais.revelar(tamperedProbe, "nome");
+      throw new AssertionError("Texto cifrado alterado foi aceito");
+    } catch (java.sql.SQLException expected) {
+      check(true, "PII_CIPHER_TAMPER_REJECTED");
+    }
     check(ConexaoBanco.getConexao().isValid(2), "JDBC");
     var pt = I18nUtils.getBundle(Locale.forLanguageTag("pt-BR"));
     var en = I18nUtils.getBundle(Locale.US);
