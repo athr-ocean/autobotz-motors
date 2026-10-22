@@ -71,6 +71,29 @@ Na raiz do repositório, em Bash:
 
 A saída esperada ao terminar é `CORE_REGRESSION_OK`, sem `FAIL` ou exceções. Crie um banco novo com `schema.sql` antes de rodar; a suíte não limpa nem recria o banco automaticamente.
 
+## Impacto no desempenho e priorização dos dados
+
+### Quais dados proteger primeiro
+
+A implementação protege os quatro campos pessoais existentes de clientes:
+
+1. **CPF:** identificador direto, usado em busca e detecção de duplicidade; é protegido com AES-GCM e acompanhado por um HMAC separado para pesquisa exata.
+2. **Nome:** identifica diretamente a pessoa quando associado a outros dados.
+3. **Telefone e e-mail:** dados de contato que podem identificar ou expor a pessoa; ambos também são protegidos.
+
+A chave primária `id_cliente`, as chaves estrangeiras usadas por vendas/ordens de serviço e o indicador operacional `ativo` permanecem estruturados para preservar relações e consultas. Não são campos pessoais que precisem ser cifrados para cumprir este escopo.
+
+### Efeito esperado
+
+- **CPU:** cada gravação ou atualização cifra os campos não nulos; a leitura decifra os campos protegidos. O CPF também exige o cálculo de HMAC na busca. Isso adiciona trabalho de CPU em comparação com texto puro.
+- **Armazenamento e I/O:** o formato guarda o prefixo `enc:v1:`, um IV aleatório de 12 bytes, a tag de autenticação GCM de 16 bytes e o conteúdo codificado em Base64. Para um valor com `n` bytes UTF-8, o texto armazenado ocupa aproximadamente `7 + ceil(4 × (n + 28) / 3)` caracteres, sem contar eventuais limites do banco. Por isso, as colunas passaram a `VARCHAR(1024)`, dimensionadas para a expansão dos tamanhos originais do schema.
+- **Pesquisa por CPF:** o HMAC acrescenta um cálculo pequeno, mas o índice `idx_clientes_cpf_hash` evita depender de uma varredura e descriptografia de todos os clientes para a busca exata. O índice determinístico revela padrões de igualdade, mas não armazena o CPF em texto puro.
+- **Compatibilidade:** o custo de criptografia/descriptografia acontece na camada DAO; a interface, o CRM e as relações por ID continuam usando os valores originais devolvidos pelo DAO.
+
+### Evidência e limite da análise
+
+A regressão executada validou funcionamento, integridade, dados UTF-8 longos, pesquisa, atualização, anonimização e migração. **Ela não é um benchmark de desempenho** e não foi usado um número de milissegundos, porcentagem de overhead ou consumo de energia como se tivesse sido medido. Para uma estimativa quantitativa, deve-se medir uma carga representativa em hardware identificado, comparando a mesma operação com e sem criptografia. Até lá, o impacto descrito acima é uma análise técnica qualitativa, não um resultado de produção.
+
 ## Limites e responsabilidades
 
 - Criptografia em repouso não substitui RBAC, controle de acesso ao servidor, backups seguros, atualização de dependências ou revisão legal de LGPD.
