@@ -73,6 +73,15 @@ public class CoreRegression {
     }
   }
   public static void main(String[] args) throws Exception {
+    if (args.length == 2 && "--wrong-key-probe".equals(args[0])) {
+      try {
+        CriptografiaDadosPessoais.revelar(args[1], "nome");
+        throw new AssertionError("Texto cifrado foi aceito com chave errada");
+      } catch (java.sql.SQLException expected) {
+        System.out.println("PII_WRONG_KEY_REJECTED");
+      }
+      return;
+    }
     check(System.getenv("AUTOBOTZ_DB_URL")
               .matches(".*autobotz_.*_test(?:[?].*)?"),
           "ISOLATED_TEST_DATABASE");
@@ -95,6 +104,22 @@ public class CoreRegression {
     } catch (java.sql.SQLException expected) {
       check(true, "PII_CIPHER_TAMPER_REJECTED");
     }
+
+    String javaBinary = java.nio.file.Path.of(
+        System.getProperty("java.home"), "bin", "java").toString();
+    var wrongKeyProbe = new ProcessBuilder(
+        javaBinary, "-cp", System.getProperty("java.class.path"),
+        CoreRegression.class.getName(), "--wrong-key-probe", cipherProbe)
+        .redirectErrorStream(true);
+    wrongKeyProbe.environment().put("AUTOBOTZ_PII_KEY",
+        java.util.Base64.getEncoder().encodeToString(new byte[32]));
+    var wrongKeyProcess = wrongKeyProbe.start();
+    String wrongKeyOutput = new String(
+        wrongKeyProcess.getInputStream().readAllBytes(),
+        java.nio.charset.StandardCharsets.UTF_8);
+    check(wrongKeyProcess.waitFor() == 0
+              && wrongKeyOutput.contains("PII_WRONG_KEY_REJECTED"),
+          "PII_WRONG_KEY_REJECTED");
     check(ConexaoBanco.getConexao().isValid(2), "JDBC");
     var pt = I18nUtils.getBundle(Locale.forLanguageTag("pt-BR"));
     var en = I18nUtils.getBundle(Locale.US);
