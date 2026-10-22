@@ -54,3 +54,20 @@ As permissões são definidas por `AutorizacaoService`. A validação e as limit
 `src/` é a árvore fonte usada pelo launcher. As classes compiladas são gravadas em `build/classes`, e os recursos são lidos de `src/`. `bin/` e `autobotz-motors-main/` são árvores antigas rastreadas e não são usadas por esse launcher. No Eclipse, configure `M2_REPO` para o repositório Maven local e selecione JDK 21 ou superior.
 
 A divergência acadêmica sobre a exigência de Swing no D6 deve ser confirmada com o professor antes da entrega.
+
+
+## Proteção de dados pessoais — D14
+
+A frente D14 acrescenta criptografia dos campos pessoais dos clientes em repouso. Configure uma chave persistente fora do repositório antes de usar cadastro, consulta, atualização ou anonimização de clientes:
+
+    mkdir -p "$HOME/.config/autobotz"
+    chmod 700 "$HOME/.config/autobotz"
+    if [ ! -s "$HOME/.config/autobotz/pii.key" ]; then
+      (umask 077; openssl rand -base64 32 > "$HOME/.config/autobotz/pii.key")
+    fi
+    chmod 600 "$HOME/.config/autobotz/pii.key"
+    export AUTOBOTZ_PII_KEY_FILE="$HOME/.config/autobotz/pii.key"
+
+Execute os comandos dentro de Bash. Preserve a chave entre sessões e mantenha backup seguro fora do Git; uma chave nova não consegue ler dados cifrados pela chave anterior.
+
+Para um banco existente, faça backup, aplique a atualização de schema.sql, compile e execute primeiro o diagnóstico da migração, conforme docs/D14_CIFRAGEM_DADOS_PESSOAIS.md. A migração de registros legados é explícita e não roda no startup.
