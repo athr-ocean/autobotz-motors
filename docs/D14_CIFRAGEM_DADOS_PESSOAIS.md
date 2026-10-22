@@ -51,7 +51,25 @@ O programa bloqueia os registros durante a transação e confirma todas as alter
 
 ## Testes adicionados
 
-CoreRegression verifica que novos clientes são armazenados com campos cifrados, que o CPF é pesquisável pelo índice HMAC, que o DAO devolve os dados descriptografados e que atualização e anonimização preservam a proteção. A suíte deve rodar somente em uma base isolada cujo nome satisfaça o guard já existente no teste; não rode a regressão no banco pessoal.
+CoreRegression verifica que novos clientes são armazenados com campos cifrados, que o CPF é pesquisável pelo índice HMAC, que o DAO devolve os dados descriptografados e que atualização e anonimização preservam a proteção. Também insere um cliente legado em texto puro e verifica que `--check` não altera registros, que `--apply` cifra os campos e calcula o HMAC, que a consulta pelo DAO continua funcionando e que uma segunda execução não encontra pendências.
+
+### Executar a regressão completa
+
+Execute somente contra um banco de teste **vazio** cujo nome satisfaça o guard do teste, por exemplo `autobotz_d14_verify_test`. A suíte altera dados e executa a migração no banco configurado; nunca aponte para `autobotz_db` ou outra base com dados reais.
+
+Na raiz do repositório, em Bash:
+
+    export AUTOBOTZ_PII_KEY_FILE="$HOME/.config/autobotz/pii.key"
+    export AUTOBOTZ_DB_URL="jdbc:mariadb://127.0.0.1:3306/autobotz_d14_verify_test"
+    export AUTOBOTZ_DB_USER="autobotz_d14_test"
+    export AUTOBOTZ_DB_PASSWORD="$(cat "$HOME/.config/autobotz/d14-test-db-password")"
+    JDBC_JAR="$HOME/.m2/repository/org/mariadb/jdbc/mariadb-java-client/3.5.10/mariadb-java-client-3.5.10.jar"
+    bash scripts/run.sh build
+    mkdir -p build/test-classes
+    javac -encoding UTF-8 -cp "build/classes:src:$JDBC_JAR" -d build/test-classes tests/CoreRegression.java
+    java -cp "build/test-classes:build/classes:src:$JDBC_JAR" CoreRegression
+
+A saída esperada ao terminar é `CORE_REGRESSION_OK`, sem `FAIL` ou exceções. Crie um banco novo com `schema.sql` antes de rodar; a suíte não limpa nem recria o banco automaticamente.
 
 ## Limites e responsabilidades
 
