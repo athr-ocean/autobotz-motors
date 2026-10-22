@@ -20,6 +20,7 @@ import autobotz.service.CRMService;
 import autobotz.service.ServicoService;
 import autobotz.util.ConexaoBanco;
 import autobotz.util.CriptografiaDadosPessoais;
+import autobotz.util.MigracaoDadosPessoais;
 import autobotz.util.I18nUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -278,6 +279,68 @@ public class CoreRegression {
               && rawUpdatedPii[2].equals(
                       CriptografiaDadosPessoais.fingerprintCpf("UPDATE-TEST")),
           "CLIENT_UPDATE_ENCRYPTS_PII");
+    // D14: valida diagnóstico somente leitura e migração de um registro legado.
+    try (var stmt = ConexaoBanco.getConexao().prepareStatement(
+        "INSERT INTO clientes (nome, cpf, cpf_hash, telefone, email, ativo) "
+            + "VALUES (?, ?, NULL, ?, ?, TRUE)")) {
+      stmt.setString(1, "Legacy Migration Client");
+      stmt.setString(2, "MIGRATE-001");
+      stmt.setString(3, "111");
+      stmt.setString(4, "migration@example.invalid");
+      stmt.executeUpdate();
+    }
+    var legacyClient = cd.buscarPorCpf("MIGRATE-001");
+    check(legacyClient != null
+              && legacyClient.getNome().equals("Legacy Migration Client"),
+          "MIGRATION_LEGACY_LOOKUP");
+    int legacyId = legacyClient.getId();
+    String[] rawLegacy = rawClientPii(legacyId);
+    check(!CriptografiaDadosPessoais.isProtegido(rawLegacy[0])
+              && !CriptografiaDadosPessoais.isProtegido(rawLegacy[1])
+              && rawLegacy[2] == null
+              && !CriptografiaDadosPessoais.isProtegido(rawLegacy[3])
+              && !CriptografiaDadosPessoais.isProtegido(rawLegacy[4]),
+          "MIGRATION_LEGACY_PRECONDITION");
+
+    String migrationCheck = capture(
+        () -> MigracaoDadosPessoais.main(new String[] {"--check"}));
+    check(migrationCheck.contains(
+              "MIGRACAO_DADOS_PESSOAIS=DIAGNOSTICO_SEM_ALTERACOES"),
+          "MIGRATION_CHECK_MODE");
+    check(java.util.Arrays.equals(rawLegacy, rawClientPii(legacyId)),
+          "MIGRATION_CHECK_READ_ONLY");
+
+    String activeDatabase = ConexaoBanco.getConexao().getCatalog();
+    String migrationApply = capture(
+        () -> MigracaoDadosPessoais.main(new String[] {
+            "--apply", "--confirm-db=" + activeDatabase
+        }));
+    check(migrationApply.contains("MIGRACAO_DADOS_PESSOAIS=APLICADA"),
+          "MIGRATION_APPLY_MODE");
+
+    String[] rawMigrated = rawClientPii(legacyId);
+    check(CriptografiaDadosPessoais.isProtegido(rawMigrated[0])
+              && CriptografiaDadosPessoais.isProtegido(rawMigrated[1])
+              && rawMigrated[2] != null
+              && rawMigrated[2].equals(
+                  CriptografiaDadosPessoais.fingerprintCpf("MIGRATE-001"))
+              && CriptografiaDadosPessoais.isProtegido(rawMigrated[3])
+              && CriptografiaDadosPessoais.isProtegido(rawMigrated[4]),
+          "MIGRATION_LEGACY_ENCRYPTED");
+    var migratedClient = cd.buscarPorCpf("MIGRATE-001");
+    check(migratedClient != null
+              && migratedClient.getNome().equals("Legacy Migration Client")
+              && migratedClient.getCpf().equals("MIGRATE-001")
+              && migratedClient.getTelefone().equals("111")
+              && migratedClient.getEmail().equals("migration@example.invalid"),
+          "MIGRATION_LEGACY_LOOKUP_PRESERVED");
+
+    String migrationRepeat = capture(
+        () -> MigracaoDadosPessoais.main(new String[] {
+            "--apply", "--confirm-db=" + activeDatabase
+        }));
+    check(migrationRepeat.contains("REGISTROS_PENDENTES=0"),
+          "MIGRATION_IDEMPOTENT");
     System.out.println("CORE_REGRESSION_OK");
   }
 }
