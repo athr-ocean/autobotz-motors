@@ -30,7 +30,7 @@ Mantenha a mesma chave em todas as execuções que precisam ler os mesmos dados.
 ## Preparação de banco existente
 
 1. Pare a aplicação e faça backup consistente do banco e da chave atual.
-2. Aplique a versão atualizada de schema.sql ao banco pretendido. Ela amplia as colunas de texto e acrescenta cpf_hash e seu índice; as alterações DDL do MariaDB podem fazer commit implícito.
+2. Aplique a versão atualizada de schema.sql ao banco pretendido. Ela amplia as colunas pessoais cifradas para VARCHAR(1024), dimensão necessária para acomodar a expansão Base64 em UTF-8, e acrescenta cpf_hash e seu índice; as alterações DDL do MariaDB podem fazer commit implícito.
 3. Configure AUTOBOTZ_PII_KEY_FILE na sessão Bash.
 4. Compile a versão nova do projeto.
 5. Execute primeiro o modo de diagnóstico:
@@ -51,7 +51,7 @@ O programa bloqueia os registros durante a transação e confirma todas as alter
 
 ## Testes adicionados
 
-CoreRegression verifica que novos clientes são armazenados com campos cifrados, que o CPF é pesquisável pelo índice HMAC, que o DAO devolve os dados descriptografados e que atualização e anonimização preservam a proteção. Também insere um cliente legado em texto puro e verifica que `--check` não altera registros, que `--apply` cifra os campos e calcula o HMAC, que a consulta pelo DAO continua funcionando e que uma segunda execução não encontra pendências.
+CoreRegression verifica que novos clientes são armazenados com campos cifrados, que o CPF é pesquisável pelo índice HMAC, que o DAO devolve os dados descriptografados, que a oficina não exibe nome cifrado, que campos UTF-8 longos cabem na coluna cifrada e que atualização e anonimização preservam a proteção. Também insere um cliente legado em texto puro e verifica que `--check` não altera registros, que `--apply` cifra os campos e calcula o HMAC, que a consulta pelo DAO continua funcionando e que uma segunda execução não encontra pendências.
 
 ### Executar a regressão completa
 
