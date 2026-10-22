@@ -51,7 +51,7 @@ O programa bloqueia os registros durante a transação e confirma todas as alter
 
 ## Testes adicionados
 
-CoreRegression verifica que novos clientes são armazenados com campos cifrados, que o CPF é pesquisável pelo índice HMAC, que o DAO devolve os dados descriptografados, que a oficina não exibe nome cifrado, que campos UTF-8 longos cabem na coluna cifrada e que atualização e anonimização preservam a proteção. Também insere um cliente legado em texto puro e verifica que `--check` não altera registros, que `--apply` cifra os campos e calcula o HMAC, que a consulta pelo DAO continua funcionando e que uma segunda execução não encontra pendências.
+CoreRegression verifica que novos clientes são armazenados com campos cifrados, que o CPF é pesquisável pelo índice HMAC, que o DAO devolve os dados descriptografados, que a oficina não exibe nome cifrado, que campos UTF-8 longos cabem na coluna cifrada, que uma chave incorreta é rejeitada, e que atualização e anonimização preservam a proteção. Também insere um cliente legado em texto puro e verifica que `--check` não altera registros, que `--apply` cifra os campos e calcula o HMAC, que a consulta pelo DAO continua funcionando e que uma segunda execução não encontra pendências.
 
 ### Executar a regressão completa
 
