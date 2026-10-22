@@ -150,6 +150,14 @@ public class CoreRegression {
     check(decodedClient != null && decodedClient.getNome().equals("Audit Client")
               && decodedClient.getEmail().equals("audit@example.invalid"),
           "CLIENT_PII_LOOKUP_AND_DECRYPT");
+    String longUnicodeName = "🚘".repeat(100);
+    cd.salvar(new Cliente(longUnicodeName, "LONG-UNICODE-001", "000",
+                          "unicode@example.invalid"));
+    var longUnicodeClient = cd.buscarPorCpf("LONG-UNICODE-001");
+    String[] rawLongUnicode = rawClientPii(longUnicodeClient.getId());
+    check(rawLongUnicode[0].length() > 512 && rawLongUnicode[0].length() <= 1024
+              && longUnicodeClient.getNome().equals(longUnicodeName),
+          "CLIENT_LONG_UTF8_CIPHERTEXT_FITS_SCHEMA");
     var vd = new VeiculoDAO();
     vd.cadastrar(new Veiculo("AUD0001", "Model", "Brand", 2026, 1000));
     vd.cadastrar(new Veiculo("AUD0002", "Model", "Brand", 2026, 2000));
