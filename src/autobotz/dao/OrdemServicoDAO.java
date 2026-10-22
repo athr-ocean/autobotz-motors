@@ -10,6 +10,7 @@ import java.util.List;
 import autobotz.model.ItemOS;
 import autobotz.model.OrdemServico;
 import autobotz.util.ConexaoBanco;
+import autobotz.util.CriptografiaDadosPessoais;
 import autobotz.util.I18nUtils;
 
 public class OrdemServicoDAO {
@@ -85,7 +86,7 @@ public class OrdemServicoDAO {
                             + rs.getInt("id_ordem")
                             + " | "
                             + I18nUtils.getString("oficina.dao.cliente")
-                            + rs.getString("cliente")
+                            + CriptografiaDadosPessoais.revelar(rs.getString("cliente"), "nome")
                             + " | "
                             + I18nUtils.getString("oficina.dao.veiculo")
                             + rs.getString("marca")
