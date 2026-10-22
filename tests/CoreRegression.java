@@ -175,9 +175,13 @@ public class CoreRegression {
     od.inserirOrdem(os);
     od.inserirItem(new ItemOS(os.getId(), review.getId(), 2, 100));
     od.inserirItem(new ItemOS(os.getId(), other.getId(), 3, 50));
-    check(od.buscarItensObjetos(os.getId()).size() == 2 &&
-              od.buscarItensDaOrdem(os.getId()).size() == 2,
+    var orderDetails = od.buscarItensDaOrdem(os.getId());
+    check(od.buscarItensObjetos(os.getId()).size() == 2
+              && orderDetails.size() == 2,
           "OS_TWO_ITEMS_JOIN");
+    check(orderDetails.stream().allMatch(line ->
+              line.contains("Audit Client") && !line.contains("enc:v1:")),
+          "D14_WORKSHOP_DECRYPTS_CLIENT_NAME");
     check(od.calcularTotal(os.getId()) == 350, "OS_TOTAL_350");
     var service = new ServicoService(od, sd, vendas);
     var total = service.calcularTotalOS(os.getId());
