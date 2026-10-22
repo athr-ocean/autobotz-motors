@@ -19,6 +19,7 @@ import autobotz.model.Venda;
 import autobotz.service.CRMService;
 import autobotz.service.ServicoService;
 import autobotz.util.ConexaoBanco;
+import autobotz.util.CriptografiaDadosPessoais;
 import autobotz.util.I18nUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -54,10 +55,28 @@ public class CoreRegression {
       return r.getInt(1);
     }
   }
+  static String[] rawClientPii(int id) throws Exception {
+    String sql = "SELECT nome, cpf, cpf_hash, telefone, email "
+        + "FROM clientes WHERE id_cliente = ?";
+    try (var stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+      stmt.setInt(1, id);
+      try (var rs = stmt.executeQuery()) {
+        if (!rs.next()) {
+          throw new AssertionError("Cliente de regressão não encontrado");
+        }
+        return new String[] {
+            rs.getString("nome"), rs.getString("cpf"), rs.getString("cpf_hash"),
+            rs.getString("telefone"), rs.getString("email")
+        };
+      }
+    }
+  }
   public static void main(String[] args) throws Exception {
     check(System.getenv("AUTOBOTZ_DB_URL")
               .matches(".*autobotz_.*_test(?:[?].*)?"),
           "ISOLATED_TEST_DATABASE");
+    CriptografiaDadosPessoais.validarConfiguracao();
+    check(true, "PII_KEY_CONFIGURED");
     check(ConexaoBanco.getConexao().isValid(2), "JDBC");
     var pt = I18nUtils.getBundle(Locale.forLanguageTag("pt-BR"));
     var en = I18nUtils.getBundle(Locale.US);
@@ -102,6 +121,17 @@ public class CoreRegression {
     int cid = cd.buscarPorCpf("AUDIT001").getId();
     int cid2 = cd.buscarPorCpf("AUDIT002").getId();
     check(cd.listar().size() == 2, "CLIENT_CREATE_READ");
+    String[] rawPii = rawClientPii(cid);
+    check(CriptografiaDadosPessoais.isProtegido(rawPii[0])
+              && CriptografiaDadosPessoais.isProtegido(rawPii[1])
+              && rawPii[2] != null && rawPii[2].matches("[0-9a-f]{64}")
+              && CriptografiaDadosPessoais.isProtegido(rawPii[3])
+              && CriptografiaDadosPessoais.isProtegido(rawPii[4]),
+          "CLIENT_PII_ENCRYPTED_AT_REST");
+    var decodedClient = cd.buscarPorCpf("AUDIT001");
+    check(decodedClient != null && decodedClient.getNome().equals("Audit Client")
+              && decodedClient.getEmail().equals("audit@example.invalid"),
+          "CLIENT_PII_LOOKUP_AND_DECRYPT");
     var vd = new VeiculoDAO();
     vd.cadastrar(new Veiculo("AUD0001", "Model", "Brand", 2026, 1000));
     vd.cadastrar(new Veiculo("AUD0002", "Model", "Brand", 2026, 2000));
@@ -157,6 +187,12 @@ public class CoreRegression {
               vendas.listarVendasPorCliente(cid).size() == 2 &&
               od.buscarPorId(os.getId()).getClienteId() == cid,
           "ANONYMIZE_FK_PRESERVED");
+    String[] rawAnonymousPii = rawClientPii(cid);
+    check(CriptografiaDadosPessoais.isProtegido(rawAnonymousPii[0])
+              && CriptografiaDadosPessoais.isProtegido(rawAnonymousPii[1])
+              && rawAnonymousPii[3] == null && rawAnonymousPii[4] == null
+              && cd.buscarPorId(cid).getNome().equals("ANÔNIMO"),
+          "ANONYMIZATION_PII_PROTECTED");
     var pd = new ProjetoDAO(en);
     pd.criarProjeto("A", "OwnerA", "TeamA", "OPEN");
     pd.criarProjeto("B", "OwnerB", "TeamB", "CLOSED");
@@ -219,6 +255,12 @@ public class CoreRegression {
     check(cd.buscarPorId(cid).isAtivo() &&
               vendas.listarVendasPorCliente(cid).size() == 2,
           "CLIENT_UPDATE_REFERENCES");
+    String[] rawUpdatedPii = rawClientPii(cid);
+    check(CriptografiaDadosPessoais.isProtegido(rawUpdatedPii[0])
+              && CriptografiaDadosPessoais.isProtegido(rawUpdatedPii[1])
+              && rawUpdatedPii[2].equals(
+                      CriptografiaDadosPessoais.fingerprintCpf("UPDATE-TEST")),
+          "CLIENT_UPDATE_ENCRYPTS_PII");
     System.out.println("CORE_REGRESSION_OK");
   }
 }
