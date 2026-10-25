@@ -1,5 +1,7 @@
 package autobotz;
 
+import autobotz.service.MfaService;
+import autobotz.service.ResultadoLogin;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.sql.SQLException;
@@ -51,15 +53,41 @@ public class LoginMenu {
         System.out.print(bundle.getString("login.senha"));
         String senha = scanner.nextLine();
 
-        Usuario usuario = authService.autenticar(nomeUsuario, senha);
-        if (usuario == null) {
+        ResultadoLogin resultado = authService.iniciarLogin(nomeUsuario, senha);
+        if (resultado.getStatus() == ResultadoLogin.Status.MFA_NECESSARIA) {
+            resultado = executarMfa(resultado.getDesafio());
+        }
+        if (resultado.getStatus() == ResultadoLogin.Status.NEGADO && resultado.getMfaStatus() == null) {
             System.out.println(bundle.getString("login.credenciais_invalidas"));
             return false;
         }
+        if (resultado.getStatus() != ResultadoLogin.Status.AUTENTICADO) {
+            return false;
+        }
+        Usuario usuario = resultado.getUsuario();
 
         SessaoUsuario.getInstancia().setUsuario(usuario);
         System.out.println(bundle.getString("login.sucesso") + usuario.getPerfil());
         return true;
+    }
+
+    /** Segundo fator simulado: mostra o código rotulado como demonstração e valida a resposta. */
+    private ResultadoLogin executarMfa(MfaService.Desafio desafio) throws SQLException {
+        System.out.println(bundle.getString("login.mfa_titulo"));
+        System.out.println(bundle.getString("login.mfa_demo") + desafio.codigoSimulado());
+        while (true) {
+            System.out.print(bundle.getString("login.mfa_codigo"));
+            ResultadoLogin r = authService.concluirMfa(desafio.id(), scanner.nextLine());
+            if (r.getStatus() == ResultadoLogin.Status.AUTENTICADO) {
+                return r;
+            }
+            if (r.getMfaStatus() == MfaService.Status.INVALIDO) {
+                System.out.println(bundle.getString("login.mfa_invalido"));
+                continue;
+            }
+            System.out.println(bundle.getString("login.mfa_reiniciar"));
+            return r;
+        }
     }
 
     private void cadastrarUsuario() throws SQLException {

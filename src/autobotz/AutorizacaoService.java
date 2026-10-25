@@ -33,9 +33,10 @@ public class AutorizacaoService {
         ATUALIZAR_PROJETOS,
         EXCLUIR_PROJETOS,
 
-        ACESSAR_CRM
+        ACESSAR_CRM,
 
-
+        // D14: trilha de segurança (somente ADMIN; VENDEDOR não recebe).
+        CONSULTAR_EVENTOS_SEGURANCA
 
     }
 
