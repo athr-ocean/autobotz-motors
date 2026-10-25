@@ -5,6 +5,8 @@ import autobotz.PerfilUsuario;
 import autobotz.SessaoUsuario;
 import autobotz.Usuario;
 import autobotz.UsuarioDAO;
+import autobotz.service.MfaService;
+import autobotz.service.ResultadoLogin;
 import autobotz.ui.swing.components.AppButton;
 import autobotz.ui.swing.components.AppComboBox;
 import autobotz.ui.swing.components.AppDialog;
@@ -112,8 +114,14 @@ final class LoginFrame extends JFrame {
       return;
     }
     try {
-      Usuario u = new AuthService(new UsuarioDAO())
-                      .autenticar(user.getText().trim(), new String(password.getPassword()));
+      AuthService auth = new AuthService(new UsuarioDAO());
+      ResultadoLogin r = auth.iniciarLogin(user.getText().trim(), new String(password.getPassword()));
+      if (r.getStatus() == ResultadoLogin.Status.MFA_NECESSARIA) {
+        r = mfaStep(auth, r.getDesafio());
+        if (r == null)
+          return;
+      }
+      Usuario u = r.getUsuario();
       if (u == null) {
         feedback.setText(SwingSupport.text("gui.invalid_login"));
         return;
@@ -125,6 +133,33 @@ final class LoginFrame extends JFrame {
       feedback.setText(SwingSupport.text("gui.database_error"));
     }
   }
+  /** Segundo fator simulado. Devolve null se o usuário cancelou ou o desafio não pode mais ser usado. */
+  private ResultadoLogin mfaStep(AuthService auth, MfaService.Desafio desafio) throws SQLException {
+    while (true) {
+      AppTextField code = new AppTextField();
+      JPanel p = new JPanel(new GridLayout(0, 1, 0, 7));
+      p.setBackground(AppTheme.CARD);
+      p.add(AppTheme.muted("<html><div style='width:360px'>"
+          + String.format(SwingSupport.text("gui.mfa_demo_code"), desafio.codigoSimulado())
+          + "</div></html>"));
+      p.add(fieldLabel("gui.mfa_code"));
+      p.add(code);
+      if (!AppDialog.form(this, SwingSupport.text("gui.mfa_title"),
+              SwingSupport.text("gui.mfa_help"), p, SwingSupport.text("gui.mfa_verify"))) {
+        return null;
+      }
+      ResultadoLogin r = auth.concluirMfa(desafio.id(), code.getText());
+      if (r.getStatus() == ResultadoLogin.Status.AUTENTICADO)
+        return r;
+      if (r.getMfaStatus() == MfaService.Status.INVALIDO) {
+        SwingSupport.error(this, SwingSupport.text("gui.mfa_invalid"));
+        continue;
+      }
+      feedback.setText(SwingSupport.text("gui.mfa_restart"));
+      return null;
+    }
+  }
+
   private void register() {
     AppTextField name = new AppTextField();
     AppPasswordField pass = new AppPasswordField();
