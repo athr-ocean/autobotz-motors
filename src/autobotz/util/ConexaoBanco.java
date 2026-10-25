@@ -1,0 +1,54 @@
+package autobotz.util;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public final class ConexaoBanco {
+
+    private static final String URL =
+            System.getenv().getOrDefault(
+                    "AUTOBOTZ_DB_URL",
+                    "jdbc:mariadb://localhost:3306/autobotz_db"
+            );
+
+    private static final String USUARIO =
+            System.getenv().getOrDefault(
+                    "AUTOBOTZ_DB_USER",
+                    "root"
+            );
+
+    private static final String SENHA =
+            System.getenv("AUTOBOTZ_DB_PASSWORD");
+
+    private static Connection conexao;
+
+    private ConexaoBanco() {
+    }
+
+    public static synchronized Connection getConexao() throws SQLException {
+
+        if (SENHA == null || SENHA.isBlank()) {
+            throw new SQLException(
+                    I18nUtils.getString("db.password_ausente")
+            );
+        }
+
+        if (conexao == null || conexao.isClosed()) {
+            try {
+                conexao = DriverManager.getConnection(
+                        URL,
+                        USUARIO,
+                        SENHA
+                );
+            } catch (SQLException e) {
+                throw new SQLException(
+                        I18nUtils.getString("db.conexao_falhou"),
+                        e
+                );
+            }
+        }
+
+        return conexao;
+    }
+}
