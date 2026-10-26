@@ -93,6 +93,32 @@ CREATE TABLE IF NOT EXISTS membros_projeto (
         ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS eventos_seguranca (
+    id_evento BIGINT AUTO_INCREMENT PRIMARY KEY,
+    data_hora DATETIME(3) NOT NULL,
+    nome_usuario VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    tipo VARCHAR(30) NOT NULL,
+    sucesso BOOLEAN NOT NULL,
+    causa VARCHAR(60) NULL,
+    origem VARCHAR(100) NULL,
+    INDEX idx_evseg_login (nome_usuario, tipo, sucesso, data_hora),
+    INDEX idx_evseg_data (data_hora)
+);
+
+CREATE TABLE IF NOT EXISTS mfa_desafios (
+    id_desafio BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    codigo_hash VARCHAR(255) NOT NULL,
+    criado_em DATETIME(3) NOT NULL,
+    expira_em DATETIME(3) NOT NULL,
+    tentativas INT NOT NULL DEFAULT 0,
+    max_tentativas INT NOT NULL,
+    consumido BOOLEAN NOT NULL DEFAULT FALSE,
+    CONSTRAINT fk_mfa_usuario FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
+    INDEX idx_mfa_usuario (id_usuario, consumido)
+);
+
+
 -- Compatibilidade com bancos criados antes desta correção.
 ALTER TABLE membros_projeto
     ADD COLUMN IF NOT EXISTS id_projeto INT NULL AFTER id;

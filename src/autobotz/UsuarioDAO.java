@@ -68,4 +68,58 @@ public class UsuarioDAO {
 
         return null;
     }
+
+    public Usuario buscarPorId(int idUsuario) throws SQLException {
+
+        String sql =
+                "SELECT id_usuario, nome_usuario, senha_hash, perfil " +
+                "FROM usuarios WHERE id_usuario = ?";
+
+        try (PreparedStatement stmt =
+                     ConexaoBanco.getConexao()
+                             .prepareStatement(sql)) {
+
+            stmt.setInt(1, idUsuario);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+
+                if (rs.next()) {
+
+                    return new Usuario(
+                            rs.getInt("id_usuario"),
+                            rs.getString("nome_usuario"),
+                            rs.getString("senha_hash"),
+                            PerfilUsuario.valueOf(
+                                    rs.getString("perfil")
+                            )
+                    );
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Troca o hash somente se o valor atual ainda for {@code hashAtual}
+     * (evita sobrescrever uma alteração concorrente de senha).
+     */
+    public boolean atualizarSenhaHash(int idUsuario, String hashAtual, String novoHash)
+            throws SQLException {
+
+        String sql =
+                "UPDATE usuarios SET senha_hash = ? " +
+                "WHERE id_usuario = ? AND senha_hash = ?";
+
+        try (PreparedStatement stmt =
+                     ConexaoBanco.getConexao()
+                             .prepareStatement(sql)) {
+
+            stmt.setString(1, novoHash);
+            stmt.setInt(2, idUsuario);
+            stmt.setString(3, hashAtual);
+
+            return stmt.executeUpdate() == 1;
+        }
+    }
 }

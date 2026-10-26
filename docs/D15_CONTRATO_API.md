@@ -1,76 +1,87 @@
-# D15 — Contrato do portal de treinamento (rascunho v0.2)
+# D15 — Contrato de integração proposto entre portal e métricas
 
-Donos: Mauro (servidor HTTP e interface) e Higor (conteúdo, TreinamentoService e métricas).
-Status: aguardando revisão do Higor. Nada abaixo é definitivo até ele concordar.
+**Status: PROPOSTA PARA ACORDO COM MAURO.** Não representa rotas já implementadas. Congelar nomes e formatos em conjunto antes da integração.
 
-## Divisão de responsabilidades
+## 1. Responsabilidades
 
-- Higor: `TreinamentoService`, com operações para listar o catálogo, buscar um material,
-  registrar um evento e consultar métricas agregadas, mais o conteúdo dos materiais.
-- Mauro: servidor HTTP e interface web. O servidor não acessa o banco diretamente.
-  Ele conversa com a interface `autobotz.portal.PortalBackend`.
-- Ponto de integração: hoje `MockPortalBackend` responde com dados de exemplo (simulados).
-  Quando o serviço do Higor existir, basta uma classe que implemente `PortalBackend`
-  chamando o `TreinamentoService`, e trocar a linha no `PortalLauncher`.
+- **Higor:** conteúdos didáticos, modelo de evento, persistência/consulta de métricas e documentação.
+- **Mauro:** interface do portal e servidor/rotas que servirão os materiais e chamarão o serviço de eventos.
+- **Arthur:** integração da navegação principal, migrações finais e compatibilidade geral conforme o plano de equipe.
 
-## Rotas (JSON em UTF-8, porta padrão 8085, somente localhost)
+## 2. Eventos reconhecidos
 
-| Método | Rota                 | Descrição                                      |
-|--------|----------------------|------------------------------------------------|
-| GET    | /api/catalogo        | Lista os materiais. Filtro opcional: ?tipo=    |
-| GET    | /api/catalogo/{id}   | Retorna um material                            |
-| POST   | /api/eventos         | Registra um evento de acesso ou visualização   |
-| GET    | /api/metricas        | Métricas agregadas (hoje responde 403, ver pendências) |
+| Evento | Quando registrar | `materialSlug` |
+|---|---|---|
+| `PORTAL_OPEN` | Quando a página inicial do portal for aberta | nulo |
+| `MATERIAL_VIEW` | Quando um material de texto for realmente aberto | slug obrigatório |
+| `VIDEO_VIEW` | Quando uma página/vídeo de treinamento for aberta | slug obrigatório |
 
-## Material
+O evento deve ser registrado uma vez por abertura real, evitando chamadas repetidas automáticas. O horário é gerado no servidor/banco, e não aceito do navegador.
 
-    { "id": "guia-venda", "tipo": "GUIA", "titulo": "...", "descricao": "...",
-      "arquivo": "", "simulado": true }
+## 3. Endpoints sugeridos
 
-- tipo: GUIA, VIDEO, WEBINAR, FAQ ou FORUM.
-- simulado: true quando o material é de exemplo, não conteúdo oficial.
+### `GET /api/treinamentos/materiais`
 
-## Evento (POST /api/eventos)
+Retorna o catálogo dos materiais publicados. Não retornar conteúdo marcado como futuro como se já estivesse disponível.
 
-Entrada:
+Resposta proposta:
 
-    { "tipoEvento": "MATERIAL_VIEW", "materialId": "guia-venda", "sessaoId": "uuid" }
+```json
+{
+  "materiais": [
+    {"slug":"guia-rapido","titulo":"Guia rápido do AutoBotz Motors","tipo":"GUIA","status":"PUBLICADO"},
+    {"slug":"faq","titulo":"Perguntas frequentes","tipo":"FAQ","status":"PUBLICADO"}
+  ]
+}
+```
 
-- tipoEvento: PORTAL_OPEN, MATERIAL_VIEW ou VIDEO_VIEW.
-- materialId: obrigatório em MATERIAL_VIEW e VIDEO_VIEW; deve ser nulo em PORTAL_OPEN.
-- sessaoId: identificador anônimo gerado no navegador. Sem nome, CPF ou IP.
+### `POST /api/treinamentos/eventos`
 
-Resposta 201:
+Registra um evento de acesso/visualização.
 
-    { "id": 123, "registradoEm": "2026-10-27T14:30:00" }
+Requisição proposta:
 
-## Métricas (GET /api/metricas)
+```json
+{"tipoEvento":"MATERIAL_VIEW","materialSlug":"guia-rapido"}
+```
 
-Formato proposto para quando a permissão estiver definida:
+Resposta proposta: `201 Created` com um identificador simples do evento; nunca devolver credenciais ou dados internos desnecessários.
 
-    { "periodo": { "de": "AAAA-MM-DD", "ate": "AAAA-MM-DD" },
-      "totalAcessos": 10,
-      "porMaterial": [ { "materialId": "guia-venda", "visualizacoes": 4 } ],
-      "origem": "MEDIDO" }
+Validações: somente os três tipos de evento reconhecidos; slug com formato permitido; tamanho de campos limitado; timestamp gerado no servidor. Não coletar CPF, senha, token, IP inventado ou texto livre desnecessário.
 
-Dados simulados (chamados, satisfação) devem vir separados e rotulados SIMULADO.
+### `GET /api/treinamentos/metricas?inicio=2026-10-01T00:00:00&fim=2026-11-01T00:00:00`
 
-## Erros
+Retorna contagens agregadas por tipo e material no intervalo `[inicio, fim)`, com `fim` exclusivo.
 
-Formato: { "erro": { "codigo": "...", "mensagem": "..." } }
+Resposta proposta:
 
-| HTTP | codigo                  | Quando                                   |
-|------|-------------------------|------------------------------------------|
-| 400  | EVENTO_INVALIDO         | campo faltando, tipo inválido ou materialId inexistente |
-| 403  | ACESSO_NEGADO           | métricas sem permissão                   |
-| 404  | MATERIAL_NAO_ENCONTRADO | id inexistente                           |
-| 404  | ROTA_NAO_ENCONTRADA     | rota desconhecida                        |
-| 500  | ERRO_INTERNO            | falha interna, sem detalhes técnicos     |
+```json
+{
+  "inicio":"2026-10-01T00:00:00",
+  "fim":"2026-11-01T00:00:00",
+  "metricas":[
+    {"tipoEvento":"MATERIAL_VIEW","materialSlug":"guia-rapido","total":12}
+  ],
+  "origem":"DADOS_REAIS_DE_EXECUCAO"
+}
+```
 
-## Pendências (decidir antes de fechar o contrato)
+Esse endpoint deve exigir permissão administrativa no servidor. Ocultar o botão no portal não substitui a autorização no endpoint/serviço.
 
-1. Permissão das métricas: como o portal sabe que quem consulta é ADMIN, já que o login
-   está no Swing? (Arthur e João)
-2. Nome e porta do modo `portal` no scripts/run.sh. (Arthur revisa)
-3. Catálogo em arquivo JSON ou no banco? (Higor)
-4. Os nomes dos campos do evento servem para o modelo EventoTreinamento do Higor?
+## 4. Formato de erro proposto
+
+```json
+{"erro":{"codigo":"VALIDACAO","mensagem":"O evento informado não é válido."}}
+```
+
+Não devolver stack traces, SQL, segredos ou dados pessoais em mensagens para o navegador.
+
+## 5. Decisões pendentes antes da implementação conjunta
+
+- Confirmar caminhos e método HTTP com Mauro.
+- Confirmar o formato de resposta e de erro.
+- Confirmar como o servidor obtém o `DataSource` ou conexão do projeto.
+- Confirmar a autorização do painel de métricas.
+- Decidir como o catálogo de materiais é publicado/versionado.
+
+Até essas decisões serem aprovadas, os endpoints acima são apenas um contrato proposto e não devem ser anunciados como disponíveis.
