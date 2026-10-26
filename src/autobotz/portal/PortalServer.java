@@ -5,7 +5,6 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,16 +12,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/** Servidor HTTP leve (JDK) do portal. Escuta somente em localhost. */
+/** Servidor HTTP leve (JDK) do portal. Escuta somente em localhost. Rotas conforme docs/D15_CONTRATO_API.md. */
 public class PortalServer {
     private static final String JSON = "application/json; charset=utf-8";
+    private static final String BASE = "/api/treinamentos/";
     private final HttpServer server;
     private final PortalBackend backend;
+    private final CatalogoMateriais catalogo;
     private final Path raiz;
 
-    public PortalServer(int porta, PortalBackend backend, Path raiz) throws IOException {
+    public PortalServer(int porta, PortalBackend backend, CatalogoMateriais catalogo, Path raizPublica) throws IOException {
         this.backend = backend;
-        this.raiz = raiz.toAbsolutePath().normalize();
+        this.catalogo = catalogo;
+        this.raiz = raizPublica.toAbsolutePath().normalize();
         this.server = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), porta), 0);
         server.createContext("/api/", this::api);
         server.createContext("/", this::estatico);
@@ -30,46 +32,97 @@ public class PortalServer {
 
     public void iniciar() { server.start(); }
     public void parar() { server.stop(0); }
+    public int porta() { return server.getAddress().getPort(); }
 
     private void api(HttpExchange ex) throws IOException {
         try {
             String m = ex.getRequestMethod();
             String p = ex.getRequestURI().getPath();
-            if (m.equals("GET") && p.equals("/api/catalogo")) {
-                String tipo = consulta(ex.getRequestURI().getRawQuery(), "tipo");
-                enviar(ex, 200, JSON, backend.catalogo(tipo).stream().map(PortalServer::json)
-                    .collect(Collectors.joining(",", "[", "]")));
-            } else if (m.equals("GET") && p.startsWith("/api/catalogo/")) {
-                var mat = backend.buscarMaterial(p.substring("/api/catalogo/".length()));
-                if (mat == null) erro(ex, 404, "MATERIAL_NAO_ENCONTRADO", "Material nao encontrado.");
-                else enviar(ex, 200, JSON, json(mat));
-            } else if (m.equals("POST") && p.equals("/api/eventos")) {
-                String corpo = new String(ex.getRequestBody().readNBytes(4096), StandardCharsets.UTF_8);
-                var ev = backend.registrarEvento(campo(corpo, "tipoEvento"), campo(corpo, "materialId"),
-                    campo(corpo, "sessaoId"));
-                enviar(ex, 201, JSON, "{\"id\":" + ev.id() + ",\"registradoEm\":" + str(ev.registradoEm()) + "}");
-            } else if (p.equals("/api/metricas")) {
-                erro(ex, 403, "ACESSO_NEGADO", "Metricas indisponiveis ate a regra de permissao ser definida.");
+            if (m.equals("GET") && p.equals(BASE + "materiais")) {
+                listar(ex);
+            } else if (m.equals("GET") && p.startsWith(BASE + "materiais/")) {
+                material(ex, p.substring((BASE + "materiais/").length()));
+            } else if (m.equals("POST") && p.equals(BASE + "eventos")) {
+                evento(ex);
+            } else if (m.equals("GET") && p.equals(BASE + "metricas")) {
+                // Sem sessao administrativa definida (Arthur e Joao), as metricas ficam sempre negadas.
+                erro(ex, 401, "NAO_AUTENTICADO", "Autenticação administrativa obrigatória.");
             } else {
-                erro(ex, 404, "ROTA_NAO_ENCONTRADA", "Rota nao encontrada.");
+                erro(ex, 404, "NAO_ENCONTRADO", "Rota não encontrada.");
             }
         } catch (IllegalArgumentException e) {
-            erro(ex, 400, "EVENTO_INVALIDO", e.getMessage());
+            erro(ex, 400, "VALIDACAO", "O parâmetro informado não é válido.");
         } catch (Exception e) {
             System.err.println("Erro no portal: " + e);
             erro(ex, 500, "ERRO_INTERNO", "Erro interno.");
         }
     }
 
+    private void listar(HttpExchange ex) throws IOException {
+        String itens = catalogo.publicados().stream()
+            .map(x -> "{\"slug\":" + str(x.slug()) + ",\"titulo\":" + str(x.titulo())
+                + ",\"tipo\":" + str(x.tipo()) + ",\"status\":" + str(x.status()) + "}")
+            .collect(Collectors.joining(",", "[", "]"));
+        enviar(ex, 200, JSON, "{\"materiais\":" + itens + "}");
+    }
+
+    private void material(HttpExchange ex, String slug) throws IOException {
+        if (!CatalogoMateriais.slugValido(slug)) throw new IllegalArgumentException("slug");
+        var achado = catalogo.publicado(slug);
+        if (achado.isEmpty()) {
+            erro(ex, 404, "NAO_ENCONTRADO", "Material não encontrado.");
+            return;
+        }
+        var x = achado.get();
+        enviar(ex, 200, JSON, "{\"slug\":" + str(x.slug()) + ",\"titulo\":" + str(x.titulo())
+            + ",\"tipo\":" + str(x.tipo()) + ",\"status\":" + str(x.status())
+            + ",\"formato\":" + str(x.formato()) + ",\"conteudo\":" + str(catalogo.ler(x)) + "}");
+    }
+
+    private void evento(HttpExchange ex) throws Exception {
+        String ct = ex.getRequestHeaders().getFirst("Content-Type");
+        if (ct == null || !ct.toLowerCase().startsWith("application/json")) {
+            throw new IllegalArgumentException("content-type");
+        }
+        String corpo = new String(ex.getRequestBody().readNBytes(2048), StandardCharsets.UTF_8);
+        String tipo = campo(corpo, "tipoEvento");
+        String slug = campo(corpo, "materialSlug");
+        long id = switch (tipo == null ? "" : tipo) {
+            case "PORTAL_OPEN" -> {
+                if (slug != null) throw new IllegalArgumentException("slug");
+                yield backend.registrarAberturaPortal();
+            }
+            case "MATERIAL_VIEW" -> {
+                exigirPublicado(slug);
+                yield backend.registrarVisualizacaoMaterial(slug);
+            }
+            case "VIDEO_VIEW" -> {
+                exigirPublicado(slug);
+                yield backend.registrarVisualizacaoVideo(slug);
+            }
+            default -> throw new IllegalArgumentException("tipoEvento");
+        };
+        enviar(ex, 201, JSON, "{\"id\":" + id + "}");
+    }
+
+    private void exigirPublicado(String slug) {
+        if (catalogo.publicado(slug).isEmpty()) throw new IllegalArgumentException("materialSlug");
+    }
+
     private void estatico(HttpExchange ex) throws IOException {
-        if (!ex.getRequestMethod().equals("GET")) { erro(ex, 405, "METODO_NAO_PERMITIDO", "Use GET."); return; }
+        if (!ex.getRequestMethod().equals("GET")) {
+            erro(ex, 405, "METODO_NAO_PERMITIDO", "Use GET.");
+            return;
+        }
         String p = ex.getRequestURI().getPath();
         Path arq;
         try {
             arq = raiz.resolve(p.equals("/") ? "index.html" : p.substring(1)).normalize();
-        } catch (RuntimeException e) { arq = null; }
+        } catch (RuntimeException e) {
+            arq = null;
+        }
         if (arq == null || !arq.startsWith(raiz) || !Files.isRegularFile(arq)) {
-            erro(ex, 404, "ARQUIVO_NAO_ENCONTRADO", "Arquivo nao encontrado.");
+            erro(ex, 404, "NAO_ENCONTRADO", "Arquivo não encontrado.");
             return;
         }
         String nome = arq.getFileName().toString();
@@ -88,16 +141,12 @@ public class PortalServer {
     }
 
     private void enviar(HttpExchange ex, int status, String tipo, byte[] corpo) throws IOException {
-        ex.getResponseHeaders().set("Content-Type", tipo);
-        ex.getResponseHeaders().set("X-Content-Type-Options", "nosniff");
+        var h = ex.getResponseHeaders();
+        h.set("Content-Type", tipo);
+        h.set("X-Content-Type-Options", "nosniff");
+        h.set("Content-Security-Policy", "default-src 'self'");
         ex.sendResponseHeaders(status, corpo.length);
         try (var out = ex.getResponseBody()) { out.write(corpo); }
-    }
-
-    private static String json(PortalBackend.Material m) {
-        return "{\"id\":" + str(m.id()) + ",\"tipo\":" + str(m.tipo()) + ",\"titulo\":" + str(m.titulo())
-            + ",\"descricao\":" + str(m.descricao()) + ",\"arquivo\":" + str(m.arquivo())
-            + ",\"simulado\":" + m.simulado() + "}";
     }
 
     static String str(String s) {
@@ -116,18 +165,9 @@ public class PortalServer {
         return b.append('"').toString();
     }
 
-    /** Le um campo de texto simples de um JSON plano (suficiente para o corpo de /api/eventos). */
+    /** Le um campo de texto simples de um JSON plano (corpo de /eventos). Ausente ou null devolve null. */
     static String campo(String json, String nome) {
         Matcher m = Pattern.compile("\"" + Pattern.quote(nome) + "\"\\s*:\\s*(null|\"([^\"\\\\]*)\")").matcher(json);
         return m.find() ? m.group(2) : null;
-    }
-
-    private static String consulta(String q, String nome) {
-        if (q == null) return null;
-        for (String par : q.split("&")) {
-            String[] kv = par.split("=", 2);
-            if (kv.length == 2 && kv[0].equals(nome)) return URLDecoder.decode(kv[1], StandardCharsets.UTF_8);
-        }
-        return null;
     }
 }

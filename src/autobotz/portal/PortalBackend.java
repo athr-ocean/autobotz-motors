@@ -1,17 +1,12 @@
 package autobotz.portal;
 
-import java.util.List;
+import java.sql.SQLException;
 
-/** Contrato entre o servidor do portal (Mauro) e o servico de conteudo/metricas (Higor). */
+/** Espelha as operacoes de eventos do TreinamentoService (Higor). */
 public interface PortalBackend {
-    record Material(String id, String tipo, String titulo, String descricao, String arquivo, boolean simulado) {}
-    record Evento(long id, String registradoEm) {}
+    long registrarAberturaPortal() throws SQLException;
 
-    List<Material> catalogo(String tipo);
+    long registrarVisualizacaoMaterial(String materialSlug) throws SQLException;
 
-    /** Retorna null se o material nao existir. */
-    Material buscarMaterial(String id);
-
-    /** Lanca IllegalArgumentException se o evento for invalido. */
-    Evento registrarEvento(String tipoEvento, String materialId, String sessaoId);
+    long registrarVisualizacaoVideo(String materialSlug) throws SQLException;
 }

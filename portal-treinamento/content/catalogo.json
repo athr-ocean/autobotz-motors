@@ -1,0 +1,20 @@
+{
+  "materiais": [
+    {
+      "slug": "guia-rapido",
+      "titulo": "Guia rápido do AutoBotz Motors",
+      "tipo": "GUIA",
+      "status": "PUBLICADO",
+      "formato": "MARKDOWN",
+      "arquivo": "guia-rapido.md"
+    },
+    {
+      "slug": "faq",
+      "titulo": "Perguntas frequentes",
+      "tipo": "FAQ",
+      "status": "PUBLICADO",
+      "formato": "MARKDOWN",
+      "arquivo": "faq.md"
+    }
+  ]
+}

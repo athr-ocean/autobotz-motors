@@ -1,13 +1,7 @@
-const TIPOS = [["", "Todos"], ["GUIA", "Guias"], ["VIDEO", "Vídeos"], ["WEBINAR", "Webinars"], ["FAQ", "Perguntas frequentes"], ["FORUM", "Fórum"]];
+const ROTULOS = { GUIA: "Guias", VIDEO: "Vídeos", WEBINAR: "Webinars", FAQ: "Perguntas frequentes", FORUM: "Fórum" };
+const BASE = "/api/treinamentos";
 const $ = (id) => document.getElementById(id);
-
-let sessao;
-try {
-  sessao = sessionStorage.getItem("sessaoId") || crypto.randomUUID();
-  sessionStorage.setItem("sessaoId", sessao);
-} catch (e) {
-  sessao = String(Date.now());
-}
+let materiais = [];
 
 async function api(url, opcoes) {
   const r = await fetch(url, opcoes);
@@ -17,65 +11,67 @@ async function api(url, opcoes) {
 }
 
 // Falha ao registrar evento nunca deve atrapalhar a navegação.
-function registrar(tipoEvento, materialId = null) {
-  api("/api/eventos", {
+function registrar(corpo) {
+  api(BASE + "/eventos", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ tipoEvento, materialId, sessaoId: sessao }),
+    body: JSON.stringify(corpo),
   }).catch(() => {});
 }
 
-async function carregar(tipo) {
-  $("status").textContent = "Carregando materiais…";
+function mostrar(tipo) {
+  const itens = tipo ? materiais.filter((m) => m.tipo === tipo) : materiais;
   $("lista").replaceChildren();
-  try {
-    const itens = await api("/api/catalogo" + (tipo ? "?tipo=" + encodeURIComponent(tipo) : ""));
-    $("status").textContent = itens.length ? "" : "Ainda não há materiais nesta categoria.";
-    for (const m of itens) {
-      const li = document.createElement("li");
-      const b = document.createElement("button");
-      b.type = "button";
-      b.textContent = m.titulo + (m.simulado ? " (exemplo)" : "");
-      b.onclick = () => abrir(m.id);
-      li.append(b);
-      $("lista").append(li);
-    }
-  } catch (e) {
-    $("status").textContent = "Não foi possível carregar os materiais. Confira se o servidor do portal está ligado e tente de novo.";
+  $("status").textContent = itens.length ? "" : "Ainda não há materiais publicados nesta categoria.";
+  for (const m of itens) {
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = m.titulo;
+    b.onclick = () => abrir(m.slug);
+    li.append(b);
+    $("lista").append(li);
   }
 }
 
-async function abrir(id) {
+function montarFiltros() {
+  const tipos = [...new Set(materiais.map((m) => m.tipo))];
+  for (const [valor, rotulo] of [["", "Todos"], ...tipos.map((t) => [t, ROTULOS[t] || t])]) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = rotulo;
+    b.onclick = () => { $("detalhe").hidden = true; mostrar(valor); };
+    $("filtros").append(b);
+  }
+}
+
+async function abrir(slug) {
   try {
-    const m = await api("/api/catalogo/" + encodeURIComponent(id));
-    const d = $("detalhe");
+    const m = await api(BASE + "/materiais/" + encodeURIComponent(slug));
     const h = document.createElement("h2");
     h.textContent = m.titulo;
     h.tabIndex = -1;
-    const p = document.createElement("p");
-    p.textContent = m.descricao;
-    d.replaceChildren(h, p);
-    if (m.simulado) {
-      const s = document.createElement("p");
-      s.className = "selo";
-      s.textContent = "Conteúdo de exemplo, ainda não é o material oficial.";
-      d.append(s);
-    }
-    d.hidden = false;
+    const t = document.createElement("div");
+    t.className = "texto";
+    t.textContent = m.conteudo;
+    $("detalhe").replaceChildren(h, t);
+    $("detalhe").hidden = false;
     h.focus();
-    registrar(m.tipo === "VIDEO" ? "VIDEO_VIEW" : "MATERIAL_VIEW", m.id);
+    registrar({ tipoEvento: m.tipo === "VIDEO" ? "VIDEO_VIEW" : "MATERIAL_VIEW", materialSlug: m.slug });
   } catch (e) {
     $("status").textContent = "Não foi possível abrir o material. " + e.message;
   }
 }
 
-for (const [valor, rotulo] of TIPOS) {
-  const b = document.createElement("button");
-  b.type = "button";
-  b.textContent = rotulo;
-  b.onclick = () => { $("detalhe").hidden = true; carregar(valor); };
-  $("filtros").append(b);
+async function iniciar() {
+  registrar({ tipoEvento: "PORTAL_OPEN" });
+  try {
+    materiais = (await api(BASE + "/materiais")).materiais;
+    montarFiltros();
+    mostrar("");
+  } catch (e) {
+    $("status").textContent = "Não foi possível carregar os materiais. Confira se o servidor do portal está ligado e tente de novo.";
+  }
 }
 
-registrar("PORTAL_OPEN");
-carregar("");
+iniciar();
