@@ -14,6 +14,7 @@ if [[ "${1:-swing}" == build ]]; then exit 0; fi
 case "${1:-swing}" in
   console) main_class=autobotz.Main ;;
   swing) main_class=autobotz.ui.swing.SwingMain ;;
-  *) printf '%s\n' 'Uso: bash scripts/run.sh [swing|console|build]' >&2; exit 2 ;;
+  portal) main_class=autobotz.portal.PortalLauncher ;;
+  *) printf '%s\n' 'Uso: bash scripts/run.sh [swing|console|portal|build]' >&2; exit 2 ;;
 esac
 exec java -cp "build/classes:src:$jdbc_jar" "$main_class"
