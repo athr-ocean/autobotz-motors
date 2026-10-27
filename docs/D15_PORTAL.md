@@ -91,3 +91,12 @@ Persistência dos eventos no MariaDB, **somente em banco isolado cujo nome termi
 
     javac -sourcepath src -d /tmp/portal-out src/autobotz/portal/*.java tests/D15PersistenciaTest.java
     java -cp /tmp/portal-out:CAMINHO/mariadb-java-client-3.5.10.jar D15PersistenciaTest
+
+## Abrir o portal pelo ERP (PortalAtalho)
+
+O Swing e o console chamam `autobotz.portal.PortalAtalho.abrir()`. Ela inicia o servidor uma
+única vez, em thread daemon, e abre o navegador. Nunca lança exceção: devolve um `Resultado`
+com `Status` (`ABERTO`, `NAVEGADOR_INDISPONIVEL`, `PORTA_OCUPADA`, `CONTEUDO_INDISPONIVEL`,
+`ERRO`) e a `url`. Os textos para o usuário vêm dos bundles da interface, não desta classe.
+Teste: `tests/D15AtalhoTest.java`. Enquanto o `ConexaoBanco.getDataSource()` não estiver na `main`,
+os eventos ficam em memória (`backendPadrao()`).
