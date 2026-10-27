@@ -70,7 +70,7 @@ Resposta `200 OK` proposta para um guia em Markdown:
   "tipo": "GUIA",
   "status": "PUBLICADO",
   "formato": "MARKDOWN",
-  "conteudo": "# Guia rápido\\n\\nEste é o conteúdo do material..."
+  "conteudo": "# Guia rápido\n\nEste é o conteúdo do material..."
 }
 ```
 
