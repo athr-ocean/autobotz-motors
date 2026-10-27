@@ -33,7 +33,7 @@ Execução e testes: `docs/D15_PORTAL.md`. Contrato das rotas: `docs/D15_CONTRAT
 
 | Suíte | Casos | Banco | Resultado |
 |---|---|---|---|
-| `D15PortalTest` | 22 | não | passou |
+| `D15PortalTest` | 28 | não | passou |
 | `D15ConteudoTest` | 4 | não | passou |
 | `D15AtalhoTest` | 7 | não | passou |
 | `D15PersistenciaTest` | 11 | MariaDB local, banco `autobotz_d15_test` | passou |
