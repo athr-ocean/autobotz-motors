@@ -16,7 +16,7 @@ somente em `localhost`.
 ## Executar
 
     mkdir -p /tmp/portal-out
-    javac -d /tmp/portal-out src/autobotz/portal/*.java
+    javac -sourcepath src -d /tmp/portal-out src/autobotz/portal/*.java
     java -cp /tmp/portal-out autobotz.portal.PortalLauncher
 
 Depois abra `http://localhost:8085`. Para usar outra porta: `AUTOBOTZ_PORTAL_PORT=8090`.
@@ -24,7 +24,7 @@ Para parar, `Ctrl+C`. O modo `portal` no `scripts/run.sh` ainda não existe (dep
 
 ## Testes das rotas
 
-    javac -d /tmp/portal-out src/autobotz/portal/*.java tests/D15PortalTest.java
+    javac -sourcepath src -d /tmp/portal-out src/autobotz/portal/*.java tests/D15PortalTest.java
     java -cp /tmp/portal-out D15PortalTest
 
 Resultado esperado: linhas `PASS` e, no fim, `TODOS OS TESTES PASSARAM`. Os testes não usam banco:
@@ -78,3 +78,16 @@ criam uma pasta temporária com catálogo de teste e um backend em memória.
 - Slugs inválidos são recusados; materiais não publicados respondem `404`.
 - Eventos exigem `Content-Type: application/json` e só aceitam material publicado.
 - Nenhum dado pessoal, IP ou identificador de sessão é coletado.
+
+## Testes de conteúdo e de persistência
+
+Conteúdo (cópias em `content/` iguais aos textos oficiais em `docs/`):
+
+    java -cp /tmp/portal-out D15ConteudoTest
+
+Persistência dos eventos no MariaDB, **somente em banco isolado cujo nome termine em `_test`**
+(o teste recusa qualquer outro). Variáveis: `AUTOBOTZ_TEST_DB_URL`, `AUTOBOTZ_TEST_DB_USER` e
+`AUTOBOTZ_TEST_DB_PASSWORD`. A senha não deve ser versionada nem escrita no histórico do terminal.
+
+    javac -sourcepath src -d /tmp/portal-out src/autobotz/portal/*.java tests/D15PersistenciaTest.java
+    java -cp /tmp/portal-out:CAMINHO/mariadb-java-client-3.5.10.jar D15PersistenciaTest
