@@ -36,7 +36,10 @@ public class AutorizacaoService {
         ACESSAR_CRM,
 
         // D14: trilha de segurança (somente ADMIN; VENDEDOR não recebe).
-        CONSULTAR_EVENTOS_SEGURANCA
+        CONSULTAR_EVENTOS_SEGURANCA,
+
+        // D15: métricas agregadas do portal de treinamento (somente ADMIN).
+        CONSULTAR_METRICAS_TREINAMENTO
 
     }
 
@@ -89,8 +92,17 @@ public class AutorizacaoService {
             return false;
         }
 
+        return temPermissao(usuario.getPerfil(), permissao);
+    }
+
+    /**
+     * Permissão de um perfil, sem depender da sessão global do desktop.
+     * É o que o servidor do portal usa: a identidade vem da sessão web, nunca de SessaoUsuario.
+     */
+    public boolean temPermissao(PerfilUsuario perfil, Permissao permissao) {
+
         Set<Permissao> permissoes =
-            matriz.get(usuario.getPerfil());
+            perfil == null ? null : matriz.get(perfil);
 
         if (permissoes == null) {
             return false;

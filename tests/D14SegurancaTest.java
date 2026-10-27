@@ -12,6 +12,10 @@ import autobotz.service.ResultadoLogin;
 import autobotz.service.SegurancaService;
 import autobotz.util.I18nUtils;
 import autobotz.util.SenhaHash;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
@@ -84,18 +88,19 @@ public class D14SegurancaTest {
     final Map<Long, DesafioMfa> mfa = new HashMap<>();
     long seq = 0;
     @Override public void registrarEvento(EventoSeguranca e) { eventos.add(e); }
-    @Override public int contarFalhasLogin(String nome, Instant inicio) {
+    @Override public List<Instant> listarFalhasLogin(String nome, Instant inicio) {
       Instant ultimoOk = inicio;
       for (var e : eventos)
         if (e.nomeUsuario().equalsIgnoreCase(nome) && e.tipo().equals("LOGIN") && e.sucesso()
             && e.dataHora().isAfter(ultimoOk))
           ultimoOk = e.dataHora();
-      int n = 0;
+      List<Instant> falhas = new ArrayList<>();
       for (var e : eventos)
         if (e.nomeUsuario().equalsIgnoreCase(nome) && e.tipo().equals("LOGIN") && !e.sucesso()
             && e.dataHora().isAfter(inicio) && e.dataHora().isAfter(ultimoOk))
-          n++;
-      return n;
+          falhas.add(e.dataHora());
+      java.util.Collections.sort(falhas);
+      return falhas;
     }
     @Override public List<EventoSeguranca> listarEventos(int limite) {
       List<EventoSeguranca> l = new ArrayList<>(eventos);
@@ -153,12 +158,30 @@ public class D14SegurancaTest {
     }
     void falhar(String nome, int n) throws Exception {
       for (int i = 0; i < n; i++)
-        if (auth.iniciarLogin(nome, "errada-" + i).getStatus() != ResultadoLogin.Status.NEGADO)
+        if (auth.iniciarLogin(nome, "errada-" + i).getStatus() == ResultadoLogin.Status.AUTENTICADO)
           throw new AssertionError("FAIL falha_esperada_" + nome + "_" + (i + 1));
     }
     boolean entra(String nome, String senha) throws Exception {
       return auth.iniciarLogin(nome, senha).getStatus() == ResultadoLogin.Status.AUTENTICADO;
     }
+  }
+
+  /**
+   * Lê .properties como o ResourceBundle do JDK: UTF-8 estrito e, se o arquivo não for
+   * UTF-8 válido (hoje ele está em ISO-8859-1), ISO-8859-1. Não explode com os dois formatos.
+   */
+  static List<String> lerLinhas(String arquivo) throws Exception {
+    byte[] bytes = Files.readAllBytes(Path.of(arquivo));
+    String texto;
+    try {
+      texto = StandardCharsets.UTF_8.newDecoder()
+          .onMalformedInput(CodingErrorAction.REPORT)
+          .onUnmappableCharacter(CodingErrorAction.REPORT)
+          .decode(ByteBuffer.wrap(bytes)).toString();
+    } catch (CharacterCodingException e) {
+      texto = new String(bytes, StandardCharsets.ISO_8859_1);
+    }
+    return texto.lines().toList();
   }
 
   static void expect(Class<? extends Throwable> t, String name, Callable c) {
@@ -234,6 +257,51 @@ public class D14SegurancaTest {
       check(c.entra("vendedor", SENHA_VEND), "ACERTO_ZERA_CONTAGEM_ANTERIOR");
     }
 
+    // ===== Mensagem de bloqueio: tempo restante =====
+    {
+      Ctx c = new Ctx();
+      for (int i = 0; i < 4; i++)
+        check(c.auth.iniciarLogin("vendedor", "e" + i).getStatus() == ResultadoLogin.Status.NEGADO,
+            "FALHA_" + (i + 1) + "_AINDA_NAO_BLOQUEIA");
+      var quinta = c.auth.iniciarLogin("vendedor", "e4");
+      check(quinta.getStatus() == ResultadoLogin.Status.BLOQUEADO && quinta.getSegundosRestantes() == 600,
+          "QUINTA_FALHA_JA_INFORMA_BLOQUEIO_E_600S");
+      c.clock.advance(Duration.ofMinutes(3));
+      check(c.auth.iniciarLogin("vendedor", SENHA_VEND).getSegundosRestantes() == 420,
+          "TEMPO_RESTANTE_APOS_3_MIN_E_420S");
+      c.clock.advance(Duration.ofMinutes(6).plusSeconds(59));
+      check(c.auth.iniciarLogin("vendedor", SENHA_VEND).getSegundosRestantes() == 1,
+          "TEMPO_RESTANTE_AOS_9M59_E_1S");
+      c.clock.advance(Duration.ofSeconds(1));
+      check(c.entra("vendedor", SENHA_VEND), "LIBERA_QUANDO_TEMPO_ACABA");
+    }
+    {
+      Ctx c = new Ctx(); // janela movel: tempo conta a partir da falha que precisa sair
+      c.falhar("vendedor", 3);
+      c.clock.advance(Duration.ofMinutes(9));
+      c.falhar("vendedor", 2);
+      var r = c.auth.iniciarLogin("vendedor", SENHA_VEND);
+      check(r.getStatus() == ResultadoLogin.Status.BLOQUEADO && r.getSegundosRestantes() == 60,
+          "TEMPO_RESTANTE_JANELA_MOVEL_60S");
+      c.clock.advance(Duration.ofMillis(59_500));
+      check(c.auth.iniciarLogin("vendedor", SENHA_VEND).getSegundosRestantes() == 1,
+          "TEMPO_ARREDONDA_PARA_CIMA");
+    }
+    {
+      check(ResultadoLogin.formatarTempo(600).equals("10 min") && ResultadoLogin.formatarTempo(599).equals("9 min 59 s")
+          && ResultadoLogin.formatarTempo(45).equals("45 s") && ResultadoLogin.formatarTempo(0).equals("1 s"),
+          "FORMATAR_TEMPO");
+      var pt = I18nUtils.getBundle(Locale.forLanguageTag("pt-BR"));
+      var en = I18nUtils.getBundle(Locale.US);
+      String ptMsg = String.format(pt.getString("gui.login_blocked"), "9 min 59 s");
+      String enMsg = String.format(en.getString("gui.login_blocked"), "9 min 59 s");
+      check(ptMsg.contains("bloqueado") && ptMsg.contains("9 min 59 s") && enMsg.contains("blocked")
+          && enMsg.contains("9 min 59 s")
+          && String.format(pt.getString("login.bloqueado"), "1 s").contains("BLOQUEADO")
+          && String.format(en.getString("login.bloqueado"), "1 s").contains("BLOCKED"),
+          "MENSAGENS_DE_BLOQUEIO_PT_EN_COM_TEMPO");
+    }
+
     // ===== Anti-enumeracao =====
     {
       Ctx c = new Ctx();
@@ -246,14 +314,15 @@ public class D14SegurancaTest {
           "RESULTADO_IGUAL_INEXISTENTE_E_SENHA_ERRADA");
       c.falhar("vendedor", 4); // 1 falha acima + 4 = 5 falhas no vendedor
       ResultadoLogin bloqueado = c.auth.iniciarLogin("vendedor", SENHA_VEND);
-      check(bloqueado.getStatus() == ResultadoLogin.Status.NEGADO && bloqueado.getMfaStatus() == null
-          && bloqueado.getUsuario() == null, "RESULTADO_BLOQUEADO_INDISTINGUIVEL");
+      check(bloqueado.getStatus() == ResultadoLogin.Status.BLOQUEADO && bloqueado.getUsuario() == null
+          && bloqueado.getDesafio() == null && bloqueado.getSegundosRestantes() == 600,
+          "BLOQUEADO_INFORMA_TEMPO_SEM_LIBERAR_USUARIO");
       for (int i = 0; i < 4; i++) c.auth.iniciarLogin("fantasma", "x" + i);
       var fant = c.auth.iniciarLogin("fantasma", "x");
-      check(fant.getStatus() == ResultadoLogin.Status.NEGADO
+      check(fant.getStatus() == ResultadoLogin.Status.BLOQUEADO && fant.getSegundosRestantes() == 600
           && c.repo.eventos.stream().filter(e -> e.nomeUsuario().equals("fantasma")
               && e.tipo().equals("LOGIN_BLOQUEADO")).count() == 1,
-          "USUARIO_INEXISTENTE_TAMBEM_BLOQUEIA");
+          "USUARIO_INEXISTENTE_TAMBEM_BLOQUEIA_IGUAL_AO_EXISTENTE");
       Ctx d = new Ctx();
       d.falhar("ADMIN", 3);
       d.falhar(" admin ", 2);
@@ -418,7 +487,7 @@ public class D14SegurancaTest {
       for (String arq : new String[] {"src/messages_pt_BR.properties", "src/messages_en_US.properties"}) {
         Set<String> vistas = new HashSet<>();
         List<String> duplicadas = new ArrayList<>();
-        for (String linha : Files.readAllLines(Path.of(arq))) {
+        for (String linha : lerLinhas(arq)) {
           String l = linha.strip();
           if (l.isEmpty() || l.startsWith("#") || !l.contains("="))
             continue;

@@ -54,6 +54,11 @@ public class LoginMenu {
         String senha = scanner.nextLine();
 
         ResultadoLogin resultado = authService.iniciarLogin(nomeUsuario, senha);
+        if (resultado.getStatus() == ResultadoLogin.Status.BLOQUEADO) {
+            System.out.println(String.format(bundle.getString("login.bloqueado"),
+                    ResultadoLogin.formatarTempo(resultado.getSegundosRestantes())));
+            return false;
+        }
         if (resultado.getStatus() == ResultadoLogin.Status.MFA_NECESSARIA) {
             resultado = executarMfa(resultado.getDesafio());
         }
