@@ -29,7 +29,9 @@ public class D15PortalTest {
         Files.writeString(content.resolve("catalogo.json"), """
             {"materiais":[
               {"slug":"guia-rapido","titulo":"Guia rápido","tipo":"GUIA","status":"PUBLICADO","formato":"MARKDOWN","arquivo":"guia.md"},
-              {"slug":"futuro","titulo":"Em preparação","tipo":"VIDEO","status":"EM_PREPARACAO","formato":"MARKDOWN","arquivo":"rascunho.md"}
+              {"slug":"futuro","titulo":"Em preparação","tipo":"VIDEO","status":"EM_PREPARACAO","formato":"MARKDOWN","arquivo":"rascunho.md"},
+              {"slug":"tutorial","titulo":"Tutorial","tipo":"VIDEO","status":"PUBLICADO","formato":"MARKDOWN","arquivo":"guia.md"},
+              {"slug":"roteiro","titulo":"Roteiro","tipo":"ROTEIRO","status":"PUBLICADO","formato":"MARKDOWN","arquivo":"guia.md"}
             ]}""");
 
         MockPortalBackend backend = new MockPortalBackend();
@@ -64,6 +66,18 @@ public class D15PortalTest {
             check(post("{\"tipoEvento\":\"HACK\"}", true).statusCode() == 400, "tipo de evento invalido -> 400");
             check(post("{\"tipoEvento\":\"PORTAL_OPEN\"}", false).statusCode() == 400, "sem Content-Type JSON -> 400");
             check(backend.eventos().size() == 2, "eventos recusados nao foram registrados");
+
+            check(post("{\"tipoEvento\":\"VIDEO_VIEW\",\"materialSlug\":\"tutorial\"}", true).statusCode() == 201,
+                "VIDEO_VIEW em material do tipo VIDEO -> 201");
+            check(post("{\"tipoEvento\":\"MATERIAL_VIEW\",\"materialSlug\":\"roteiro\"}", true).statusCode() == 201,
+                "MATERIAL_VIEW em ROTEIRO -> 201");
+            check(post("{\"tipoEvento\":\"VIDEO_VIEW\",\"materialSlug\":\"roteiro\"}", true).statusCode() == 400,
+                "VIDEO_VIEW em ROTEIRO (nao e video) -> 400");
+            check(post("{\"tipoEvento\":\"VIDEO_VIEW\",\"materialSlug\":\"guia-rapido\"}", true).statusCode() == 400,
+                "VIDEO_VIEW em GUIA -> 400");
+            check(post("{\"tipoEvento\":\"MATERIAL_VIEW\",\"materialSlug\":\"tutorial\"}", true).statusCode() == 400,
+                "MATERIAL_VIEW em material do tipo VIDEO -> 400");
+            check(backend.eventos().size() == 4, "so os dois eventos coerentes foram registrados");
 
             check(get("/api/treinamentos/metricas").statusCode() == 401, "metricas sem sessao -> 401");
             check(get("/api/treinamentos/outra").statusCode() == 404, "rota desconhecida -> 404");

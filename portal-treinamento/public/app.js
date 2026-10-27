@@ -1,4 +1,4 @@
-const ROTULOS = { GUIA: "Guias", VIDEO: "Vídeos", WEBINAR: "Webinars", FAQ: "Perguntas frequentes", FORUM: "Fórum" };
+const ROTULOS = { GUIA: "Guias", VIDEO: "Vídeos", WEBINAR: "Webinars", FAQ: "Perguntas frequentes", FORUM: "Fórum", ROTEIRO: "Roteiros", COMUNICADO: "Comunicados" };
 const BASE = "/api/treinamentos";
 const $ = (id) => document.getElementById(id);
 let materiais = [];

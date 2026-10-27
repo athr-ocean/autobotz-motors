@@ -93,11 +93,11 @@ public class PortalServer {
                 yield backend.registrarAberturaPortal();
             }
             case "MATERIAL_VIEW" -> {
-                exigirPublicado(slug);
+                exigirPublicado(slug, false);
                 yield backend.registrarVisualizacaoMaterial(slug);
             }
             case "VIDEO_VIEW" -> {
-                exigirPublicado(slug);
+                exigirPublicado(slug, true);
                 yield backend.registrarVisualizacaoVideo(slug);
             }
             default -> throw new IllegalArgumentException("tipoEvento");
@@ -105,8 +105,10 @@ public class PortalServer {
         enviar(ex, 201, JSON, "{\"id\":" + id + "}");
     }
 
-    private void exigirPublicado(String slug) {
-        if (catalogo.publicado(slug).isEmpty()) throw new IllegalArgumentException("materialSlug");
+    /** VIDEO_VIEW so vale para material do tipo VIDEO; MATERIAL_VIEW vale para os demais (ex.: ROTEIRO). */
+    private void exigirPublicado(String slug, boolean video) {
+        var m = catalogo.publicado(slug).orElseThrow(() -> new IllegalArgumentException("materialSlug"));
+        if (m.tipo().equals("VIDEO") != video) throw new IllegalArgumentException("tipo do material");
     }
 
     private void estatico(HttpExchange ex) throws IOException {

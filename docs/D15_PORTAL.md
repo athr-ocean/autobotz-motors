@@ -100,3 +100,9 @@ com `Status` (`ABERTO`, `NAVEGADOR_INDISPONIVEL`, `PORTA_OCUPADA`, `CONTEUDO_IND
 `ERRO`) e a `url`. Os textos para o usuário vêm dos bundles da interface, não desta classe.
 Teste: `tests/D15AtalhoTest.java`. Enquanto o `ConexaoBanco.getDataSource()` não estiver na `main`,
 os eventos ficam em memória (`backendPadrao()`).
+
+## Tipos de material
+
+O catálogo aceita qualquer tipo, e a interface mostra um filtro por tipo. Hoje: `GUIA`, `FAQ`,
+`ROTEIRO` e `COMUNICADO`. Só o tipo `VIDEO` gera `VIDEO_VIEW`; os demais geram `MATERIAL_VIEW`.
+Um roteiro nunca deve ser apresentado como vídeo disponível.

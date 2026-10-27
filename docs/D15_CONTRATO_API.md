@@ -148,3 +148,12 @@ Não devolver stack traces, SQL, segredos ou dados pessoais em mensagens para o 
 - Definir os testes de integração no banco isolado antes do merge.
 
 Até as rotas serem implementadas e testadas no ambiente integrado, elas são um contrato acordado/proposto e não devem ser anunciadas como disponíveis.
+
+## 6. Tipos de material e eventos (adendo)
+
+Tipos usados no catálogo: `GUIA`, `FAQ`, `ROTEIRO` e `COMUNICADO`. `VIDEO`, `WEBINAR` e `FORUM`
+só entram quando houver conteúdo real publicado.
+
+- `ROTEIRO` é um texto para futura gravação, não um vídeo. O título deve dizer isso.
+- `VIDEO_VIEW` só é aceito para material do tipo `VIDEO`. Os demais tipos usam `MATERIAL_VIEW`,
+  e o servidor recusa com 400 a combinação inconsistente.
