@@ -32,22 +32,28 @@ public class SegurancaDAO implements SegurancaRepositorio {
     }
 
     @Override
-    public int contarFalhasLogin(String nomeUsuario, Instant janelaInicio) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM eventos_seguranca "
+    public List<Instant> listarFalhasLogin(String nomeUsuario, Instant janelaInicio)
+            throws SQLException {
+        String sql = "SELECT data_hora FROM eventos_seguranca "
                 + "WHERE nome_usuario = ? AND tipo = 'LOGIN' AND sucesso = FALSE "
                 + "AND data_hora > ? "
                 + "AND data_hora > COALESCE((SELECT MAX(data_hora) FROM eventos_seguranca "
-                + "WHERE nome_usuario = ? AND tipo = 'LOGIN' AND sucesso = TRUE), ?)";
+                + "WHERE nome_usuario = ? AND tipo = 'LOGIN' AND sucesso = TRUE), ?) "
+                + "ORDER BY data_hora ASC";
         Timestamp inicio = Timestamp.from(janelaInicio);
+        List<Instant> falhas = new ArrayList<>();
         try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
             stmt.setString(1, nomeUsuario);
             stmt.setTimestamp(2, inicio);
             stmt.setString(3, nomeUsuario);
             stmt.setTimestamp(4, inicio);
             try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next() ? rs.getInt(1) : 0;
+                while (rs.next()) {
+                    falhas.add(rs.getTimestamp(1).toInstant());
+                }
             }
         }
+        return falhas;
     }
 
     @Override
