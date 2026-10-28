@@ -7,13 +7,12 @@ Execução e testes: `docs/D15_PORTAL.md`. Contrato das rotas: `docs/D15_CONTRAT
 
 - Branch `feature/d15-training-portal-ui`, Pull Request #24 em Draft.
 - Implementado na branch: servidor HTTP local, interface web, catálogo, registro de eventos,
-  adaptador `TreinamentoPortalBackend`, `PortalAtalho`, testes e documentação.
+  adaptador `TreinamentoPortalBackend`, `PortalAtalho`, rotas de login/MFA/logout web, autorização server-side de métricas, testes e documentação.
+- Adicionado: roteiro textual de vídeo de 30 minutos, identificado como roteiro e não como gravação; rascunho de e-mail e inventário honesto dos materiais.
 - Alterado nesta atualização: o launcher e o atalho padrão passam a construir o backend persistente
   usando `TreinamentoService(ConexaoBanco.getDataSource())`, em vez do mock.
-- Ainda pendente: confirmar integração com o PR #22 na base de compilação e executar build/testes
-  atualizados; `/metricas` permanece negada até sessão ADMIN server-side; modo `portal` no
-  `scripts/run.sh`, atalho no `AppFrame` e bundles são do Arthur; painel de métricas depende de
-  autenticação acordada.
+- Ainda pendente: PR #22 integrado, build e testes atuais, persistência em MariaDB isolado `_test`, teste ponta a ponta de login/MFA/logout e autorização 401/403/200 na base integrada. A integração usa o serviço D14 quando disponível e falha fechada caso contrário.
+- Vídeo real, webinar realizado e fórum funcional não foram comprovados; o roteiro é apenas texto. O modo `portal` em `scripts/run.sh`, o atalho no `AppFrame` e os bundles são do Arthur.
 
 ## Decisões
 
@@ -24,8 +23,7 @@ Execução e testes: `docs/D15_PORTAL.md`. Contrato das rotas: `docs/D15_CONTRAT
    sincronizadas, verificadas por `D15ConteudoTest`.
 4. Servidor somente em localhost e sem framework.
 5. Eventos não carregam sessão, IP nem dados pessoais.
-6. `/api/treinamentos/metricas` continua respondendo `401` até haver sessão ADMIN validada no
-   servidor. Não aceitar papel ou token administrativo fornecido pelo cliente.
+6. `/api/treinamentos/metricas` valida a sessão no servidor D14: 401 sem sessão, 403 sem permissão e 200 apenas para ADMIN autorizado. Se o serviço D14 não estiver presente na base integrada, falha fechado com 401. Nunca aceitar papel administrativo enviado pelo cliente.
 7. O backend padrão usa `TreinamentoPortalBackend` e `TreinamentoService`; o mock fica para testes.
    A integração depende de `ConexaoBanco.getDataSource()` do PR #22.
 8. `PortalAtalho.abrir()` inicia o servidor uma vez em thread daemon e devolve um `Status` para
@@ -56,7 +54,8 @@ PR #22 (DataSource) → PR #24 (portal) → PR do Arthur (`run.sh`, `AppFrame` e
 | Integrar o PR #22 e confirmar DataSource na base de build | Arthur / equipe |
 | Revisar o PR #24 | Arthur e Higor |
 | `run.sh`, atalho no `AppFrame` e chaves PT-BR/EN-US | Arthur |
-| Definir sessão ADMIN para `/metricas` | Arthur e João |
+| Confirmar integração do serviço de sessão D14 e política MFA | Arthur e João |
+| Validar rotas de login/MFA/logout e métricas 401/403/200 ponta a ponta | Mauro + João |
 | Executar novamente build e suítes D15 | Mauro |
 | Criar painel de métricas após decisão de autenticação | Mauro |
 | Roteiro de vídeo e materiais de transição | Higor e Mauro |
@@ -75,5 +74,6 @@ PR #22 (DataSource) → PR #24 (portal) → PR do Arthur (`run.sh`, `AppFrame` e
 ## Limitações declaradas
 
 - A persistência ainda precisa ser confirmada com o PR #22 integrado e teste em banco isolado.
-- `/metricas` permanece negada por falta de sessão ADMIN.
+- A autorização foi ligada ao serviço D14, mas o fluxo real de sessão depende da base integrada e ainda requer testes ponta a ponta.
+- O roteiro de 30 minutos não é uma gravação; webinar e fórum não foram comprovados.
 - Markdown básico é renderizado com segurança; links, tabelas e itálico ainda não são suportados. Portal apenas em localhost.
