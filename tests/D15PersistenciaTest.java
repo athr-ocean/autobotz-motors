@@ -78,8 +78,7 @@ public class D15PersistenciaTest {
         try { svc.consultarMetricas(ate, de); } catch (IllegalArgumentException e) { recusou = true; }
         check(recusou, "periodo invertido e recusado");
 
-        PortalServer servidor = new PortalServer(0, new TreinamentoPortalBackend(svc),
-            new CatalogoMateriais(Path.of("portal-treinamento", "content")), Path.of("portal-treinamento", "public"));
+        PortalServer servidor = PortalLauncher.criarServidor(0, Path.of("portal-treinamento"));
         servidor.iniciar();
         String base = "http://127.0.0.1:" + servidor.porta();
         try {
