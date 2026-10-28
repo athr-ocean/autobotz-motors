@@ -56,4 +56,6 @@ marcado explicitamente como demonstração; não há envio real por SMS ou e-mai
 
 Não existe SSO iniciado pelo Swing nem fluxo por fragmento de URL. O atalho abre o portal;
 o usuário autentica-se no próprio portal. A validação reproduzível do teste JDBC é
-`bash scripts/test-d15-auth-jdbc.sh`, após aplicar migrations 014 e 015 no banco `_test`.
+`bash scripts/test-d15-auth-jdbc.sh`, após compor as dependências #22 e #24 e aplicar
+migrations 014 e 015 no banco `_test`. A branch #29 isolada depende dessas fontes e não é
+uma instalação autônoma.
