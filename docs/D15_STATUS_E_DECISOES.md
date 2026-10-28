@@ -1,75 +1,77 @@
 # D15 — Status e decisões do portal de treinamento
 
-Atualizado em 27/10/2026. Responsável: Mauro (portal e servidor). Conteúdo e métricas: Higor.
+Atualizado em 28/10/2026. Responsável: Mauro (portal e servidor). Conteúdo e métricas: Higor.
 Execução e testes: `docs/D15_PORTAL.md`. Contrato das rotas: `docs/D15_CONTRATO_API.md`.
 
 ## Estado
 
-- Branch `feature/d15-training-portal-ui`, base `main` em `40a8803`. Pull Request #24, em Draft.
-- Pronto: servidor HTTP em localhost, interface web, catálogo de materiais, registro de eventos,
-  adaptador do `TreinamentoService`, `PortalAtalho` para o ERP, contrato e documentação.
-- Não pronto: eventos do launcher ainda só em memória, `/metricas` fechada, modo `portal` no
-  `scripts/run.sh` e atalho no `AppFrame` (Arthur), página de métricas.
+- Branch `feature/d15-training-portal-ui`, Pull Request #24 em Draft.
+- Implementado na branch: servidor HTTP local, interface web, catálogo, registro de eventos,
+  adaptador `TreinamentoPortalBackend`, `PortalAtalho`, testes e documentação.
+- Alterado nesta atualização: o launcher e o atalho padrão passam a construir o backend persistente
+  usando `TreinamentoService(ConexaoBanco.getDataSource())`, em vez do mock.
+- Ainda pendente: confirmar integração com o PR #22 na base de compilação e executar build/testes
+  atualizados; `/metricas` permanece negada até sessão ADMIN server-side; modo `portal` no
+  `scripts/run.sh`, atalho no `AppFrame` e bundles são do Arthur; painel de métricas depende de
+  autenticação acordada.
 
 ## Decisões
 
-1. Rotas, `slug` e formato de erro seguem o contrato combinado com o Higor.
-2. O catálogo fica em `portal-treinamento/content/catalogo.json`. O nome do arquivo de cada
-   material nunca é enviado ao navegador, e a leitura fica restrita a `content/`.
-3. Os textos oficiais ficam em `docs/` (Higor). As cópias em `content/` vão no mesmo commit, e o
-   `D15ConteudoTest` falha se as duas versões divergirem.
-4. Servidor só em localhost e sem framework, como o plano pede.
+1. Rotas, `slug` e formato de erro seguem o contrato com Higor.
+2. O catálogo fica em `portal-treinamento/content/catalogo.json`. O nome do arquivo nunca é enviado
+   ao navegador e a leitura fica restrita à pasta de conteúdo.
+3. Os textos oficiais ficam em `docs/` (Higor). As cópias em `content/` devem permanecer
+   sincronizadas, verificadas por `D15ConteudoTest`.
+4. Servidor somente em localhost e sem framework.
 5. Eventos não carregam sessão, IP nem dados pessoais.
-6. `/api/treinamentos/metricas` responde 401 até existir uma sessão ADMIN reconhecida pelo portal.
-   Mecanismo em discussão com Arthur e João; token em query string foi descartado.
-7. `PortalBackend` espelha o `TreinamentoService`. Há uma implementação em memória e um adaptador
-   para o serviço real. A ligação ao `ConexaoBanco.getDataSource()` aguarda o PR #22.
-8. `PortalAtalho.abrir()` sobe o servidor uma vez, em thread daemon, nunca lança exceção e devolve
-   um `Status` sem texto, para a interface traduzir pelos bundles.
-9. Testes em Java puro, com código de saída. O teste de persistência só roda em banco cujo nome
-   termine em `_test` e recusa qualquer outro.
+6. `/api/treinamentos/metricas` continua respondendo `401` até haver sessão ADMIN validada no
+   servidor. Não aceitar papel ou token administrativo fornecido pelo cliente.
+7. O backend padrão usa `TreinamentoPortalBackend` e `TreinamentoService`; o mock fica para testes.
+   A integração depende de `ConexaoBanco.getDataSource()` do PR #22.
+8. `PortalAtalho.abrir()` inicia o servidor uma vez em thread daemon e devolve um `Status` para
+   a interface traduzir pelos bundles.
+9. Testes de persistência só podem ser executados em banco isolado cujo nome termine em `_test`.
 
-## Testes executados (JDK 21)
+## Testes
 
-| Suíte | Casos | Banco | Resultado |
-|---|---|---|---|
-| `D15PortalTest` | 28 | não | passou |
-| `D15ConteudoTest` | 4 | não | passou |
-| `D15AtalhoTest` | 7 | não | passou |
-| `D15PersistenciaTest` | 11 | MariaDB local, banco `autobotz_d15_test` | passou |
+Os resultados anteriores registrados para as suítes D15 pertencem à versão anterior do código.
+Após esta atualização, executar novamente:
+- `D15PortalTest` (sem banco).
+- `D15ConteudoTest` (sincronização de materiais).
+- `D15AtalhoTest` (entrada pelo ERP, sem abrir navegador real).
+- `D15PersistenciaTest` (MariaDB isolado `_test`, com variáveis de teste).
 
-A migration `015_d15_treinamento.sql` foi aplicada duas vezes no banco de teste sem erro.
-Nenhuma suíte foi executada ainda no CI, e a regressão `CoreRegression` não foi rodada por este módulo.
+Não afirmar que o build ou as suítes da nova versão passaram até serem executados.
 
-## Ordem de merge sugerida
+## Ordem de integração sugerida
 
 PR #22 (DataSource) → PR #24 (portal) → PR do Arthur (`run.sh`, `AppFrame` e bundles).
 
-## Pendências
+## Pendências e responsáveis
 
 | Pendência | Responsável |
 |---|---|
-| PR #22 entrar na `main` | Arthur |
-| Revisão do PR #24 | Arthur e Higor |
+| Integrar o PR #22 e confirmar DataSource na base de build | Arthur / equipe |
+| Revisar o PR #24 | Arthur e Higor |
 | `run.sh`, atalho no `AppFrame` e chaves PT-BR/EN-US | Arthur |
-| Regra de sessão ADMIN para `/metricas` | Arthur e João |
-| Ligar o portal ao banco e testar em `_test` | Mauro, após o #22 |
-| Página de métricas no portal | Mauro, após a regra de sessão |
-| Roteiro de vídeo e materiais de transição no catálogo | Higor e Mauro |
-| Conferir `README_D15_INTEGRACAO.md` e `docs/D15_METRICAS.md` contra o contrato | Higor |
-| Incluir as suítes D15 no CI | Adryan |
-| Clone limpo, build e regressão até 29/10 | equipe |
+| Definir sessão ADMIN para `/metricas` | Arthur e João |
+| Executar novamente build e suítes D15 | Mauro |
+| Criar painel de métricas após decisão de autenticação | Mauro |
+| Roteiro de vídeo e materiais de transição | Higor e Mauro |
+| Conferir documentos de integração e métricas contra o contrato | Higor |
+| Incluir suítes D15 no CI | Adryan |
+| Clone limpo, build e regressão | equipe |
 
-## Evidências a guardar para a entrega
+## Evidências para a entrega
 
-- Captura do portal no navegador (lista de materiais e um material aberto).
-- Saída das quatro suítes de teste.
-- Guia rápido e roteiro de vídeo do Higor.
-- O endereço do PR #24 e a lista de commits da branch.
-- Dados simulados, quando houver, rotulados como simulados. Nenhuma URL pública é declarada.
+- Captura do portal no navegador (lista de materiais e material aberto).
+- Saída das quatro suítes após a integração.
+- Guia rápido e roteiro de vídeo revisados.
+- URL do PR #24 e lista de commits.
+- Dados simulados sempre identificados como simulados; nenhuma URL pública declarada.
 
 ## Limitações declaradas
 
-- Eventos do launcher só em memória até o PR #22.
-- `/metricas` negada por falta de sessão ADMIN.
-- Markdown exibido como texto puro; portal apenas em localhost.
+- A persistência ainda precisa ser confirmada com o PR #22 integrado e teste em banco isolado.
+- `/metricas` permanece negada por falta de sessão ADMIN.
+- Markdown aparece como texto puro; portal apenas em localhost.
