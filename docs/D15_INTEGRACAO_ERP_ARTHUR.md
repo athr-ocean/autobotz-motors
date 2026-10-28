@@ -2,12 +2,12 @@
 
 ## Inicialização
 
-Na branch de integração que depende do PR #24 de Mauro, `bash scripts/run.sh portal`
-compila `src/` e inicia `autobotz.portal.PortalLauncher` com o driver JDBC no classpath.
-O modo exige execução a partir da raiz do repositório. Ele é uma opção explícita; abrir o
-ERP Swing não inicia o servidor. O launcher atual de Mauro ainda usa `MockPortalBackend`,
-portanto os eventos dessa versão não são persistidos até que a integração dele com o
-`TreinamentoService` e o `DataSource` seja concluída.
+Na integração, `bash scripts/run.sh portal` compila `src/` e inicia
+`autobotz.portal.PortalLauncher` a partir da raiz do repositório. O modo é explícito; abrir o
+ERP Swing não inicia o servidor. O launcher do PR #24 atualizado constrói o backend com
+`TreinamentoService(ConexaoBanco.getDataSource())`. O teste JDBC usa a mesma factory do
+launcher e confirmou persistência no MariaDB descartável; o comando interativo completo e a
+janela Swing ainda não foram exercitados nesta validação.
 
 ## Dependências da navegação Swing
 
@@ -30,49 +30,30 @@ local para abertura manual. O item não cria uma segunda instância do servidor.
   recusa URL cujo banco não termine em `_test`, aplica a migration 015 e valida gravação,
   métricas e rota HTTP. A limpeza do teste apaga as linhas de `treinamento_eventos`; use
   somente banco descartável exclusivo.
-- `tests/D14JdbcIntegrationTest.java`: teste JDBC D14 com guarda para banco `_test`.
+- `tests/D15AuthHttpJdbcTest.java` e `scripts/test-d15-auth-jdbc.sh` (integração Arthur):
+  usam contas fictícias `d15http_*` e validam login, MFA, cookie, logout e métricas por HTTP
+  contra o `SessaoWebService` e backend persistente do launcher. O teste exige migrations
+  014/015 e recusa URL que não termine em `_test`; remove apenas as contas e eventos de
+  segurança criados por ele.
+- `tests/D14JdbcIntegrationTest.java`: teste JDBC D14 com guarda para banco `_test`; o
+  ajuste para refletir MFA obrigatório após migração de hash legado está no PR #31.
 - Nesta cópia não há script separado de provisionamento de banco. Migrations 013, 011 e
   012 ainda dependem de PRs/implementações que não estão nesta base.
 
 Adryan é responsável pelo script de testes, bootstrap isolado, CI e execução dos testes.
 Este handoff identifica os arquivos existentes; não altera nem assume a parte dele.
 
-## Proposta para autorização de `/api/treinamentos/metricas`
+## Autorização HTTP de `/api/treinamentos/metricas`
 
-O acesso permanece negado até a integração HTTP usar a sessão autenticada no servidor.
-A branch do portal ainda não integra `SessaoWebService`, embora João já a tenha integrado
-à `main`. Opção mínima para combinar com João e Mauro:
+O servidor do portal usa `SessaoWebService` no processo HTTP. O login exige senha e MFA,
+emite o cookie opaco `ABM_SESSAO` só após validar o segundo fator e o logout invalida a
+sessão no servidor. A rota consulta `autorizarMetricas`: sem sessão retorna 401, VENDEDOR
+autenticado retorna 403 e ADMIN autenticado pode receber 200. O teste
+`D15AuthHttpJdbcTest` cobriu esses estados por HTTP com usuários fictícios persistidos em
+MariaDB `_test`, inclusive logout seguido de 401. O código MFA enviado pela resposta é
+marcado explicitamente como demonstração; não há envio real por SMS ou e-mail. O servidor
+é local em HTTP loopback e não está preparado como serviço de produção exposto à rede.
 
-1. Criar uma única instância do `SessaoWebService` no processo do portal e encaminhar os
-   passos HTTP de login/MFA/logout para essa instância, sem criar outro `AuthService` ou
-   sessão paralela.
-2. Após login/MFA, enviar o token opaco em cookie de sessão `HttpOnly`, `SameSite=Strict`,
-   `Path=/` e `Secure` quando servido por HTTPS. Não colocar tokens em URLs nem aceitar
-   `role` enviado pelo navegador. Em operações que alterem estado, validar `Origin` e
-   proteção CSRF acordada com João.
-3. Em cada pedido de métricas, extrair o cookie e chamar `SessaoWebService.autorizarMetricas`;
-   mapear sem sessão válida para 401, sessão válida sem permissão para 403 e permitir a
-   resposta apenas quando a autorização server-side resultar em 200. Falha SQL não deve
-   liberar acesso.
-
-O contrato e as rotas de login/MFA/logout precisam de acordo de João antes de substituir o
-`401` fixo. Esta proposta não altera a autenticação nem enfraquece a proteção atual.
-
-### Proposta de código de uso único no fragmento da URL
-
-O fragmento (`#...`) não é enviado automaticamente na requisição HTTP nem no cabeçalho
-`Referer`, o que é melhor que colocar um bearer token em query string. Ainda assim, o
-fragmento fica acessível ao JavaScript da página, extensões e histórico do navegador; XSS,
-redirecionamentos e cópia da URL podem expô-lo. O serviço atual de João não oferece emissão
-nem troca de código de uso único, portanto o portal não implementa esse fluxo.
-
-Se a equipe preferir SSO iniciado pelo ERP, João precisa fornecer no próprio
-`SessaoWebService` uma emissão e troca atômica de código: código aleatório opaco, vinculado à
-identidade autenticada e ao público do portal, validade de no máximo 60 segundos, uso único
-e invalidação após logout. O browser deve removê-lo do histórico imediatamente e trocá-lo
-por POST same-origin; a resposta cria somente o cookie HttpOnly, SameSite=Strict e Secure
-sob HTTPS. O endpoint deve validar Origin/CSRF e a rota de métricas deve sempre chamar
-`autorizarMetricas` no servidor. O fragmento nunca carrega papel ou métricas, e o portal
-continua respondendo 401 até esse contrato existir e ser testado. Alternativamente, o portal
-pode apresentar login/MFA próprio usando a mesma instância do serviço de João, sem SSO por
-fragmento.
+Não existe SSO iniciado pelo Swing nem fluxo por fragmento de URL. O atalho abre o portal;
+o usuário autentica-se no próprio portal. A validação reproduzível do teste JDBC é
+`bash scripts/test-d15-auth-jdbc.sh`, após aplicar migrations 014 e 015 no banco `_test`.
