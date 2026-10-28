@@ -377,10 +377,45 @@ public class PortalServer {
         return b.append('"').toString();
     }
 
-    /** Le um campo de texto simples de um JSON plano (corpo de /eventos). */
+    /** Lê string ou número de um campo JSON plano, tratando escapes de string. */
     static String campo(String json, String nome) {
-        Matcher m = Pattern.compile("\"" + Pattern.quote(nome) + "\"\\s*:\\s*(?:null|\"([^\"\\\\]*)\"|(-?\\d+))").matcher(json);
+        Matcher m = Pattern.compile("\"" + Pattern.quote(nome)
+                + "\"\\s*:\\s*(?:null|\"((?:[^\"\\\\]|\\\\.)*)\"|(-?\\d+))").matcher(json);
         if (!m.find()) return null;
-        return m.group(1) != null ? m.group(1) : m.group(2);
+        return m.group(1) != null ? desescaparJson(m.group(1)) : m.group(2);
+    }
+
+    private static String desescaparJson(String valor) {
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < valor.length(); i++) {
+            char c = valor.charAt(i);
+            if (c != '\\\\') {
+                b.append(c);
+                continue;
+            }
+            if (++i >= valor.length()) throw new IllegalArgumentException("escape JSON");
+            char e = valor.charAt(i);
+            switch (e) {
+                case '"' -> b.append('"');
+                case '\\\\' -> b.append('\\\\');
+                case '/' -> b.append('/');
+                case 'b' -> b.append('\\b');
+                case 'f' -> b.append('\\f');
+                case 'n' -> b.append('\\n');
+                case 'r' -> b.append('\\r');
+                case 't' -> b.append('\\t');
+                case 'u' -> {
+                    if (i + 4 >= valor.length()) throw new IllegalArgumentException("escape Unicode");
+                    try {
+                        b.append((char) Integer.parseInt(valor.substring(i + 1, i + 5), 16));
+                    } catch (NumberFormatException ex) {
+                        throw new IllegalArgumentException("escape Unicode");
+                    }
+                    i += 4;
+                }
+                default -> throw new IllegalArgumentException("escape JSON");
+            }
+        }
+        return b.toString();
     }
 }
