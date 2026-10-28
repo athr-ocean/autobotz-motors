@@ -379,7 +379,8 @@ public class PortalServer {
 
     /** Le um campo de texto simples de um JSON plano (corpo de /eventos). */
     static String campo(String json, String nome) {
-        Matcher m = Pattern.compile("\"" + Pattern.quote(nome) + "\"\\s*:\\s*(null|\"([^\"\\\\]*)\")").matcher(json);
-        return m.find() ? m.group(2) : null;
+        Matcher m = Pattern.compile("\"" + Pattern.quote(nome) + "\"\\s*:\\s*(?:null|\"([^\"\\\\]*)\"|(-?\\d+))").matcher(json);
+        if (!m.find()) return null;
+        return m.group(1) != null ? m.group(1) : m.group(2);
     }
 }
