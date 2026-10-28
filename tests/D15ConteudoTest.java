@@ -13,7 +13,8 @@ public class D15ConteudoTest {
     private static final Path CONTENT = Path.of("portal-treinamento", "content");
     private static final Map<String, String> OFICIAL = Map.of(
         "guia-rapido.md", "docs/D15_GUIA_RAPIDO.md",
-        "faq.md", "docs/D15_FAQ.md");
+        "faq.md", "docs/D15_FAQ.md",
+        "roteiro-video-30-min.md", "docs/D15_ROTEIRO_VIDEO_30_MIN.md");
     private static int falhas = 0;
 
     public static void main(String[] args) throws Exception {
