@@ -52,7 +52,7 @@ public final class PortalAtalho {
                     catalogo, base.resolve("public"));
                 iniciarComoDaemon(novo);
                 servidor = novo;
-                url = "http://localhost:" + novo.porta();
+                url = "http://127.0.0.1:" + novo.porta();
             } catch (BindException e) {
                 return new Resultado(Status.PORTA_OCUPADA, "http://localhost:" + porta);
             } catch (Exception e) {
