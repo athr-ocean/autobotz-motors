@@ -90,7 +90,8 @@ public final class D13LedgerIntegrityTest {
 
         check(StatusContrato.RASCUNHO.podeIrPara(StatusContrato.EM_NEGOCIACAO), "TRANSICAO_RASCUNHO_NEGOCIACAO");
         check(!StatusContrato.CANCELADO.podeIrPara(StatusContrato.ASSINADO), "ESTADO_TERMINAL_NAO_REABRE");
-        String[] chaves = {"contrato.titulo", "contrato.evento.contrato_criado", "contrato.ledger.valido",
+        String[] chaves = {"contrato.titulo", "contrato.evento.contrato_criado",
+                "contrato.evento.status_api_simulada_recebido", "contrato.ledger.valido",
                 "contrato.pagamento.simulado", "contrato.erro.integridade_comprometida"};
         var pt = I18nUtils.getBundle(Locale.forLanguageTag("pt-BR"));
         var en = I18nUtils.getBundle(Locale.US);

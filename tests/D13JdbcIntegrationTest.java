@@ -1,4 +1,5 @@
 import autobotz.dao.FornecedorDAO;
+import autobotz.integracao.ApiBlockchainSimulada;
 import autobotz.model.ContratoFornecedor;
 import autobotz.model.Fornecedor;
 import autobotz.model.RegistroLedgerContrato;
@@ -87,7 +88,28 @@ public final class D13JdbcIntegrationTest {
             contratoPagar = service.alterarEstado(contratoPagar.getId(), StatusContrato.ASSINADO);
             contratoPagar = service.alterarEstado(contratoPagar.getId(), StatusContrato.EM_EXECUCAO);
             service.validarNotaFiscal(contratoPagar.getId());
-            check(service.processarPagamentosSimulados(hoje).size() == 1, "PAGAMENTO_SIMULADO_APOS_NF_E_VENCIMENTO");
+
+            try (ApiBlockchainSimulada.Servidor servidor = new ApiBlockchainSimulada.Servidor(
+                    "chave-local-d13-integracao-jdbc-2026", relogio)) {
+                ApiBlockchainSimulada.Cliente cliente = new ApiBlockchainSimulada.Cliente(
+                        servidor.endpoint(), "chave-local-d13-integracao-jdbc-2026");
+                ApiBlockchainSimulada.Resposta retorno = service.enviarParaApiBlockchainSimulada(
+                        contratoPagar.getId(), cliente);
+                check(retorno.status() == ApiBlockchainSimulada.Status.LIBERACAO_SIMULADA_ELEGIVEL,
+                        "API_RETORNA_STATUS_DO_CONTRATO_INTELIGENTE_SIMULADO");
+                List<RegistroLedgerContrato> eventosApi = service.listarEventos(contratoPagar.getId());
+                check(eventosApi.stream().anyMatch(e -> e.getTipo() == TipoEventoContrato.STATUS_API_SIMULADA_RECEBIDO
+                                && e.getPayload().contains("status=LIBERACAO_SIMULADA_ELEGIVEL")
+                                && e.getPayload().contains("protocolo=" + retorno.protocolo())),
+                        "STATUS_API_PERSISTIDO_NO_LEDGER");
+                check(service.consultar(contratoPagar.getId()).isPagamentoSimuladoLiberado(),
+                        "STATUS_DE_PAGAMENTO_SIMULADO_ATUALIZADO_APOS_RETORNO_ELEGIVEL");
+                check(service.verificarIntegridade(contratoPagar.getId()).isValido(),
+                        "INTEGRIDADE_VALIDADA_APOS_RETORNO_DA_API");
+            }
+
+            check(service.processarPagamentosSimulados(hoje).isEmpty(),
+                    "PROCESSADOR_NAO_DUPLICA_PAGAMENTO_LIBERADO_PELA_API");
             check(service.processarPagamentosSimulados(hoje).isEmpty(), "PAGAMENTO_SIMULADO_NAO_DUPLICA");
             check(service.verificarIntegridade(contratoPagar.getId()).isValido(), "CADEIA_APOS_EVENTOS_VALIDADA");
 

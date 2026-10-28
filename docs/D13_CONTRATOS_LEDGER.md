@@ -1,31 +1,46 @@
-# D13 — Contratos de fornecedores e ledger de integridade
+# D13 — Gestão de contratos e prova de conceito de ledger
 
-Implementação da prova de conceito do Desafio 13, usando o cadastro de fornecedores do D11.
+Este documento registra o escopo técnico do D13 e as limitações da implementação. O enunciado acadêmico pede um piloto de integração com blockchain simulada. O ERP implementa um ledger local encadeado por SHA-256 e uma API HTTP local de simulação; não há blockchain pública, consenso distribuído ou pagamento real.
 
-## Limite e dependências
+## Ciclo de vida
 
-- A branch compila contra `Fornecedor` e `FornecedorDAO.buscarPorId(Connection, int)` já presentes na `main`.
-- A migração `013_d13_contratos_ledger.sql` depende da tabela `fornecedores(id)` criada pelo D11. A auditoria de 26/10 não encontrou a migração D11 no banco de instalação; não aplique a migração D13 até Alexandre/Adryan entregarem e integrarem a estrutura D11.
-- A solução é um ledger local de registros com hashes SHA-256 encadeados. Não é uma rede blockchain, não tem consenso distribuído nem imutabilidade absoluta contra quem possa alterar simultaneamente o ledger e a âncora do contrato no banco.
-- “Pagamento liberado” é somente um estado de demonstração. Nenhum pagamento é realizado. Eventos guardam apenas IDs, estados, valor e datas; não guardam dados pessoais nem documentos.
+1. **Criação:** contrato em `RASCUNHO`, associado ao ID estável do fornecedor. O ledger recebe o evento `CONTRATO_CRIADO`.
+2. **Negociação:** `RASCUNHO → EM_NEGOCIACAO`; a mudança é registrada como novo evento.
+3. **Assinatura:** `EM_NEGOCIACAO → ASSINADO`; o evento preserva o retrato dos dados e o hash anterior.
+4. **Execução:** `ASSINADO → EM_EXECUCAO`; a nota fiscal pode ser validada e gera evento próprio.
+5. **Vencimento:** o ERP registra uma notificação quando faltam de zero a dez dias para o vencimento. O evento não se duplica.
+6. **Avaliação simulada:** o cliente HTTP local envia os campos autorizados à API de teste. A resposta do contrato inteligente simulado é gravada como `STATUS_API_SIMULADA_RECEBIDO` no ledger, vinculada ao hash da versão enviada.
+7. **Liberação simulada:** se a API retorna elegibilidade, o serviço repete localmente as condições (nota fiscal validada, vencimento atingido e contrato não terminal) e registra o estado `PAGAMENTO_SIMULADO_LIBERADO`. Nenhuma transferência financeira ocorre.
+8. **Finalização ou cancelamento:** a transição terminal impede novas mudanças de estado.
 
-## Funcionamento
+Transições válidas e regras de pagamento são definidas em `StatusContrato` e `ContratoService`.
 
-- `ContratoService` valida o fornecedor usando o DAO compartilhado, cria contrato em `RASCUNHO` e registra o primeiro evento na mesma transação.
-- As transições são `RASCUNHO → EM_NEGOCIACAO → ASSINADO → EM_EXECUCAO → FINALIZADO`; cancelamento é permitido antes de um estado terminal.
-- Cada mudança acrescenta um evento no `ledger_contratos`. O DAO expõe inserção e leitura, sem métodos de edição ou exclusão.
-- O hash do registro inclui contrato, sequência, tipo, data/hora, hash do payload e hash anterior. A linha do contrato guarda a sequência e o hash final esperados, permitindo detectar alteração, lacuna e remoção inclusive do último evento.
-- Cada evento inclui um retrato canônico de fornecedor, valor, vencimento, estado, validação da nota e estado de pagamento. A verificação compara o retrato final com a linha do contrato, e uma escrita posterior só é aceita quando o estado anterior coincide com o último evento.
-- O alerta é registrado uma única vez quando o vencimento está entre hoje e os próximos 10 dias.
-- A liberação simulada exige nota fiscal validada, vencimento atingido e contrato não cancelado/finalizado; processamento repetido não cria outra liberação.
-- O serviço recebe um `Autorizador`; a integração Swing deve conectar as ações às permissões de RBAC aprovadas por Arthur.
+## Dados e integridade
 
-## Banco
+`contratos_fornecedor` guarda o ID do fornecedor, valor, vencimento, estado, validação de nota, estado de pagamento simulado e âncora do ledger (sequência e hash final). `ledger_contratos` guarda eventos sequenciais, retrato do contrato, hash do conteúdo, hash anterior, hash do registro e data/hora.
 
-Aplicar em uma base isolada, depois da migração de fornecedores do D11 e antes das migrações posteriores que dependam do D13. A migração cria `contratos_fornecedor` e `ledger_contratos`; não altera `schema.sql`, que é consolidado por Arthur.
+O hash de cada evento encadeia seu conteúdo ao evento anterior. A âncora no contrato permite detectar alteração, lacuna ou remoção de eventos, inclusive do último. Na leitura, a aplicação também compara o retrato do evento mais recente aos campos atuais do contrato. O mecanismo detecta alterações incompatíveis com o histórico, mas não é imutável contra alguém que altere simultaneamente ledger e âncora no banco.
 
-## Validação local
+## API simulada e segurança dos dados
 
-`D13LedgerIntegrityTest` é independente de banco e cobre hashes, alteração/remoção, âncora, janela de alerta, transições e condições do pagamento simulado. `D13JdbcIntegrationTest` cobre persistência, alerta idempotente, transições, NF, pagamento simulado e detecção de alteração em uma base isolada.
+`ApiBlockchainSimulada` disponibiliza cliente HTTP e servidor de teste em `127.0.0.1`. O cliente recusa endpoint externo, exige uma chave em cabeçalho e envia somente: ID do contrato, ID do fornecedor, valor, vencimento, estado, indicadores de nota/pagamento, sequência e hash do ledger. Nome, CNPJ, conta bancária e documento contratual não são enviados.
 
-Para integração JDBC, configure `AUTOBOTZ_DB_URL` para uma base exclusiva chamada `autobotz_d13_test`, aplique primeiro a estrutura D11 e depois a migração 013. Não use banco de produção ou com dados pessoais.
+O servidor aceita apenas `POST` no caminho `/api/v1/contratos`, exige os campos de uma lista permitida, aplica limites ao corpo e devolve um protocolo SHA-256 local junto da decisão simulada. A chave serve como proteção didática do endpoint local; esta implementação HTTP não substitui TLS, gestão de segredos, autenticação corporativa ou uma API de produção.
+
+O status `LIBERACAO_SIMULADA_ELEGIVEL` é uma decisão de elegibilidade da simulação, não uma ordem bancária. O ERP grava o retorno no ledger e mantém o processamento de pagamento como estado explicitamente simulado.
+
+`ContratoService` exige a ação `INTEGRAR_API_SIMULADA` para esse fluxo. A interface que consumir o serviço deve mapear essa ação à permissão RBAC aprovada pela equipe de integração; este PR não liga a ação a uma tela Swing.
+
+## Banco e dependências
+
+A migration `013_d13_contratos_ledger.sql` referencia `fornecedores(id)`. A validação JDBC deve ocorrer em banco descartável, com a migration D11 `011_d11_compras.sql`, depois a migration D12 `012_d12_assinaturas.sql`, e então a 013, conforme o plano de integração da equipe. A branch de trabalho não cria nem substitui as migrations 011/012, que pertencem a outros integrantes.
+
+Em 28/10/2026, a migration 011 ainda não estava integrada à `main`, e a migration 012 não estava disponível na branch de trabalho. Por isso, o teste JDBC D13 não pode ser declarado executado até essas dependências e o banco descartável estarem prontos.
+
+## Testes
+
+- `D13LedgerIntegrityTest`: testes determinísticos de encadeamento, alteração/remoção, âncora, estados, janela de dez dias e condições de pagamento simulado.
+- `D13BlockchainApiTest`: troca HTTP local real com a API simulada; verifica credencial, allowlist, status, protocolo e recusa de destinos externos. Usa contratos fictícios em memória.
+- `D13JdbcIntegrationTest`: valida criação persistida, NF, aviso, transições, pagamento simulado, retorno da API gravado no ledger e detecção de alteração persistida. Só pode ser executado em `autobotz_d13_test` depois das migrations 011–013.
+
+Resultados de execução devem ser registrados somente depois de rodar os comandos no ambiente indicado. Teste em memória ou HTTP local não comprova persistência JDBC.

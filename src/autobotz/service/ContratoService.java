@@ -1,5 +1,6 @@
 package autobotz.service;
 
+import autobotz.integracao.ApiBlockchainSimulada;
 import autobotz.dao.ContratoDAO;
 import autobotz.dao.FornecedorDAO;
 import autobotz.dao.LedgerContratoDAO;
@@ -13,6 +14,7 @@ import autobotz.util.ConexaoBanco;
 import autobotz.util.LedgerContratoHash;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Clock;
@@ -28,7 +30,9 @@ public class ContratoService {
     public static final int JANELA_ALERTA_DIAS = 10;
     private static final BigDecimal VALOR_MAXIMO = new BigDecimal("9999999999.99");
 
-    public enum Acao { CONSULTAR, GERENCIAR, VALIDAR_NOTA_FISCAL, PROCESSAR_VENCIMENTOS }
+    public enum Acao {
+        CONSULTAR, GERENCIAR, VALIDAR_NOTA_FISCAL, PROCESSAR_VENCIMENTOS, INTEGRAR_API_SIMULADA
+    }
 
     @FunctionalInterface
     public interface Autorizador { boolean permite(Acao acao); }
@@ -167,18 +171,69 @@ public class ContratoService {
         exigir(Acao.CONSULTAR);
         return emTransacao(c -> {
             ContratoFornecedor contrato = buscarObrigatorio(c, contratoId, false);
-            List<RegistroLedgerContrato> eventos = ledgerDAO.listarPorContrato(c, contrato.getId());
-            ResultadoIntegridadeLedger resultado = LedgerContratoHash.verificar(eventos,
-                    contrato.getUltimaSequenciaLedger(), contrato.getUltimoHashLedger());
-            if (!resultado.isValido()) return resultado;
-            if (eventos.isEmpty()) {
-                return ResultadoIntegridadeLedger.invalido(1, "Contrato sem evento de criação");
-            }
-            if (!LedgerContratoHash.retratoCorrespondeAoContrato(contrato, eventos.get(eventos.size() - 1))) {
-                return ResultadoIntegridadeLedger.invalido(eventos.size(), "Dados atuais divergem do último evento");
-            }
-            return ResultadoIntegridadeLedger.valido();
+            return verificarIntegridade(c, contrato);
         });
+    }
+
+    /**
+     * Envia um retrato mínimo do contrato ao endpoint local de simulação e registra a resposta
+     * recebida no ledger. A chamada HTTP ocorre fora da transação JDBC; a versão enviada é
+     * conferida novamente antes de gravar o retorno.
+     */
+    public ApiBlockchainSimulada.Resposta enviarParaApiBlockchainSimulada(
+            long contratoId, ApiBlockchainSimulada.Cliente cliente)
+            throws SQLException, ContratoException, IOException, InterruptedException {
+        exigir(Acao.INTEGRAR_API_SIMULADA);
+        Objects.requireNonNull(cliente, "cliente");
+        ContratoFornecedor contratoEnviado = emTransacao(c -> {
+            ContratoFornecedor contrato = buscarObrigatorio(c, contratoId, false);
+            ResultadoIntegridadeLedger integridade = verificarIntegridade(c, contrato);
+            if (!integridade.isValido()) {
+                throw erro(ContratoException.Codigo.INTEGRIDADE_COMPROMETIDA,
+                        "Não é possível enviar um contrato com ledger inválido");
+            }
+            return contrato;
+        });
+
+        ApiBlockchainSimulada.Resposta resposta = cliente.enviarContrato(contratoEnviado);
+        if (resposta.contratoId() != contratoEnviado.getId()
+                || !resposta.hashLedger().equals(contratoEnviado.getUltimoHashLedger())
+                || !resposta.simulado() || resposta.status() == null) {
+            throw erro(ContratoException.Codigo.DADO_INVALIDO,
+                    "O retorno da API simulada não corresponde à versão enviada");
+        }
+
+        emTransacao(c -> {
+            ContratoFornecedor atual = buscarObrigatorio(c, contratoId, true);
+            if (!resposta.hashLedger().equals(atual.getUltimoHashLedger())) {
+                throw erro(ContratoException.Codigo.TRANSICAO_INVALIDA,
+                        "O contrato mudou enquanto aguardava a resposta da API simulada");
+            }
+            ResultadoIntegridadeLedger integridade = verificarIntegridade(c, atual);
+            if (!integridade.isValido()) {
+                throw erro(ContratoException.Codigo.INTEGRIDADE_COMPROMETIDA,
+                        "O ledger foi alterado durante a integração simulada");
+            }
+            acrescentarEvento(c, atual, atual, TipoEventoContrato.STATUS_API_SIMULADA_RECEBIDO,
+                    "status=" + resposta.status().name() + ";protocolo=" + resposta.protocolo()
+                            + ";simulado=true");
+            if (resposta.status() == ApiBlockchainSimulada.Status.LIBERACAO_SIMULADA_ELEGIVEL) {
+                ContratoFornecedor antesPagamento = contratoDAO.buscarPorId(c, contratoId, true);
+                LocalDate hoje = LocalDate.now(clock);
+                if (!podeLiberarPagamento(antesPagamento, hoje)
+                        || !contratoDAO.liberarPagamentoSimulado(c, contratoId, hoje)) {
+                    throw erro(ContratoException.Codigo.TRANSICAO_INVALIDA,
+                            "A API simulada informou elegibilidade, mas a regra local não permite a liberação");
+                }
+                ContratoFornecedor depoisPagamento = contratoDAO.buscarPorId(c, contratoId, false);
+                acrescentarEvento(c, antesPagamento, depoisPagamento,
+                        TipoEventoContrato.PAGAMENTO_SIMULADO_LIBERADO,
+                        "origem=API_SIMULADA;vencimento=" + depoisPagamento.getDataVencimento()
+                                + ";notaFiscalValidada=true;pagamento=SIMULADO");
+            }
+            return null;
+        });
+        return resposta;
     }
 
     public static boolean estaNaJanelaDeAlerta(LocalDate vencimento, LocalDate hoje) {
@@ -190,6 +245,21 @@ public class ContratoService {
         return contrato != null && hoje != null && contrato.isNotaFiscalValidada()
                 && !contrato.isPagamentoSimuladoLiberado() && !contrato.getDataVencimento().isAfter(hoje)
                 && !contrato.getEstado().isTerminal();
+    }
+
+    private ResultadoIntegridadeLedger verificarIntegridade(Connection c, ContratoFornecedor contrato)
+            throws SQLException {
+        List<RegistroLedgerContrato> eventos = ledgerDAO.listarPorContrato(c, contrato.getId());
+        ResultadoIntegridadeLedger resultado = LedgerContratoHash.verificar(eventos,
+                contrato.getUltimaSequenciaLedger(), contrato.getUltimoHashLedger());
+        if (!resultado.isValido()) return resultado;
+        if (eventos.isEmpty()) {
+            return ResultadoIntegridadeLedger.invalido(1, "Contrato sem evento de criação");
+        }
+        if (!LedgerContratoHash.retratoCorrespondeAoContrato(contrato, eventos.get(eventos.size() - 1))) {
+            return ResultadoIntegridadeLedger.invalido(eventos.size(), "Dados atuais divergem do último evento");
+        }
+        return ResultadoIntegridadeLedger.valido();
     }
 
     private void acrescentarEvento(Connection c, ContratoFornecedor antes, ContratoFornecedor atual,
