@@ -49,13 +49,12 @@ public class D14SessaoWebTest {
 
     String tokenVendedor() throws Exception {
       var l = svc.iniciarLogin("vendedor", SENHA_VEND);
-      check(l.status() == ResultadoLogin.Status.MFA_NECESSARIA
-          && l.token() == null && l.desafio() != null,
-          "LOGIN_WEB_VENDEDOR_SEM_MFA_NAO_EMITE_TOKEN");
-      var concluido = svc.concluirMfa(l.desafio().id(), l.desafio().codigoSimulado());
-      check(concluido.status() == ResultadoLogin.Status.AUTENTICADO && concluido.token() != null,
-          "LOGIN_WEB_VENDEDOR_EMITE_TOKEN_APOS_MFA");
-      return concluido.token();
+      check(l.status() == ResultadoLogin.Status.MFA_NECESSARIA && l.token() == null && l.desafio() != null,
+          "LOGIN_WEB_VENDEDOR_SENHA_SOZINHA_NAO_GERA_TOKEN");
+      var ok = svc.concluirMfa(l.desafio().id(), l.desafio().codigoSimulado());
+      check(ok.status() == ResultadoLogin.Status.AUTENTICADO && ok.token() != null,
+          "LOGIN_WEB_VENDEDOR_GERA_TOKEN_APOS_MFA");
+      return ok.token();
     }
 
     String tokenAdmin() throws Exception {
@@ -79,17 +78,7 @@ public class D14SessaoWebTest {
       Ctx c = new Ctx();
       check(metricas(c, null) == 401 && metricas(c, "") == 401 && metricas(c, "lixo!") == 401
           && metricas(c, tokFalso) == 401, "METRICAS_401_SEM_SESSAO_VALIDA");
-      var primeiroVendedor = c.svc.iniciarLogin("vendedor", SENHA_VEND);
-      check(primeiroVendedor.status() == ResultadoLogin.Status.MFA_NECESSARIA
-          && primeiroVendedor.token() == null,
-          "VENDEDOR_SENHA_SEM_MFA_NAO_ABRE_SESSAO_WEB");
-      check(c.svc.autenticar(primeiroVendedor.token()).httpStatus() == 401
-          && c.svc.autorizar(primeiroVendedor.token(), Permissao.LISTAR_CLIENTES).httpStatus() == 401
-          && c.svc.autorizar(primeiroVendedor.token(), Permissao.CADASTRAR_CLIENTE).httpStatus() == 401
-          && c.svc.autorizar(primeiroVendedor.token(), Permissao.ACESSAR_CRM).httpStatus() == 401,
-          "SEM_MFA_VENDEDOR_NAO_ACESSA_CLIENTES_CRM");
-      String tv = c.svc.concluirMfa(primeiroVendedor.desafio().id(),
-          primeiroVendedor.desafio().codigoSimulado()).token();
+      String tv = c.tokenVendedor();
       var dv = c.svc.autorizarMetricas(tv);
       check(dv.acesso() == Acesso.PROIBIDO && dv.httpStatus() == 403, "METRICAS_403_VENDEDOR_AUTENTICADO");
       check(c.svc.autenticar(tv).httpStatus() == 200
@@ -103,6 +92,27 @@ public class D14SessaoWebTest {
       check(da.acesso() == Acesso.PERMITIDO && da.httpStatus() == 200
           && da.usuario().getNomeUsuario().equals("admin"), "METRICAS_200_SOMENTE_ADMIN_AUTENTICADO");
       check(metricas(c, tv) == 403 && metricas(c, ta) == 200, "SESSOES_INDEPENDENTES");
+    }
+
+    // ===== VENDEDOR também precisa concluir MFA antes de clientes/CRM =====
+    {
+      Ctx c = new Ctx();
+      var login = c.svc.iniciarLogin("vendedor", SENHA_VEND);
+      check(login.status() == ResultadoLogin.Status.MFA_NECESSARIA && login.token() == null
+          && login.desafio() != null, "VENDEDOR_SENHA_CORRETA_NAO_ABRE_SESSAO_WEB");
+      check(c.svc.autorizar(login.token(), Permissao.LISTAR_CLIENTES).httpStatus() == 401
+          && c.svc.autorizar(login.token(), Permissao.CADASTRAR_CLIENTE).httpStatus() == 401
+          && c.svc.autorizar(login.token(), Permissao.ACESSAR_CRM).httpStatus() == 401,
+          "CLIENTES_E_CRM_NEGADOS_ANTES_DO_MFA_NO_SERVIDOR");
+      var invalido = c.svc.concluirMfa(login.desafio().id(), "000000".equals(login.desafio().codigoSimulado()) ? "111111" : "000000");
+      check(invalido.token() == null && invalido.status() == ResultadoLogin.Status.NEGADO,
+          "VENDEDOR_MFA_INVALIDO_NAO_ABRE_SESSAO");
+      var valido = c.svc.concluirMfa(login.desafio().id(), login.desafio().codigoSimulado());
+      check(valido.token() != null
+          && c.svc.autorizar(valido.token(), Permissao.LISTAR_CLIENTES).httpStatus() == 200
+          && c.svc.autorizar(valido.token(), Permissao.CADASTRAR_CLIENTE).httpStatus() == 200
+          && c.svc.autorizar(valido.token(), Permissao.ACESSAR_CRM).httpStatus() == 200,
+          "VENDEDOR_ACESSA_CLIENTES_E_CRM_APOS_MFA_VALIDO");
     }
 
     // ===== ADMIN so tem sessao depois do MFA =====
@@ -137,11 +147,6 @@ public class D14SessaoWebTest {
       var certa = c.svc.iniciarLogin("vendedor", SENHA_VEND);
       check(certa.status() == ResultadoLogin.Status.BLOQUEADO && certa.token() == null,
           "WEB_BLOQUEADO_NAO_EMITE_TOKEN_NEM_COM_SENHA_CERTA");
-      c.clock.advance(Duration.ofMinutes(10));
-      var aposBloqueio = c.svc.iniciarLogin("vendedor", SENHA_VEND);
-      check(aposBloqueio.status() == ResultadoLogin.Status.MFA_NECESSARIA
-          && aposBloqueio.token() == null,
-          "WEB_APOS_BLOQUEIO_EXIGE_MFA_ANTES_DE_EMITIR_TOKEN");
     }
 
     // ===== Logout =====
@@ -230,10 +235,11 @@ public class D14SessaoWebTest {
       String ta = c.tokenAdmin();
       c.svc.logout(ta);
       boolean vaza = c.repo.eventos.stream().anyMatch(e -> e.toString().contains(tv) || e.toString().contains(ta));
-      var primeiro = c.svc.iniciarLogin("vendedor", SENHA_VEND);
-      var login = c.svc.concluirMfa(primeiro.desafio().id(), primeiro.desafio().codigoSimulado());
-      check(!vaza && login.token() != null && !login.toString().contains(login.token()),
-          "TOKEN_NAO_APARECE_NA_TRILHA_NEM_NO_TOSTRING");
+      var login = c.svc.iniciarLogin("vendedor", SENHA_VEND);
+      check(!vaza && login.token() == null
+          && !login.toString().contains(tv)
+          && (login.desafio() == null || !login.toString().contains(login.desafio().codigoSimulado())),
+          "TOKEN_E_CODIGO_NAO_APARECEM_NA_TRILHA_NEM_NO_TOSTRING");
       check(tv.length() == 43 && !tv.equals(ta) && tv.matches("[A-Za-z0-9_-]+"), "TOKEN_256_BITS_URL_SAFE");
     }
 

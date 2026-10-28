@@ -4,7 +4,6 @@ import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
@@ -25,13 +24,8 @@ import autobotz.util.SenhaHash;
 public class AuthService {
     public static final int MAX_FALHAS = 5;
     public static final Duration JANELA = Duration.ofMinutes(10);
-    /**
-     * Todos os perfis atuais exigem segundo fator: ADMIN tem acesso amplo, e
-     * VENDEDOR pode consultar/cadastrar clientes e acessar o CRM. Novos perfis
-     * devem entrar nesta política antes de receber permissões para dados críticos.
-     */
-    public static final Set<PerfilUsuario> PERFIS_COM_MFA =
-            Collections.unmodifiableSet(EnumSet.allOf(PerfilUsuario.class));
+    /** Perfis que exigem segundo fator antes de abrir sessão: todos os perfis atuais. */
+    public static final Set<PerfilUsuario> PERFIS_COM_MFA = EnumSet.allOf(PerfilUsuario.class);
 
     private static final int MAX_NOME = 50;
 
@@ -51,7 +45,7 @@ public class AuthService {
         this.repo = repo;
         this.clock = clock;
         this.mfa = new MfaService(repo, clock);
-        this.perfisComMfa = Set.copyOf(perfisComMfa);
+        this.perfisComMfa = perfisComMfa;
     }
 
     /** Gera hash no formato atual (PBKDF2 com sal). */
@@ -75,7 +69,7 @@ public class AuthService {
         return verificarSenha(nomeUsuario, senha).usuario();
     }
 
-    /** Passo 1 do login. Em ADMIN devolve MFA_NECESSARIA e nenhum usuário liberado. */
+    /** Passo 1 do login. Perfis protegidos devolvem MFA_NECESSARIA e nenhum usuário liberado. */
     public ResultadoLogin iniciarLogin(String nomeUsuario, String senha) throws SQLException {
         Primeiro passo = verificarSenha(nomeUsuario, senha);
         if (passo.segundosBloqueio() > 0) {
