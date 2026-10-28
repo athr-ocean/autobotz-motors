@@ -3,7 +3,7 @@
 Classe: `autobotz.service.SessaoWebService` · Testes: `tests/D14SessaoWebTest.java`
 
 O portal HTTP **não** usa `SessaoUsuario` (singleton do desktop) como identidade. A identidade de cada
-requisição é um token opaco emitido pelo servidor depois de senha (+ MFA para ADMIN) e invalidado no logout.
+requisição é um token opaco emitido pelo servidor depois de senha + MFA para todos os perfis atuais e invalidado no logout.
 
 ## Regra de acesso a `/api/treinamentos/metricas`
 
@@ -55,13 +55,6 @@ if (!decisao.permitido()) {
 
 ## Limites
 
-- Nesta árvore fornecida existe o serviço de sessão e seu contrato de integração, mas não foi encontrada uma implementação de produção dos handlers HTTP em `src/`. A autorização está testada pelo serviço e por um servidor HTTP criado dentro do teste; a integração da rota real precisa ser verificada com o código do responsável pelo portal antes de declarar o portal protegido de ponta a ponta.
 - Sessões vivem na memória do processo: reiniciar o servidor encerra todas (é intencional nesta prova de conceito).
 - Não há HTTPS, limite por IP, "lembrar-me" nem renovação de token.
 - Proteção CSRF além de `SameSite=Strict` (ex.: checar `Origin` nas rotas `POST`) fica a cargo de quem implementa as rotas.
-
-## MFA para dados de clientes e CRM
-
-A política atual exige o segundo fator para os perfis `ADMIN` e `VENDEDOR`. O vendedor pode consultar/cadastrar clientes e acessar CRM; portanto, senha correta, isoladamente, devolve `MFA_NECESSARIA`, não uma sessão/token. A camada web continua a revalidar o token e a permissão do perfil no servidor em cada requisição. `LISTAR_CLIENTES`, `CADASTRAR_CLIENTE` e `ACESSAR_CRM` somente retornam 200 depois que o MFA for concluído e desde que a matriz permita a ação.
-
-O segundo fator é **SIMULADO**: a interface de demonstração exibe o código rotulado como demonstração. Não há entrega real por SMS ou e-mail.

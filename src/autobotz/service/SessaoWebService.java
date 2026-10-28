@@ -27,8 +27,8 @@ import java.util.regex.Pattern;
  * Sessão de servidor para o portal HTTP (D14).
  *
  * <p>A identidade de uma requisição HTTP vem exclusivamente de um token opaco emitido
- * aqui, depois de {@link AuthService} validar senha e (para perfis em
- * {@link AuthService#PERFIS_COM_MFA}) o código MFA. Esta classe NUNCA lê nem escreve
+ * aqui, depois de {@link AuthService} validar senha e o código MFA para os perfis definidos em
+ * {@link AuthService#PERFIS_COM_MFA}. Esta classe NUNCA lê nem escreve
  * {@code SessaoUsuario}, que é a sessão única do desktop.
  *
  * <p>Regras: token aleatório de 256 bits; só o hash SHA-256 do token fica em memória;
@@ -133,7 +133,7 @@ public class SessaoWebService {
 
     // ---- login / MFA / logout -------------------------------------------------
 
-    /** Passo 1. Perfis com MFA recebem MFA_NECESSARIA e nenhum token. */
+    /** Passo 1. Todo perfil protegido por MFA recebe MFA_NECESSARIA e nenhum token. */
     public LoginWeb iniciarLogin(String nomeUsuario, String senha) throws SQLException {
         ResultadoLogin r = auth.iniciarLogin(nomeUsuario, senha);
         switch (r.getStatus()) {
@@ -191,7 +191,7 @@ public class SessaoWebService {
         return new Decisao(Acesso.PERMITIDO, u);
     }
 
-    /** Atalho para o endpoint de métricas do D15 (somente ADMIN autenticado no servidor). */
+    /** Atalho para o endpoint de métricas do D15 (somente ADMIN com sessão válida e permissão no servidor). */
     public Decisao autorizarMetricas(String token) throws SQLException {
         return autorizar(token, Permissao.CONSULTAR_METRICAS_TREINAMENTO);
     }

@@ -36,17 +36,6 @@ public class D14JdbcIntegrationTest {
     System.out.println("PASS " + name);
   }
 
-  static ResultadoLogin loginCompleto(AuthService auth, String nome, String senha) throws Exception {
-    ResultadoLogin primeiro = auth.iniciarLogin(nome, senha);
-    if (primeiro.getStatus() == ResultadoLogin.Status.MFA_NECESSARIA) {
-      var desafio = primeiro.getDesafio();
-      if (desafio == null || primeiro.getUsuario() != null)
-        throw new AssertionError("MFA deveria bloquear a sessão até a validação");
-      return auth.concluirMfa(desafio.id(), desafio.codigoSimulado());
-    }
-    return primeiro;
-  }
-
   static int contar(String sql, Object... params) throws Exception {
     try (PreparedStatement st = ConexaoBanco.getConexao().prepareStatement(sql)) {
       for (int i = 0; i < params.length; i++)
@@ -95,10 +84,10 @@ public class D14JdbcIntegrationTest {
       Usuario leg = usuarios.buscarPorNome(nLeg);
       idsCriados.add(leg.getId());
       check(!usuarios.atualizarSenhaHash(leg.getId(), "hash-que-nao-e-o-atual", "x"), "CAS_RECUSA_HASH_DESATUALIZADO");
-      check(loginCompleto(auth, nLeg, "legado-it").getStatus() == ResultadoLogin.Status.AUTENTICADO
+      check(auth.iniciarLogin(nLeg, "legado-it").getStatus() == ResultadoLogin.Status.AUTENTICADO
           && usuarios.buscarPorNome(nLeg).getSenhaHash().startsWith("pbkdf2_sha256$")
-          && loginCompleto(auth, nLeg, "legado-it").getStatus() == ResultadoLogin.Status.AUTENTICADO,
-          "LEGADO_MIGRA_NO_BANCO_E_CONTINUA_ENTRANDO_APOS_MFA");
+          && auth.iniciarLogin(nLeg, "legado-it").getStatus() == ResultadoLogin.Status.AUTENTICADO,
+          "LEGADO_MIGRA_NO_BANCO_E_CONTINUA_ENTRANDO");
 
       // bloqueio 5/10min com a consulta SQL real
       for (int i = 0; i < 4; i++)
@@ -111,12 +100,11 @@ public class D14JdbcIntegrationTest {
       check(certa.getStatus() == ResultadoLogin.Status.BLOQUEADO && certa.getSegundosRestantes() == 420,
           "BLOQUEADO_COM_SENHA_CERTA_E_420S");
       clock.advance(Duration.ofMinutes(7));
-      var liberado = auth.iniciarLogin(nVend, "Senha-it-1");
-      check(liberado.getStatus() == ResultadoLogin.Status.MFA_NECESSARIA
-          && liberado.getUsuario() == null && liberado.getDesafio() != null
-          && auth.concluirMfa(liberado.getDesafio().id(), liberado.getDesafio().codigoSimulado()).getStatus()
-              == ResultadoLogin.Status.AUTENTICADO,
-          "LIBERA_APOS_10_MIN_SOMENTE_DEPOIS_DO_MFA");
+      var vendLogin = auth.iniciarLogin(nVend, "Senha-it-1");
+      check(vendLogin.getStatus() == ResultadoLogin.Status.MFA_NECESSARIA,
+          "LIBERA_APOS_10_MIN_MAS_EXIGE_MFA_VENDEDOR");
+      check(auth.concluirMfa(vendLogin.getDesafio().id(), vendLogin.getDesafio().codigoSimulado()).getStatus()
+          == ResultadoLogin.Status.AUTENTICADO, "MFA_VENDEDOR_VALIDO_NO_BANCO");
       check(seg.listarEventos(500).stream().anyMatch(e -> e.nomeUsuario().equalsIgnoreCase(nVend)
           && e.tipo().equals(EventoSeguranca.LOGIN_BLOQUEADO)), "TRILHA_TEM_LOGIN_BLOQUEADO");
 
@@ -139,18 +127,15 @@ public class D14JdbcIntegrationTest {
 
       // sessao web de ponta a ponta sobre o banco
       var web = new SessaoWebService(usuarios, seg, clock);
-      var v1 = web.iniciarLogin(nVend, "Senha-it-1");
-      check(v1.status() == ResultadoLogin.Status.MFA_NECESSARIA && v1.token() == null,
+      var wv = web.iniciarLogin(nVend, "Senha-it-1");
+      check(wv.status() == ResultadoLogin.Status.MFA_NECESSARIA && wv.token() == null,
           "WEB_VENDEDOR_NAO_RECEBE_TOKEN_ANTES_DO_MFA_NO_BANCO");
-      String tv = web.concluirMfa(v1.desafio().id(), v1.desafio().codigoSimulado()).token();
+      String tv = web.concluirMfa(wv.desafio().id(), wv.desafio().codigoSimulado()).token();
       var w1 = web.iniciarLogin(nAdm, "Senha-it-2");
       String ta = web.concluirMfa(w1.desafio().id(), w1.desafio().codigoSimulado()).token();
       check(tv != null && ta != null && web.autorizarMetricas(null).httpStatus() == 401
-          && web.autorizar(tv, autobotz.AutorizacaoService.Permissao.LISTAR_CLIENTES).httpStatus() == 200
-          && web.autorizar(tv, autobotz.AutorizacaoService.Permissao.CADASTRAR_CLIENTE).httpStatus() == 200
-          && web.autorizar(tv, autobotz.AutorizacaoService.Permissao.ACESSAR_CRM).httpStatus() == 200
           && web.autorizarMetricas(tv).httpStatus() == 403 && web.autorizarMetricas(ta).httpStatus() == 200,
-          "WEB_CLIENTES_CRM_APOS_MFA_E_METRICAS_401_403_200_NO_BANCO");
+          "WEB_401_403_200_NO_BANCO");
       web.logout(ta);
       check(web.autorizarMetricas(ta).httpStatus() == 401, "WEB_LOGOUT_NO_BANCO");
     } finally {

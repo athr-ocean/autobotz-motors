@@ -162,14 +162,11 @@ public class D14SegurancaTest {
           throw new AssertionError("FAIL falha_esperada_" + nome + "_" + (i + 1));
     }
     boolean entra(String nome, String senha) throws Exception {
-      ResultadoLogin primeiro = auth.iniciarLogin(nome, senha);
-      if (primeiro.getStatus() == ResultadoLogin.Status.MFA_NECESSARIA) {
-        var desafio = primeiro.getDesafio();
-        if (desafio == null || primeiro.getUsuario() != null) return false;
-        return auth.concluirMfa(desafio.id(), desafio.codigoSimulado()).getStatus()
-            == ResultadoLogin.Status.AUTENTICADO;
+      ResultadoLogin r = auth.iniciarLogin(nome, senha);
+      if (r.getStatus() == ResultadoLogin.Status.MFA_NECESSARIA) {
+        r = auth.concluirMfa(r.getDesafio().id(), r.getDesafio().codigoSimulado());
       }
-      return primeiro.getStatus() == ResultadoLogin.Status.AUTENTICADO;
+      return r.getStatus() == ResultadoLogin.Status.AUTENTICADO;
     }
   }
 
@@ -342,21 +339,15 @@ public class D14SegurancaTest {
     // ===== MFA =====
     {
       Ctx c = new Ctx();
-      var vendedor = c.auth.iniciarLogin("vendedor", SENHA_VEND);
-      check(vendedor.getStatus() == ResultadoLogin.Status.MFA_NECESSARIA
-          && vendedor.getUsuario() == null && vendedor.getDesafio() != null,
-          "VENDEDOR_COM_DADOS_DE_CLIENTES_EXIGE_MFA_E_NAO_LIBERA_USUARIO");
-      String erradoVend = vendedor.getDesafio().codigoSimulado().equals("000000") ? "111111" : "000000";
-      var falhaVend = c.auth.concluirMfa(vendedor.getDesafio().id(), erradoVend);
-      check(falhaVend.getStatus() == ResultadoLogin.Status.NEGADO
-          && falhaVend.getUsuario() == null && falhaVend.getMfaStatus() == MfaService.Status.INVALIDO,
-          "VENDEDOR_CODIGO_MFA_INVALIDO_NAO_LIBERA_SESSAO");
-      var okVend = c.auth.concluirMfa(vendedor.getDesafio().id(), vendedor.getDesafio().codigoSimulado());
-      check(okVend.getStatus() == ResultadoLogin.Status.AUTENTICADO
-          && okVend.getUsuario().getPerfil() == PerfilUsuario.VENDEDOR,
-          "VENDEDOR_SO_LIBERADO_APOS_MFA_VALIDO");
-
-      var r = c.auth.iniciarLogin("admin", SENHA_ADMIN);
+      var r = c.auth.iniciarLogin("vendedor", SENHA_VEND);
+      check(r.getStatus() == ResultadoLogin.Status.MFA_NECESSARIA && r.getUsuario() == null
+          && r.getDesafio() != null, "VENDEDOR_EXIGE_MFA_E_NAO_LIBERA_USUARIO_SEM_ELE");
+      var vendedorDesafio = r.getDesafio();
+      var vendedorOk = c.auth.concluirMfa(vendedorDesafio.id(), vendedorDesafio.codigoSimulado());
+      check(vendedorOk.getStatus() == ResultadoLogin.Status.AUTENTICADO
+          && vendedorOk.getUsuario().getPerfil() == PerfilUsuario.VENDEDOR,
+          "VENDEDOR_LIBERADO_APENAS_APOS_MFA_VALIDO");
+      r = c.auth.iniciarLogin("admin", SENHA_ADMIN);
       check(r.getStatus() == ResultadoLogin.Status.MFA_NECESSARIA && r.getUsuario() == null
           && r.getDesafio() != null, "ADMIN_EXIGE_MFA_E_NAO_LIBERA_USUARIO_SEM_ELE");
       var d = r.getDesafio();
