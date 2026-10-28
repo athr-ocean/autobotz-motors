@@ -22,6 +22,11 @@ public final class ConexaoBancoDataSourceTest {
         if (!URL_TESTE.equals(System.getenv("AUTOBOTZ_DB_URL"))) {
             throw new IllegalStateException("O teste exige URL JDBC fictícia; nenhum banco será acessado.");
         }
+        String senha = System.getenv("AUTOBOTZ_DB_PASSWORD");
+        if (senha == null || senha.isBlank()) {
+            throw new IllegalStateException(
+                    "Defina AUTOBOTZ_DB_PASSWORD com um valor fictício não vazio; nenhuma conexão real será aberta.");
+        }
 
         FakeDriver driver = new FakeDriver();
         DriverManager.registerDriver(driver);

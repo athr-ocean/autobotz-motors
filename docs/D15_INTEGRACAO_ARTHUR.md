@@ -22,7 +22,15 @@ O serviço de Higor recebe um `DataSource`; seus DAOs abrem e fecham uma `Connec
 - Mauro pode construir o serviço no ponto de composição do backend e delegar os métodos homônimos de `PortalBackend` a `TreinamentoService`. Não é necessário alterar `ConexaoBanco` global nem criar uma segunda configuração.
 - A migration `015_d15_treinamento.sql` continua separada e deve ser aplicada apenas a um banco isolado `_test` para testes de integração. Esta fábrica não executa migrações.
 
-O teste de ciclo de vida incluído usa um driver JDBC fictício e recusa executar sem `AUTOBOTZ_DB_URL=jdbc:autobotz-test:isolated`; não conecta ao MariaDB.
+O teste de ciclo de vida incluído usa um driver JDBC fictício e não conecta ao MariaDB. A configuração de produção também exige uma senha não vazia, então execute com valores inteiramente fictícios:
+
+```bash
+AUTOBOTZ_DB_URL=jdbc:autobotz-test:isolated \
+AUTOBOTZ_DB_PASSWORD=senha-ficticia \
+java -cp "build/classes:src:lib/*" ConexaoBancoDataSourceTest
+```
+
+O teste recusa uma URL diferente e uma senha ausente ou vazia antes de abrir conexões.
 
 ## Autorização de `GET /api/treinamentos/metricas`
 
