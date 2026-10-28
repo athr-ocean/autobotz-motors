@@ -66,7 +66,10 @@ public final class D15AuthHttpJdbcTest {
 
     private static String loginMfa(String base, String nome, String senha) throws Exception {
         var login = post(base + "/api/login", "{\"usuario\":\"" + nome + "\",\"senha\":\"" + senha + "\"}", null);
-        check(login.statusCode() == 202, nome + " senha válida exige MFA");
+        if (login.statusCode() != 202) {
+            throw new AssertionError(nome + " esperava MFA (HTTP 202), recebeu HTTP " + login.statusCode());
+        }
+        check(true, nome + " senha válida exige MFA");
         String desafio = extrair(DESAFIO, login.body());
         String codigo = extrair(CODIGO, login.body());
         var mfa = post(base + "/api/login/mfa", "{\"desafioId\":" + desafio + ",\"codigo\":\"" + codigo + "\"}", null);
