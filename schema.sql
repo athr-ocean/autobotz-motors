@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS autobotz_db;
-USE autobotz_db;
+-- CREATE DATABASE IF NOT EXISTS autobotz_db;
 
+-- USE autobotz_db
 CREATE TABLE IF NOT EXISTS veiculos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     placa VARCHAR(10) NOT NULL UNIQUE,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS clientes (
 CREATE TABLE IF NOT EXISTS usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nome_usuario VARCHAR(50) NOT NULL UNIQUE,
-    senha_hash CHAR(64) NOT NULL,
+    senha_hash VARCHAR(255) NOT NULL,
     perfil VARCHAR(20) NOT NULL
 );
 
@@ -117,6 +117,88 @@ CREATE TABLE IF NOT EXISTS mfa_desafios (
     CONSTRAINT fk_mfa_usuario FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
     INDEX idx_mfa_usuario (id_usuario, consumido)
 );
+
+
+-- ==================================================
+-- TABELAS DO MÓDULO DE COMPRAS (D11)
+-- ==================================================
+
+CREATE TABLE IF NOT EXISTS fornecedores (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cnpj VARCHAR(20) NOT NULL UNIQUE,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100),
+    telefone VARCHAR(20),
+    ativo BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS solicitacoes_compra (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NULL,
+    solicitante VARCHAR(100) NULL,
+    aprovador VARCHAR(100) NULL,
+    id_aprovador INT NULL,
+    aprovador_id INT NULL,
+    descricao VARCHAR(255) NULL,
+    motivo VARCHAR(255) NULL,
+    motivo_rejeicao VARCHAR(255) NULL,
+    valor DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
+    saldo_atual DECIMAL(12,2) NULL DEFAULT 0.00,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDENTE',
+    id_fornecedor INT NULL,
+    fornecedor_id INT NULL,
+    id_orcamento INT NULL,
+    orcamento_id INT NULL,
+    decidido_em DATETIME NULL
+);
+
+CREATE TABLE IF NOT EXISTS orcamentos_compra (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_solicitacao INT NULL,
+    solicitacao_id INT NULL,
+    id_fornecedor INT NULL,
+    fornecedor_id INT NULL,
+    nome VARCHAR(100) NULL,
+    solicitante VARCHAR(100) NULL,
+    aprovador VARCHAR(100) NULL,
+    id_aprovador INT NULL,
+    aprovador_id INT NULL,
+    descricao VARCHAR(255) NULL,
+    motivo VARCHAR(255) NULL,
+    motivo_rejeicao VARCHAR(255) NULL,
+    valor DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
+    saldo_atual DECIMAL(12,2) NULL DEFAULT 0.00,
+    saldo DECIMAL(12,2) NULL DEFAULT 0.00,
+    prazo_dias INT NULL,
+    observacoes VARCHAR(255) NULL,
+    aprovado BOOLEAN DEFAULT FALSE,
+    status VARCHAR(50) NULL,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS pedidos_compra (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_orcamento INT NULL,
+    orcamento_id INT NULL,
+    id_solicitacao INT NULL,
+    solicitacao_id INT NULL,
+    id_fornecedor INT NULL,
+    fornecedor_id INT NULL,
+    nome VARCHAR(100) NULL,
+    solicitante VARCHAR(100) NULL,
+    aprovador VARCHAR(100) NULL,
+    id_aprovador INT NULL,
+    aprovador_id INT NULL,
+    valor DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    valor_total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
+    saldo_atual DECIMAL(12,2) NULL DEFAULT 0.00,
+    status VARCHAR(30) NOT NULL DEFAULT 'GERADO',
+    data_emissao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 
 
 -- Compatibilidade com bancos criados antes desta correção.
