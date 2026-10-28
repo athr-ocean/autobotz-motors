@@ -65,8 +65,8 @@ jobs:
           AUTOBOTZ_DB_PASSWORD: test-only
         run: |
           cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
-          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d11_test java -cp "$cp" D11ComprasTest
-          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d12_test java -cp "$cp" AssinaturaDAOJdbcTest
+          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d11_test?sslMode=disable java -cp "$cp" D11ComprasTest
+          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d12_test?sslMode=disable java -cp "$cp" AssinaturaDAOJdbcTest
 
       - name: Run D13 and D14 JDBC suites
         env:
@@ -74,15 +74,15 @@ jobs:
           AUTOBOTZ_DB_PASSWORD: test-only
         run: |
           cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
-          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d13_test java -cp "$cp" D13JdbcIntegrationTest
-          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d14_test java -cp "$cp" D14JdbcIntegrationTest
+          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d13_test?sslMode=disable java -cp "$cp" D13JdbcIntegrationTest
+          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d14_test?sslMode=disable java -cp "$cp" D14JdbcIntegrationTest
 
       - name: Run D15 persistence and authenticated HTTP flow
         env:
-          AUTOBOTZ_TEST_DB_URL: jdbc:mariadb://127.0.0.1:3306/autobotz_d15_test
+          AUTOBOTZ_TEST_DB_URL: jdbc:mariadb://127.0.0.1:3306/autobotz_d15_test?sslMode=disable
           AUTOBOTZ_TEST_DB_USER: root
           AUTOBOTZ_TEST_DB_PASSWORD: test-only
-          AUTOBOTZ_DB_URL: jdbc:mariadb://127.0.0.1:3306/autobotz_d15_test
+          AUTOBOTZ_DB_URL: jdbc:mariadb://127.0.0.1:3306/autobotz_d15_test?sslMode=disable
           AUTOBOTZ_DB_USER: root
           AUTOBOTZ_DB_PASSWORD: test-only
         run: |
