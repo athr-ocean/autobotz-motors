@@ -5,7 +5,7 @@ Responsável: Mauro. Conteúdo e métricas: Higor. Contrato das rotas: `docs/D15
 ## O que é
 
 Uma central de treinamento web, separada do Swing e do console. Um servidor leve do JDK
-(`com.sun.net.httpserver`, sem framework) serve a página e três rotas de API. O portal roda
+(`com.sun.net.httpserver`, sem framework) serve a página e rotas de materiais, eventos, métricas e sessão web. O portal roda
 somente em `localhost`.
 
 ## Requisitos
@@ -71,8 +71,9 @@ Os testes de rota não usam banco: criam uma pasta temporária com catálogo de 
   depende de o PR #22 estar integrado na base usada para compilar e de a configuração JDBC funcionar.
   Validar a persistência real com `D15PersistenciaTest` em banco isolado `_test` antes de afirmar
   que o fluxo integrado foi aprovado.
-- `GET /api/treinamentos/metricas` responde `401` até haver uma sessão ADMIN validada no servidor
-  (definição de Arthur e João). Não há painel de métricas; não contornar a autenticação.
+- As rotas `POST /api/login`, `POST /api/login/mfa` e `POST /api/logout` usam o serviço de sessão D14. O MFA é simulado e o código de demonstração é explicitamente rotulado.
+- `GET /api/treinamentos/metricas` valida a sessão no servidor: 401 sem sessão, 403 sem permissão e 200 apenas com autorização. Se o serviço D14 não estiver disponível na base integrada, o acesso falha fechado com 401.
+- A rota de métricas requer `inicio` e `fim` em formato ISO local; a resposta identifica a origem dos dados. Não há painel de métricas completo.
 - A interface renderiza Markdown básico com elementos DOM seguros: títulos, parágrafos, listas, negrito e código em linha. Links, tabelas, itálico e extensões Markdown ainda não são suportados.
 - O portal não está publicado na internet: funciona apenas em `localhost`.
 - Os textos em `content/` são cópias dos arquivos de `docs/` do Higor; o teste de conteúdo deve
@@ -85,8 +86,9 @@ Os testes de rota não usam banco: criam uma pasta temporária com catálogo de 
   só lê dentro de `portal-treinamento/content/`.
 - Slugs inválidos são recusados; materiais não publicados respondem `404`.
 - Eventos exigem `Content-Type: application/json` e só aceitam material publicado.
-- Nenhum dado pessoal, IP ou identificador de sessão é coletado.
-- Métricas permanecem negadas até existir autorização administrativa server-side.
+- O cookie de sessão usa `HttpOnly`, `SameSite=Strict` e `Path=/`; em HTTPS deve incluir `Secure`. Nunca aceitar perfil enviado pelo navegador.
+- Nenhum dado pessoal ou IP é anexado aos eventos de treinamento. O token de sessão não é registado em logs.
+- A autorização de métricas é feita no servidor através do serviço de sessão D14; a integração ponta a ponta continua pendente de teste.
 
 ## Executar as suítes D15
 
