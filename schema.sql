@@ -117,6 +117,9 @@ CREATE TABLE IF NOT EXISTS mfa_desafios (
     CONSTRAINT fk_mfa_usuario FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
     INDEX idx_mfa_usuario (id_usuario, consumido)
 );
+-- ==================================================
+-- TABELAS DO MÓDULO DE COMPRAS (D11)
+-- ==================================================
 
 CREATE TABLE IF NOT EXISTS fornecedores (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -131,13 +134,14 @@ CREATE TABLE IF NOT EXISTS solicitacoes_compra (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NULL,
     descricao VARCHAR(255) NULL,
-    valor DECIMAL(10,2) NOT NULL,
+    valor DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
+    saldo_atual DECIMAL(12,2) NULL DEFAULT 0.00,
     status VARCHAR(30) NOT NULL DEFAULT 'PENDENTE',
     id_fornecedor INT NULL,
     decidido_em DATETIME NULL,
     CONSTRAINT fk_solic_fornecedor FOREIGN KEY (id_fornecedor) REFERENCES fornecedores(id)
 );
-
 
 CREATE TABLE IF NOT EXISTS orcamentos_compra (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -145,7 +149,10 @@ CREATE TABLE IF NOT EXISTS orcamentos_compra (
     id_fornecedor INT NULL,
     nome VARCHAR(100) NULL,
     descricao VARCHAR(255) NULL,
-    valor DECIMAL(10,2) NOT NULL,
+    valor DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
+    saldo_atual DECIMAL(12,2) NULL DEFAULT 0.00,
+    saldo DECIMAL(12,2) NULL DEFAULT 0.00,
     prazo_dias INT NULL,
     observacoes VARCHAR(255) NULL,
     aprovado BOOLEAN DEFAULT FALSE,
@@ -159,7 +166,9 @@ CREATE TABLE IF NOT EXISTS pedidos_compra (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_orcamento INT NULL,
     nome VARCHAR(100) NULL,
-    valor_total DECIMAL(10,2) NOT NULL,
+    valor_total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
+    saldo_atual DECIMAL(12,2) NULL DEFAULT 0.00,
     status VARCHAR(30) NOT NULL DEFAULT 'GERADO',
     data_emissao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_ped_orcamento FOREIGN KEY (id_orcamento) REFERENCES orcamentos_compra(id)
