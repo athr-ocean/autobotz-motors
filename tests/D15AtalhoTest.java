@@ -34,7 +34,7 @@ public class D15AtalhoTest {
             Resultado r = PortalAtalho.abrir(0, tmp.resolve("inexistente"), null);
             check(r.status() == Status.CONTEUDO_INDISPONIVEL && r.url() == null, "sem conteudo -> CONTEUDO_INDISPONIVEL");
 
-            try (ServerSocket ocupada = new ServerSocket(0, 0, InetAddress.getLoopbackAddress())) {
+            try (ServerSocket ocupada = new ServerSocket(0, 0, InetAddress.getByName("127.0.0.1"))) {
                 r = PortalAtalho.abrir(ocupada.getLocalPort(), base, new MockPortalBackend());
                 check(r.status() == Status.PORTA_OCUPADA, "porta em uso -> PORTA_OCUPADA");
             }
