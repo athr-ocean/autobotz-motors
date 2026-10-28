@@ -30,7 +30,7 @@ Mantenha a mesma chave em todas as execuções que precisam ler os mesmos dados.
 ## Preparação de banco existente
 
 1. Pare a aplicação e faça backup consistente do banco e da chave atual.
-2. Aplique a versão atualizada de schema.sql ao banco pretendido. Ela amplia as colunas pessoais cifradas para VARCHAR(1024), dimensão necessária para acomodar a expansão Base64 em UTF-8, e acrescenta cpf_hash e seu índice; as alterações DDL do MariaDB podem fazer commit implícito.
+2. Em ambientes existentes, aplique `db/migrations/016_d14_client_pii.sql` ao banco escolhido, depois das migrations 014 (autenticação) e 015 (eventos D15). Ela amplia as colunas pessoais cifradas para VARCHAR(1024), dimensão necessária para acomodar a expansão Base64 em UTF-8, e acrescenta `cpf_hash` e seu índice. A migration 014 de João permanece sem alterações. Em instalação nova, `schema.sql` também contém essa estrutura; não execute os dois caminhos sem necessidade.
 3. Configure AUTOBOTZ_PII_KEY_FILE na sessão Bash.
 4. Compile a versão nova do projeto.
 5. Execute primeiro o modo de diagnóstico:
