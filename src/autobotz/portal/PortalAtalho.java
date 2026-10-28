@@ -54,7 +54,7 @@ public final class PortalAtalho {
                 servidor = novo;
                 url = "http://127.0.0.1:" + novo.porta();
             } catch (BindException e) {
-                return new Resultado(Status.PORTA_OCUPADA, "http://localhost:" + porta);
+                return new Resultado(Status.PORTA_OCUPADA, "http://127.0.0.1:" + porta);
             } catch (Exception e) {
                 System.err.println("Portal: falha ao iniciar: " + e);
                 return new Resultado(Status.ERRO, null);
