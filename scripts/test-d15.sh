@@ -32,7 +32,10 @@ if [[ -n "${AUTOBOTZ_TEST_DB_URL:-}" && -n "${AUTOBOTZ_TEST_DB_USER:-}" && -n "$
     exit 1
   fi
   printf '%s\n' '== D15PersistenciaTest (banco isolado _test) =='
-  java -cp "$cp" D15PersistenciaTest
+  AUTOBOTZ_DB_URL="$AUTOBOTZ_TEST_DB_URL" \
+    AUTOBOTZ_DB_USER="$AUTOBOTZ_TEST_DB_USER" \
+    AUTOBOTZ_DB_PASSWORD="$AUTOBOTZ_TEST_DB_PASSWORD" \
+    java -cp "$cp" D15PersistenciaTest
 else
   printf '%s\n' 'PULADO: D15PersistenciaTest requer AUTOBOTZ_TEST_DB_URL, AUTOBOTZ_TEST_DB_USER e AUTOBOTZ_TEST_DB_PASSWORD.'
 fi
