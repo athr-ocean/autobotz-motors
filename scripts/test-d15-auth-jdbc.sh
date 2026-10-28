@@ -23,8 +23,8 @@ fi
 
 out="$(mktemp -d)"
 trap 'rm -rf "$out"' EXIT
-mapfile -d '' portal_sources < <(find src/autobotz/portal -name '*.java' -print0)
-javac -encoding UTF-8 -cp "$jdbc_jar" -sourcepath src -d "$out" "${portal_sources[@]}" tests/D15AuthHttpJdbcTest.java
+mapfile -d '' java_sources < <(find src -name '*.java' -print0)
+javac -encoding UTF-8 -cp "$jdbc_jar" -d "$out" "${java_sources[@]}" tests/D15AuthHttpJdbcTest.java
 AUTOBOTZ_DB_URL="$AUTOBOTZ_TEST_DB_URL" \
   AUTOBOTZ_DB_USER="$AUTOBOTZ_TEST_DB_USER" \
   AUTOBOTZ_DB_PASSWORD="$AUTOBOTZ_TEST_DB_PASSWORD" \
