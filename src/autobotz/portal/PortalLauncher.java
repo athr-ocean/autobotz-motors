@@ -1,5 +1,8 @@
 package autobotz.portal;
 
+import autobotz.service.TreinamentoService;
+import autobotz.util.ConexaoBanco;
+
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -7,17 +10,20 @@ import java.nio.file.Path;
 public class PortalLauncher {
     public static void main(String[] args) throws Exception {
         int porta = Integer.parseInt(System.getenv().getOrDefault("AUTOBOTZ_PORTAL_PORT", "8085"));
-        Path base = Path.of("portal-treinamento");
+        Path base = Path.of(System.getenv().getOrDefault("AUTOBOTZ_PORTAL_DIR", "portal-treinamento"));
         CatalogoMateriais catalogo;
         try {
             catalogo = new CatalogoMateriais(base.resolve("content"));
         } catch (IOException e) {
-            System.err.println("Nao foi possivel carregar portal-treinamento/content/catalogo.json: " + e.getMessage());
-            System.err.println("Execute a partir da raiz do repositorio.");
+            System.err.println("Nao foi possivel carregar " + base.resolve("content/catalogo.json") + ": " + e.getMessage());
+            System.err.println("Execute a partir da raiz do repositorio ou defina AUTOBOTZ_PORTAL_DIR.");
             return;
         }
-        new PortalServer(porta, new MockPortalBackend(), catalogo, base.resolve("public")).iniciar();
+
+        var backend = new TreinamentoPortalBackend(
+            new TreinamentoService(ConexaoBanco.getDataSource()));
+        new PortalServer(porta, backend, catalogo, base.resolve("public")).iniciar();
         System.out.println("Portal de treinamento: http://localhost:" + porta
-            + "  (eventos so em memoria; Ctrl+C para parar)");
+            + "  (eventos persistidos no banco; Ctrl+C para parar)");
     }
 }
