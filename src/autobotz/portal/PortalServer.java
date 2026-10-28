@@ -12,7 +12,6 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,7 +31,6 @@ public class PortalServer {
     private final MetricasAuthorizer autorizadorMetricas;
     private Object sessoesWeb;
 
-    /** Contrato para testes: a implementação real sempre resolve a sessão no servidor. */
     @FunctionalInterface
     public interface MetricasAuthorizer {
         int autorizar(HttpExchange exchange) throws Exception;
@@ -83,23 +81,21 @@ public class PortalServer {
     }
 
     /**
-     * Resolve a sessão exclusivamente no serviço D14. Reflexão mantém este PR compilável
-     * enquanto a branch-base ainda não contém SessaoWebService; ausência da classe nega acesso.
+     * Usa a sessão D14, validada no servidor. A reflexão mantém este PR compilável
+     * enquanto a branch-base ainda não contém SessaoWebService; nesse caso nega acesso.
      */
     private synchronized int autorizarComSessaoWeb(HttpExchange ex) throws Exception {
         final Class<?> tipo;
         try {
             tipo = Class.forName("autobotz.service.SessaoWebService");
         } catch (ClassNotFoundException e) {
-            return 401; // fail closed até D14 estar disponível na base integrada
+            return 401; // falha fechada até D14 estar disponível na base integrada
         }
-
         String authorization = ex.getRequestHeaders().getFirst("Authorization");
         String cookie = ex.getRequestHeaders().getFirst("Cookie");
         Method extrair = tipo.getMethod("extrairToken", String.class, String.class);
         String token = (String) extrair.invoke(null, authorization, cookie);
         if (sessoesWeb == null) sessoesWeb = tipo.getConstructor().newInstance();
-
         try {
             Object decisao = tipo.getMethod("autorizarMetricas", String.class).invoke(sessoesWeb, token);
             return (int) decisao.getClass().getMethod("httpStatus").invoke(decisao);
@@ -118,7 +114,6 @@ public class PortalServer {
                     seguro == 403 ? "Acesso negado." : "Autenticação obrigatória.");
             return;
         }
-
         Map<String, String> q = parametros(ex.getRequestURI().getRawQuery());
         String inicioTexto = q.get("inicio");
         String fimTexto = q.get("fim");
@@ -135,14 +130,14 @@ public class PortalServer {
 
         List<MetricaTreinamento> linhas = backend.consultarMetricas(inicio, fim);
         String itens = linhas.stream()
-            .map(x -> "{\\"tipoEvento\\":" + str(x.getTipoEvento())
-                + ",\\"materialSlug\\":" + str(x.getMaterialSlug())
-                + ",\\"total\\":" + x.getTotal() + "}")
+            .map(x -> "{\"tipoEvento\":" + str(x.getTipoEvento())
+                + ",\"materialSlug\":" + str(x.getMaterialSlug())
+                + ",\"total\":" + x.getTotal() + "}")
             .collect(Collectors.joining(",", "[", "]"));
-        String corpo = "{\\"inicio\\":" + str(inicio.toString())
-            + ",\\"fim\\":" + str(fim.toString())
-            + ",\\"metricas\\":" + itens
-            + ",\\"origem\\":" + str(backend.origemMetricas()) + "}";
+        String corpo = "{\"inicio\":" + str(inicio.toString())
+            + ",\"fim\":" + str(fim.toString())
+            + ",\"metricas\":" + itens
+            + ",\"origem\":" + str(backend.origemMetricas()) + "}";
         enviar(ex, 200, JSON, corpo);
     }
 
@@ -160,10 +155,10 @@ public class PortalServer {
 
     private void listar(HttpExchange ex) throws IOException {
         String itens = catalogo.publicados().stream()
-            .map(x -> "{\\"slug\\":" + str(x.slug()) + ",\\"titulo\\":" + str(x.titulo())
-                + ",\\"tipo\\":" + str(x.tipo()) + ",\\"status\\":" + str(x.status()) + "}")
+            .map(x -> "{\"slug\":" + str(x.slug()) + ",\"titulo\":" + str(x.titulo())
+                + ",\"tipo\":" + str(x.tipo()) + ",\"status\":" + str(x.status()) + "}")
             .collect(Collectors.joining(",", "[", "]"));
-        enviar(ex, 200, JSON, "{\\"materiais\\":" + itens + "}");
+        enviar(ex, 200, JSON, "{\"materiais\":" + itens + "}");
     }
 
     private void material(HttpExchange ex, String slug) throws IOException {
@@ -174,9 +169,9 @@ public class PortalServer {
             return;
         }
         var x = achado.get();
-        enviar(ex, 200, JSON, "{\\"slug\\":" + str(x.slug()) + ",\\"titulo\\":" + str(x.titulo())
-            + ",\\"tipo\\":" + str(x.tipo()) + ",\\"status\\":" + str(x.status())
-            + ",\\"formato\\":" + str(x.formato()) + ",\\"conteudo\\":" + str(catalogo.ler(x)) + "}");
+        enviar(ex, 200, JSON, "{\"slug\":" + str(x.slug()) + ",\"titulo\":" + str(x.titulo())
+            + ",\"tipo\":" + str(x.tipo()) + ",\"status\":" + str(x.status())
+            + ",\"formato\":" + str(x.formato()) + ",\"conteudo\":" + str(catalogo.ler(x)) + "}");
     }
 
     private void evento(HttpExchange ex) throws Exception {
@@ -202,7 +197,7 @@ public class PortalServer {
             }
             default -> throw new IllegalArgumentException("tipoEvento");
         };
-        enviar(ex, 201, JSON, "{\\"id\\":" + id + "}");
+        enviar(ex, 201, JSON, "{\"id\":" + id + "}");
     }
 
     /** VIDEO_VIEW so vale para material do tipo VIDEO; MATERIAL_VIEW vale para os demais. */
@@ -235,7 +230,7 @@ public class PortalServer {
     }
 
     private void erro(HttpExchange ex, int status, String codigo, String msg) throws IOException {
-        enviar(ex, status, JSON, "{\\"erro\\":{\\"codigo\\":" + str(codigo) + ",\\"mensagem\\":" + str(msg) + "}}");
+        enviar(ex, status, JSON, "{\"erro\":{\"codigo\":" + str(codigo) + ",\"mensagem\":" + str(msg) + "}}");
     }
 
     private void enviar(HttpExchange ex, int status, String tipo, String corpo) throws IOException {
@@ -253,15 +248,15 @@ public class PortalServer {
 
     static String str(String s) {
         if (s == null) return "null";
-        StringBuilder b = new StringBuilder("\\\"");
+        StringBuilder b = new StringBuilder("\"");
         for (char c : s.toCharArray()) {
             switch (c) {
-                case '"' -> b.append("\\\\\"");
-                case '\\\\' -> b.append("\\\\\\\\");
-                case '\\n' -> b.append("\\\\n");
-                case '\\r' -> b.append("\\\\r");
-                case '\\t' -> b.append("\\\\t");
-                default -> { if (c < 0x20) b.append(String.format("\\\\u%04x", (int) c)); else b.append(c); }
+                case '"' -> b.append("\\\"");
+                case '\\' -> b.append("\\\\");
+                case '\n' -> b.append("\\n");
+                case '\r' -> b.append("\\r");
+                case '\t' -> b.append("\\t");
+                default -> { if (c < 0x20) b.append(String.format("\\u%04x", (int) c)); else b.append(c); }
             }
         }
         return b.append('"').toString();
@@ -269,7 +264,7 @@ public class PortalServer {
 
     /** Le um campo de texto simples de um JSON plano (corpo de /eventos). */
     static String campo(String json, String nome) {
-        Matcher m = Pattern.compile("\\\"" + Pattern.quote(nome) + "\\\"\\\\s*:\\s*(null|\\\"([^\\\"\\\\\\\\]*)\\\")").matcher(json);
+        Matcher m = Pattern.compile("\"" + Pattern.quote(nome) + "\"\\s*:\\s*(null|\"([^\"\\\\]*)\")").matcher(json);
         return m.find() ? m.group(2) : null;
     }
 }
