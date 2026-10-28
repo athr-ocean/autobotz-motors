@@ -1,18 +1,27 @@
 package autobotz.portal;
 
+import autobotz.model.MetricaTreinamento;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/** Servidor HTTP leve (JDK) do portal. Escuta somente em localhost. Rotas conforme docs/D15_CONTRATO_API.md. */
+/** Servidor HTTP leve (JDK) do portal. Escuta somente em localhost. */
 public class PortalServer {
     private static final String JSON = "application/json; charset=utf-8";
     private static final String BASE = "/api/treinamentos/";
@@ -20,11 +29,27 @@ public class PortalServer {
     private final PortalBackend backend;
     private final CatalogoMateriais catalogo;
     private final Path raiz;
+    private final MetricasAuthorizer autorizadorMetricas;
+    private Object sessoesWeb;
 
-    public PortalServer(int porta, PortalBackend backend, CatalogoMateriais catalogo, Path raizPublica) throws IOException {
+    /** Contrato para testes: a implementação real sempre resolve a sessão no servidor. */
+    @FunctionalInterface
+    public interface MetricasAuthorizer {
+        int autorizar(HttpExchange exchange) throws Exception;
+    }
+
+    public PortalServer(int porta, PortalBackend backend, CatalogoMateriais catalogo, Path raizPublica)
+            throws IOException {
+        this(porta, backend, catalogo, raizPublica, null);
+    }
+
+    /** Sobrecarga para testar 401/403/200 sem forjar identidade no pedido HTTP. */
+    public PortalServer(int porta, PortalBackend backend, CatalogoMateriais catalogo, Path raizPublica,
+            MetricasAuthorizer autorizadorMetricas) throws IOException {
         this.backend = backend;
         this.catalogo = catalogo;
         this.raiz = raizPublica.toAbsolutePath().normalize();
+        this.autorizadorMetricas = autorizadorMetricas == null ? this::autorizarComSessaoWeb : autorizadorMetricas;
         this.server = HttpServer.create(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), porta), 0);
         server.createContext("/api/", this::api);
         server.createContext("/", this::estatico);
@@ -45,8 +70,7 @@ public class PortalServer {
             } else if (m.equals("POST") && p.equals(BASE + "eventos")) {
                 evento(ex);
             } else if (m.equals("GET") && p.equals(BASE + "metricas")) {
-                // Sem sessao administrativa definida (Arthur e Joao), as metricas ficam sempre negadas.
-                erro(ex, 401, "NAO_AUTENTICADO", "Autenticação administrativa obrigatória.");
+                metricas(ex);
             } else {
                 erro(ex, 404, "NAO_ENCONTRADO", "Rota não encontrada.");
             }
@@ -58,12 +82,88 @@ public class PortalServer {
         }
     }
 
+    /**
+     * Resolve a sessão exclusivamente no serviço D14. Reflexão mantém este PR compilável
+     * enquanto a branch-base ainda não contém SessaoWebService; ausência da classe nega acesso.
+     */
+    private synchronized int autorizarComSessaoWeb(HttpExchange ex) throws Exception {
+        final Class<?> tipo;
+        try {
+            tipo = Class.forName("autobotz.service.SessaoWebService");
+        } catch (ClassNotFoundException e) {
+            return 401; // fail closed até D14 estar disponível na base integrada
+        }
+
+        String authorization = ex.getRequestHeaders().getFirst("Authorization");
+        String cookie = ex.getRequestHeaders().getFirst("Cookie");
+        Method extrair = tipo.getMethod("extrairToken", String.class, String.class);
+        String token = (String) extrair.invoke(null, authorization, cookie);
+        if (sessoesWeb == null) sessoesWeb = tipo.getConstructor().newInstance();
+
+        try {
+            Object decisao = tipo.getMethod("autorizarMetricas", String.class).invoke(sessoesWeb, token);
+            return (int) decisao.getClass().getMethod("httpStatus").invoke(decisao);
+        } catch (InvocationTargetException e) {
+            Throwable causa = e.getCause();
+            if (causa instanceof Exception exCause) throw exCause;
+            throw e;
+        }
+    }
+
+    private void metricas(HttpExchange ex) throws Exception {
+        int status = autorizadorMetricas.autorizar(ex);
+        if (status != 200) {
+            int seguro = status == 403 ? 403 : 401;
+            erro(ex, seguro, seguro == 403 ? "ACESSO_PROIBIDO" : "NAO_AUTENTICADO",
+                    seguro == 403 ? "Acesso negado." : "Autenticação obrigatória.");
+            return;
+        }
+
+        Map<String, String> q = parametros(ex.getRequestURI().getRawQuery());
+        String inicioTexto = q.get("inicio");
+        String fimTexto = q.get("fim");
+        if (inicioTexto == null || fimTexto == null) throw new IllegalArgumentException("periodo");
+        LocalDateTime inicio;
+        LocalDateTime fim;
+        try {
+            inicio = LocalDateTime.parse(inicioTexto);
+            fim = LocalDateTime.parse(fimTexto);
+        } catch (RuntimeException e) {
+            throw new IllegalArgumentException("periodo");
+        }
+        if (!fim.isAfter(inicio)) throw new IllegalArgumentException("periodo");
+
+        List<MetricaTreinamento> linhas = backend.consultarMetricas(inicio, fim);
+        String itens = linhas.stream()
+            .map(x -> "{\\"tipoEvento\\":" + str(x.getTipoEvento())
+                + ",\\"materialSlug\\":" + str(x.getMaterialSlug())
+                + ",\\"total\\":" + x.getTotal() + "}")
+            .collect(Collectors.joining(",", "[", "]"));
+        String corpo = "{\\"inicio\\":" + str(inicio.toString())
+            + ",\\"fim\\":" + str(fim.toString())
+            + ",\\"metricas\\":" + itens
+            + ",\\"origem\\":" + str(backend.origemMetricas()) + "}";
+        enviar(ex, 200, JSON, corpo);
+    }
+
+    private static Map<String, String> parametros(String query) {
+        Map<String, String> r = new LinkedHashMap<>();
+        if (query == null || query.isBlank()) return r;
+        for (String parte : query.split("&")) {
+            String[] kv = parte.split("=", 2);
+            String k = URLDecoder.decode(kv[0], StandardCharsets.UTF_8);
+            String v = kv.length == 2 ? URLDecoder.decode(kv[1], StandardCharsets.UTF_8) : "";
+            if (r.putIfAbsent(k, v) != null) throw new IllegalArgumentException("parametro repetido");
+        }
+        return r;
+    }
+
     private void listar(HttpExchange ex) throws IOException {
         String itens = catalogo.publicados().stream()
-            .map(x -> "{\"slug\":" + str(x.slug()) + ",\"titulo\":" + str(x.titulo())
-                + ",\"tipo\":" + str(x.tipo()) + ",\"status\":" + str(x.status()) + "}")
+            .map(x -> "{\\"slug\\":" + str(x.slug()) + ",\\"titulo\\":" + str(x.titulo())
+                + ",\\"tipo\\":" + str(x.tipo()) + ",\\"status\\":" + str(x.status()) + "}")
             .collect(Collectors.joining(",", "[", "]"));
-        enviar(ex, 200, JSON, "{\"materiais\":" + itens + "}");
+        enviar(ex, 200, JSON, "{\\"materiais\\":" + itens + "}");
     }
 
     private void material(HttpExchange ex, String slug) throws IOException {
@@ -74,9 +174,9 @@ public class PortalServer {
             return;
         }
         var x = achado.get();
-        enviar(ex, 200, JSON, "{\"slug\":" + str(x.slug()) + ",\"titulo\":" + str(x.titulo())
-            + ",\"tipo\":" + str(x.tipo()) + ",\"status\":" + str(x.status())
-            + ",\"formato\":" + str(x.formato()) + ",\"conteudo\":" + str(catalogo.ler(x)) + "}");
+        enviar(ex, 200, JSON, "{\\"slug\\":" + str(x.slug()) + ",\\"titulo\\":" + str(x.titulo())
+            + ",\\"tipo\\":" + str(x.tipo()) + ",\\"status\\":" + str(x.status())
+            + ",\\"formato\\":" + str(x.formato()) + ",\\"conteudo\\":" + str(catalogo.ler(x)) + "}");
     }
 
     private void evento(HttpExchange ex) throws Exception {
@@ -102,10 +202,10 @@ public class PortalServer {
             }
             default -> throw new IllegalArgumentException("tipoEvento");
         };
-        enviar(ex, 201, JSON, "{\"id\":" + id + "}");
+        enviar(ex, 201, JSON, "{\\"id\\":" + id + "}");
     }
 
-    /** VIDEO_VIEW so vale para material do tipo VIDEO; MATERIAL_VIEW vale para os demais (ex.: ROTEIRO). */
+    /** VIDEO_VIEW so vale para material do tipo VIDEO; MATERIAL_VIEW vale para os demais. */
     private void exigirPublicado(String slug, boolean video) {
         var m = catalogo.publicado(slug).orElseThrow(() -> new IllegalArgumentException("materialSlug"));
         if (m.tipo().equals("VIDEO") != video) throw new IllegalArgumentException("tipo do material");
@@ -135,7 +235,7 @@ public class PortalServer {
     }
 
     private void erro(HttpExchange ex, int status, String codigo, String msg) throws IOException {
-        enviar(ex, status, JSON, "{\"erro\":{\"codigo\":" + str(codigo) + ",\"mensagem\":" + str(msg) + "}}");
+        enviar(ex, status, JSON, "{\\"erro\\":{\\"codigo\\":" + str(codigo) + ",\\"mensagem\\":" + str(msg) + "}}");
     }
 
     private void enviar(HttpExchange ex, int status, String tipo, String corpo) throws IOException {
@@ -153,23 +253,23 @@ public class PortalServer {
 
     static String str(String s) {
         if (s == null) return "null";
-        StringBuilder b = new StringBuilder("\"");
+        StringBuilder b = new StringBuilder("\\\"");
         for (char c : s.toCharArray()) {
             switch (c) {
-                case '"' -> b.append("\\\"");
-                case '\\' -> b.append("\\\\");
-                case '\n' -> b.append("\\n");
-                case '\r' -> b.append("\\r");
-                case '\t' -> b.append("\\t");
-                default -> { if (c < 0x20) b.append(String.format("\\u%04x", (int) c)); else b.append(c); }
+                case '"' -> b.append("\\\\\"");
+                case '\\\\' -> b.append("\\\\\\\\");
+                case '\\n' -> b.append("\\\\n");
+                case '\\r' -> b.append("\\\\r");
+                case '\\t' -> b.append("\\\\t");
+                default -> { if (c < 0x20) b.append(String.format("\\\\u%04x", (int) c)); else b.append(c); }
             }
         }
         return b.append('"').toString();
     }
 
-    /** Le um campo de texto simples de um JSON plano (corpo de /eventos). Ausente ou null devolve null. */
+    /** Le um campo de texto simples de um JSON plano (corpo de /eventos). */
     static String campo(String json, String nome) {
-        Matcher m = Pattern.compile("\"" + Pattern.quote(nome) + "\"\\s*:\\s*(null|\"([^\"\\\\]*)\")").matcher(json);
+        Matcher m = Pattern.compile("\\\"" + Pattern.quote(nome) + "\\\"\\\\s*:\\s*(null|\\\"([^\\\"\\\\\\\\]*)\\\")").matcher(json);
         return m.find() ? m.group(2) : null;
     }
 }
