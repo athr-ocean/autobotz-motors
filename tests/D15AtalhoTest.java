@@ -40,7 +40,7 @@ public class D15AtalhoTest {
             }
 
             r = PortalAtalho.abrir(0, base, new MockPortalBackend());
-            check(r.status() == Status.NAVEGADOR_INDISPONIVEL && r.url() != null && r.url().startsWith("http://localhost:"),
+            check(r.status() == Status.NAVEGADOR_INDISPONIVEL && r.url() != null && r.url().startsWith("http://127.0.0.1:"),
                 "servidor sobe e devolve a url (sem navegador no teste)");
             check(codigo(r.url()) == 200, "a pagina responde na url devolvida");
 
