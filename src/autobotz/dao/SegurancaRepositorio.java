@@ -15,10 +15,11 @@ public interface SegurancaRepositorio {
     void registrarEvento(EventoSeguranca evento) throws SQLException;
 
     /**
-     * Falhas de LOGIN do usuário após {@code janelaInicio} e após o último
-     * LOGIN bem-sucedido (um acerto zera a contagem). Não conta bloqueios.
+     * Horários (mais antigo primeiro) das falhas de LOGIN do usuário após
+     * {@code janelaInicio} e após o último LOGIN bem-sucedido (um acerto zera
+     * a contagem). Não inclui eventos LOGIN_BLOQUEADO.
      */
-    int contarFalhasLogin(String nomeUsuario, Instant janelaInicio) throws SQLException;
+    List<Instant> listarFalhasLogin(String nomeUsuario, Instant janelaInicio) throws SQLException;
 
     /** Mais recentes primeiro. */
     List<EventoSeguranca> listarEventos(int limite) throws SQLException;

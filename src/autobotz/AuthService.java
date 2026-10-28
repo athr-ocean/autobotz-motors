@@ -5,6 +5,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -65,12 +66,16 @@ public class AuthService {
      * NÃO aplica MFA: telas devem usar {@link #iniciarLogin} e {@link #concluirMfa}.
      */
     public Usuario autenticar(String nomeUsuario, String senha) throws SQLException {
-        return verificarSenha(nomeUsuario, senha);
+        return verificarSenha(nomeUsuario, senha).usuario();
     }
 
     /** Passo 1 do login. Em ADMIN devolve MFA_NECESSARIA e nenhum usuário liberado. */
     public ResultadoLogin iniciarLogin(String nomeUsuario, String senha) throws SQLException {
-        Usuario usuario = verificarSenha(nomeUsuario, senha);
+        Primeiro passo = verificarSenha(nomeUsuario, senha);
+        if (passo.segundosBloqueio() > 0) {
+            return ResultadoLogin.bloqueado(passo.segundosBloqueio());
+        }
+        Usuario usuario = passo.usuario();
         if (usuario == null) {
             return ResultadoLogin.negado();
         }
@@ -99,35 +104,59 @@ public class AuthService {
         return mfa;
     }
 
-    private Usuario verificarSenha(String nomeInformado, String senha) throws SQLException {
+    /** Resultado interno do passo 1: usuário liberado, ou segundos de bloqueio (>0). */
+    private record Primeiro(Usuario usuario, long segundosBloqueio) {
+        static Primeiro falha() { return new Primeiro(null, 0); }
+    }
+
+    private Primeiro verificarSenha(String nomeInformado, String senha) throws SQLException {
         String busca = nomeInformado == null ? "" : nomeInformado.trim();
         String nome = chave(busca);
         if (busca.isEmpty() || senha == null) {
             SenhaHash.verificarFalso(senha);
-            return null;
+            return Primeiro.falha();
         }
         Instant agora = clock.instant();
 
-        if (repo.contarFalhasLogin(nome, agora.minus(JANELA)) >= MAX_FALHAS) {
+        List<Instant> falhas = repo.listarFalhasLogin(nome, agora.minus(JANELA));
+        if (falhas.size() >= MAX_FALHAS) {
             SenhaHash.verificarFalso(senha);
             evento(agora, nome, EventoSeguranca.LOGIN_BLOQUEADO, false, "LIMITE_DE_FALHAS");
-            return null;
+            return new Primeiro(null, segundosRestantes(falhas, agora));
         }
 
         Usuario usuario = usuarioDAO.buscarPorNome(busca);
         if (usuario == null) {
             SenhaHash.verificarFalso(senha);
             evento(agora, nome, EventoSeguranca.LOGIN, false, "USUARIO_INEXISTENTE");
-            return null;
+            return aposFalha(nome, agora);
         }
         if (!SenhaHash.verificar(senha, usuario.getSenhaHash())) {
             evento(agora, nome, EventoSeguranca.LOGIN, false, "SENHA_INVALIDA");
-            return null;
+            return aposFalha(nome, agora);
         }
 
         evento(agora, nome, EventoSeguranca.LOGIN, true, "SENHA_OK");
         migrarHashSeNecessario(usuario, senha, agora, nome);
-        return usuario;
+        return new Primeiro(usuario, 0);
+    }
+
+    /** Se esta falha foi a que atingiu o limite, já informa o bloqueio e o tempo. */
+    private Primeiro aposFalha(String nome, Instant agora) throws SQLException {
+        List<Instant> falhas = repo.listarFalhasLogin(nome, agora.minus(JANELA));
+        return falhas.size() >= MAX_FALHAS
+                ? new Primeiro(null, segundosRestantes(falhas, agora))
+                : Primeiro.falha();
+    }
+
+    /**
+     * O bloqueio cai quando restarem MAX_FALHAS-1 falhas na janela, isto é,
+     * quando a falha de índice (n - MAX_FALHAS) sair dela (10 min após ocorrer).
+     */
+    private static long segundosRestantes(List<Instant> falhasOrdenadas, Instant agora) {
+        Instant libera = falhasOrdenadas.get(falhasOrdenadas.size() - MAX_FALHAS).plus(JANELA);
+        long millis = Duration.between(agora, libera).toMillis();
+        return Math.max(1, (millis + 999) / 1000);
     }
 
     private void migrarHashSeNecessario(Usuario usuario, String senha, Instant agora, String nome) {

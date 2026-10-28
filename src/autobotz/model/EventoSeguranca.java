@@ -17,6 +17,8 @@ public record EventoSeguranca(
     public static final String MFA_EMITIDO = "MFA_EMITIDO";
     public static final String MFA_VERIFICACAO = "MFA_VERIFICACAO";
     public static final String HASH_MIGRADO = "HASH_MIGRADO";
+    public static final String LOGOUT = "LOGOUT";
+    public static final String ACESSO_NEGADO = "ACESSO_NEGADO";
 
     public static EventoSeguranca novo(Instant dataHora, String nomeUsuario, String tipo,
             boolean sucesso, String causa, String origem) {

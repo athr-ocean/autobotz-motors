@@ -116,6 +116,11 @@ final class LoginFrame extends JFrame {
     try {
       AuthService auth = new AuthService(new UsuarioDAO());
       ResultadoLogin r = auth.iniciarLogin(user.getText().trim(), new String(password.getPassword()));
+      if (r.getStatus() == ResultadoLogin.Status.BLOQUEADO) {
+        feedback.setText(String.format(SwingSupport.text("gui.login_blocked"),
+            ResultadoLogin.formatarTempo(r.getSegundosRestantes())));
+        return;
+      }
       if (r.getStatus() == ResultadoLogin.Status.MFA_NECESSARIA) {
         r = mfaStep(auth, r.getDesafio());
         if (r == null)
