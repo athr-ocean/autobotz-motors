@@ -6,7 +6,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class ConexaoBanco {
-	private static final String URL = "jdbc:mysql://localhost:3306/autobotz_db?useTimezone=true&serverTimezone=UTC";
+	private static final String URL = System.getenv().getOrDefault(
+			"AUTOBOTZ_DB_URL",
+			"jdbc:mysql://localhost:3306/autobotz_db?useTimezone=true&serverTimezone=UTC");
 	private static final String USUARIO = System.getenv().getOrDefault("AUTOBOTZ_DB_USER", "root");
 	private static final String SENHA = System.getenv().getOrDefault("AUTOBOTZ_DB_PASSWORD", "");
 
@@ -20,7 +22,7 @@ public class ConexaoBanco {
 			try {
 				conexao = DriverManager.getConnection(URL, USUARIO, SENHA);
 			} catch (SQLException e) {
-				throw new SQLException("Nao foi possivel conectar ao banco autobotz_db. "
+				throw new SQLException("Nao foi possivel conectar ao banco configurado. "
 						+ "Verifique se o MySQL esta rodando e se USUARIO/SENHA em ConexaoBanco.java estao corretos.", e);
 			}
 		}
