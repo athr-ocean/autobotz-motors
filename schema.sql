@@ -13,10 +13,11 @@ CREATE TABLE IF NOT EXISTS veiculos (
 
 CREATE TABLE IF NOT EXISTS clientes (
     id_cliente INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    cpf VARCHAR(14) NOT NULL,
-    telefone VARCHAR(20),
-    email VARCHAR(150),
+    nome VARCHAR(1024) NOT NULL,
+    cpf VARCHAR(1024) NOT NULL,
+    cpf_hash CHAR(64) NULL,
+    telefone VARCHAR(1024),
+    email VARCHAR(1024),
     ativo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
@@ -275,3 +276,16 @@ CREATE TABLE IF NOT EXISTS assinatura_eventos (
         FOREIGN KEY (id_assinatura)
         REFERENCES assinaturas_clientes(id_assinatura)
 );
+
+-- D14: espaço para campos cifrados e índice de busca HMAC do CPF.
+-- A migração dos dados existentes é explícita; este DDL não cifra registros.
+ALTER TABLE clientes
+    MODIFY COLUMN nome VARCHAR(1024) NOT NULL,
+    MODIFY COLUMN cpf VARCHAR(1024) NOT NULL,
+    MODIFY COLUMN telefone VARCHAR(1024) NULL,
+    MODIFY COLUMN email VARCHAR(1024) NULL;
+
+ALTER TABLE clientes
+    ADD COLUMN IF NOT EXISTS cpf_hash CHAR(64) NULL AFTER cpf;
+
+CREATE INDEX IF NOT EXISTS idx_clientes_cpf_hash ON clientes(cpf_hash);

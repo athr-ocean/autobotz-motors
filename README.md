@@ -54,3 +54,12 @@ As permissões são definidas por `AutorizacaoService`. A validação e as limit
 `src/` é a árvore fonte usada pelo launcher. As classes compiladas são gravadas em `build/classes`, e os recursos são lidos de `src/`. `bin/` e `autobotz-motors-main/` são árvores antigas rastreadas e não são usadas por esse launcher. No Eclipse, configure `M2_REPO` para o repositório Maven local e selecione JDK 21 ou superior.
 
 A divergência acadêmica sobre a exigência de Swing no D6 deve ser confirmada com o professor antes da entrega.
+
+
+## Proteção de dados pessoais — D14
+
+Os campos pessoais dos clientes são cifrados na camada de persistência. Antes de usar o cadastro, configure uma chave persistente fora do repositório e mantenha a mesma chave para ler os dados já gravados.
+
+Em instalação nova, `schema.sql` inclui as colunas necessárias. Em banco existente, aplique `db/migrations/016_d14_client_pii.sql` depois das migrations 014 e 015. A conversão dos registros antigos é uma etapa separada e explícita; ela não roda na inicialização do ERP.
+
+O guia [D14 — Criptografia e migração de dados pessoais](docs/D14_CIFRAGEM_DADOS_PESSOAIS.md) explica a configuração e o backup da chave, a preparação do banco e a execução segura da migração e dos testes.
