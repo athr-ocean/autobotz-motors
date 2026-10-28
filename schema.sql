@@ -118,6 +118,24 @@ CREATE TABLE IF NOT EXISTS mfa_desafios (
     INDEX idx_mfa_usuario (id_usuario, consumido)
 );
 
+CREATE TABLE IF NOT EXISTS fornecedores (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cnpj VARCHAR(20) NOT NULL UNIQUE,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100),
+    telefone VARCHAR(20),
+    ativo BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS solicitacoes_compra (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    descricao VARCHAR(255) NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDENTE',
+    id_fornecedor INT NULL,
+    decidido_em DATETIME NULL,
+    CONSTRAINT fk_solic_fornecedor FOREIGN KEY (id_fornecedor) REFERENCES fornecedores(id)
+);
 
 -- Compatibilidade com bancos criados antes desta correção.
 ALTER TABLE membros_projeto
