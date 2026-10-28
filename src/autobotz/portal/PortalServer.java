@@ -389,7 +389,7 @@ public class PortalServer {
         StringBuilder b = new StringBuilder();
         for (int i = 0; i < valor.length(); i++) {
             char c = valor.charAt(i);
-            if (c != '\\\\') {
+            if (c != '\\') {
                 b.append(c);
                 continue;
             }
@@ -397,13 +397,13 @@ public class PortalServer {
             char e = valor.charAt(i);
             switch (e) {
                 case '"' -> b.append('"');
-                case '\\\\' -> b.append('\\\\');
+                case '\\' -> b.append('\\');
                 case '/' -> b.append('/');
-                case 'b' -> b.append('\\b');
-                case 'f' -> b.append('\\f');
-                case 'n' -> b.append('\\n');
-                case 'r' -> b.append('\\r');
-                case 't' -> b.append('\\t');
+                case 'b' -> b.append('\b');
+                case 'f' -> b.append('\f');
+                case 'n' -> b.append('\n');
+                case 'r' -> b.append('\r');
+                case 't' -> b.append('\t');
                 case 'u' -> {
                     if (i + 4 >= valor.length()) throw new IllegalArgumentException("escape Unicode");
                     try {
