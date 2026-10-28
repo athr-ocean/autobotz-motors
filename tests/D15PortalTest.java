@@ -99,7 +99,7 @@ public class D15PortalTest {
                 String urlAnterior = base;
                 base = "http://127.0.0.1:" + permitido.porta();
                 var rm = get("/api/treinamentos/metricas?inicio=2026-10-01T00%3A00%3A00&fim=2026-11-01T00%3A00%3A00");
-                check(rm.statusCode() == 200 && rm.body().contains("\\"origem\\":\\"DADOS_SIMULADOS\\""),
+                check(rm.statusCode() == 200 && rm.body().contains("\"origem\":\"DADOS_SIMULADOS\""),
                     "metricas autorizadas devolvem JSON e identificam backend simulado");
                 check(get("/api/treinamentos/metricas?inicio=ruim&fim=ruim").statusCode() == 400,
                     "metricas com periodo invalido -> 400");
