@@ -1,6 +1,6 @@
 # D15 — Estado dos materiais e rascunho de lançamento
 
-**Atualizado:** 28/10/2026  
+**Atualizado:** 28/10/2026<br>
 **Estado geral:** não pronto para lançamento. O texto abaixo é um inventário de evidências e um rascunho; não prova que gravações, webinars ou integração ponta a ponta tenham sido concluídos.
 
 ## Inventário honesto
@@ -27,7 +27,7 @@ Antes de anunciar a abertura, a equipa confirmará a integração do portal com 
 
 Por enquanto, este texto é apenas um rascunho de comunicação. A data, o endereço de acesso, o público destinatário e o canal de suporte deverão ser preenchidos e aprovados após a validação final. Não utilize um endereço local como se fosse um portal público.
 
-Obrigado,  
+Obrigado,<br>
 Equipa AutoBotz Motors
 
 ## Critérios para liberar o e-mail

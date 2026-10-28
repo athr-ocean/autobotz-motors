@@ -67,7 +67,7 @@ jobs:
           echo "=================================================="
           echo "Verificando e Executando Suítes de Teste do D15"
           echo "=================================================="
-          
+
           if [ -d "src/autobotz/portal" ] && [ -f "tests/D15PersistenciaTest.java" ]; then
             # 1. Aplicar Migration 015 se existir e limpar tabela de treinamento
             if [ -f "sql/migration_015.sql" ]; then
