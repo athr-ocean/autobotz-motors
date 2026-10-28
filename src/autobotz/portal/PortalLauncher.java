@@ -11,19 +11,27 @@ public class PortalLauncher {
     public static void main(String[] args) throws Exception {
         int porta = Integer.parseInt(System.getenv().getOrDefault("AUTOBOTZ_PORTAL_PORT", "8085"));
         Path base = Path.of(System.getenv().getOrDefault("AUTOBOTZ_PORTAL_DIR", "portal-treinamento"));
-        CatalogoMateriais catalogo;
+        PortalServer servidor;
         try {
-            catalogo = new CatalogoMateriais(base.resolve("content"));
+            servidor = criarServidor(porta, base);
         } catch (IOException e) {
             System.err.println("Nao foi possivel carregar " + base.resolve("content/catalogo.json") + ": " + e.getMessage());
             System.err.println("Execute a partir da raiz do repositorio ou defina AUTOBOTZ_PORTAL_DIR.");
             return;
         }
+        servidor.iniciar();
+        System.out.println("Portal de treinamento: http://127.0.0.1:" + porta
+            + " (eventos persistidos no banco; Ctrl+C para parar)");
+    }
 
+    /**
+     * Constrói a mesma configuração persistente usada pelo launcher normal.
+     * Publico para que o teste JDBC possa verificar o caminho padrão em porta efêmera.
+     */
+    public static PortalServer criarServidor(int porta, Path base) throws IOException {
+        CatalogoMateriais catalogo = new CatalogoMateriais(base.resolve("content"));
         var backend = new TreinamentoPortalBackend(
             new TreinamentoService(ConexaoBanco.getDataSource()));
-        new PortalServer(porta, backend, catalogo, base.resolve("public")).iniciar();
-        System.out.println("Portal de treinamento: http://127.0.0.1:" + porta
-            + "  (eventos persistidos no banco; Ctrl+C para parar)");
+        return new PortalServer(porta, backend, catalogo, base.resolve("public"));
     }
 }
