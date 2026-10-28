@@ -15,6 +15,14 @@
       "status": "PUBLICADO",
       "formato": "MARKDOWN",
       "arquivo": "faq.md"
+    },
+    {
+      "slug": "roteiro-video-30-min",
+      "titulo": "Roteiro de vídeo de treinamento — 30 minutos (gravação pendente)",
+      "tipo": "ROTEIRO",
+      "status": "PUBLICADO",
+      "formato": "MARKDOWN",
+      "arquivo": "roteiro-video-30-min.md"
     }
   ]
 }
