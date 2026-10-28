@@ -83,6 +83,17 @@ public class D15PortalTest {
             check(backend.eventos().size() == 4, "so os dois eventos coerentes foram registrados");
 
             check(get("/api/treinamentos/metricas").statusCode() == 401, "metricas sem sessao -> 401");
+            var loginSemJson = HTTP.send(HttpRequest.newBuilder(URI.create(base + "/api/login"))
+                .POST(HttpRequest.BodyPublishers.ofString("{}")).build(), HttpResponse.BodyHandlers.ofString());
+            check(loginSemJson.statusCode() == 400, "login sem Content-Type JSON -> 400");
+            var mfaSemJson = HTTP.send(HttpRequest.newBuilder(URI.create(base + "/api/login/mfa"))
+                .POST(HttpRequest.BodyPublishers.ofString("{}")).build(), HttpResponse.BodyHandlers.ofString());
+            check(mfaSemJson.statusCode() == 400, "MFA sem Content-Type JSON -> 400");
+            var logoutSemSessao = HTTP.send(HttpRequest.newBuilder(URI.create(base + "/api/logout"))
+                .POST(HttpRequest.BodyPublishers.noBody()).build(), HttpResponse.BodyHandlers.ofString());
+            check(logoutSemSessao.statusCode() == 204, "logout sem sessao e idempotente -> 204");
+            check(logoutSemSessao.headers().firstValue("Set-Cookie").orElse("").contains("Max-Age=0"),
+                "logout limpa cookie da sessao");
 
             PortalServer proibido = new PortalServer(0, backend, new CatalogoMateriais(content), pub, ex -> 403);
             proibido.iniciar();
