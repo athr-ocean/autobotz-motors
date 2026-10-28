@@ -65,6 +65,12 @@ public class PortalServer {
                 listar(ex);
             } else if (m.equals("GET") && p.startsWith(BASE + "materiais/")) {
                 material(ex, p.substring((BASE + "materiais/").length()));
+            } else if (m.equals("POST") && p.equals("/api/login")) {
+                login(ex);
+            } else if (m.equals("POST") && p.equals("/api/login/mfa")) {
+                loginMfa(ex);
+            } else if (m.equals("POST") && p.equals("/api/logout")) {
+                logout(ex);
             } else if (m.equals("POST") && p.equals(BASE + "eventos")) {
                 evento(ex);
             } else if (m.equals("GET") && p.equals(BASE + "metricas")) {
@@ -85,25 +91,134 @@ public class PortalServer {
      * enquanto a branch-base ainda não contém SessaoWebService; nesse caso nega acesso.
      */
     private synchronized int autorizarComSessaoWeb(HttpExchange ex) throws Exception {
-        final Class<?> tipo;
+        final String token;
         try {
-            tipo = Class.forName("autobotz.service.SessaoWebService");
+            token = tokenPedido(ex);
+            Object servico = servicoSessoesWeb();
+            Object decisao = chamar(servico, "autorizarMetricas",
+                    new Class<?>[] { String.class }, token);
+            return (int) chamar(decisao, "httpStatus", new Class<?>[0]);
         } catch (ClassNotFoundException e) {
             return 401; // falha fechada até D14 estar disponível na base integrada
         }
-        String authorization = ex.getRequestHeaders().getFirst("Authorization");
-        String cookie = ex.getRequestHeaders().getFirst("Cookie");
-        Method extrair = tipo.getMethod("extrairToken", String.class, String.class);
-        String token = (String) extrair.invoke(null, authorization, cookie);
-        if (sessoesWeb == null) sessoesWeb = tipo.getConstructor().newInstance();
+    }
+
+    private synchronized Object servicoSessoesWeb() throws Exception {
+        if (sessoesWeb == null) {
+            Class<?> tipo = Class.forName("autobotz.service.SessaoWebService");
+            sessoesWeb = tipo.getConstructor().newInstance();
+        }
+        return sessoesWeb;
+    }
+
+    private static Object chamar(Object alvo, String nome, Class<?>[] tipos, Object... argumentos)
+            throws Exception {
         try {
-            Object decisao = tipo.getMethod("autorizarMetricas", String.class).invoke(sessoesWeb, token);
-            return (int) decisao.getClass().getMethod("httpStatus").invoke(decisao);
+            return alvo.getClass().getMethod(nome, tipos).invoke(alvo, argumentos);
         } catch (InvocationTargetException e) {
             Throwable causa = e.getCause();
             if (causa instanceof Exception exCause) throw exCause;
             throw e;
         }
+    }
+
+    private static String tokenPedido(HttpExchange ex) throws Exception {
+        Class<?> tipo = Class.forName("autobotz.service.SessaoWebService");
+        Method extrair = tipo.getMethod("extrairToken", String.class, String.class);
+        return (String) extrair.invoke(null, ex.getRequestHeaders().getFirst("Authorization"),
+                ex.getRequestHeaders().getFirst("Cookie"));
+    }
+
+    private void login(HttpExchange ex) throws Exception {
+        exigirJson(ex);
+        String corpo = new String(ex.getRequestBody().readNBytes(4096), StandardCharsets.UTF_8);
+        String usuario = campo(corpo, "usuario");
+        String senha = campo(corpo, "senha");
+        if (usuario == null || senha == null) throw new IllegalArgumentException("credenciais");
+        final Object resultado;
+        try {
+            resultado = chamar(servicoSessoesWeb(), "iniciarLogin",
+                    new Class<?>[] { String.class, String.class }, usuario, senha);
+        } catch (ClassNotFoundException e) {
+            erro(ex, 503, "AUTENTICACAO_INDISPONIVEL", "Autenticação indisponível.");
+            return;
+        }
+        String status = String.valueOf(chamar(resultado, "status", new Class<?>[0]));
+        if (status.equals("AUTENTICADO")) {
+            definirCookie(ex, String.valueOf(chamar(resultado, "token", new Class<?>[0])));
+            enviar(ex, 200, JSON, "{\"status\":\"AUTENTICADO\"}");
+        } else if (status.equals("MFA_NECESSARIA")) {
+            Object desafio = chamar(resultado, "desafio", new Class<?>[0]);
+            String id = String.valueOf(chamar(desafio, "id", new Class<?>[0]));
+            String expira = String.valueOf(chamar(desafio, "expiraEm", new Class<?>[0]));
+            String codigo = String.valueOf(chamar(desafio, "codigoSimulado", new Class<?>[0]));
+            enviar(ex, 202, JSON, "{\"status\":\"MFA_NECESSARIA\",\"desafioId\":" + id
+                + ",\"expiraEm\":" + str(expira) + ",\"codigoDemonstracao\":" + str(codigo)
+                + ",\"aviso\":\"MFA SIMULADO — código de demonstração, não enviado por SMS ou e-mail.\"}");
+        } else if (status.equals("BLOQUEADO")) {
+            Object segundos = chamar(resultado, "segundosRestantes", new Class<?>[0]);
+            long espera = Long.parseLong(String.valueOf(segundos));
+            ex.getResponseHeaders().set("Retry-After", Long.toString(espera));
+            erro(ex, 429, "LOGIN_BLOQUEADO", "Não foi possível autenticar. Tente novamente mais tarde.");
+        } else {
+            erro(ex, 401, "NEGADO", "Usuário ou senha inválidos.");
+        }
+    }
+
+    private void loginMfa(HttpExchange ex) throws Exception {
+        exigirJson(ex);
+        String corpo = new String(ex.getRequestBody().readNBytes(4096), StandardCharsets.UTF_8);
+        String idTexto = campo(corpo, "desafioId");
+        String codigo = campo(corpo, "codigo");
+        if (idTexto == null || codigo == null) throw new IllegalArgumentException("mfa");
+        final long id;
+        try {
+            id = Long.parseLong(idTexto);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("desafioId");
+        }
+        final Object resultado;
+        try {
+            resultado = chamar(servicoSessoesWeb(), "concluirMfa",
+                    new Class<?>[] { long.class, String.class }, id, codigo);
+        } catch (ClassNotFoundException e) {
+            erro(ex, 503, "AUTENTICACAO_INDISPONIVEL", "Autenticação indisponível.");
+            return;
+        }
+        String status = String.valueOf(chamar(resultado, "status", new Class<?>[0]));
+        if (status.equals("AUTENTICADO")) {
+            definirCookie(ex, String.valueOf(chamar(resultado, "token", new Class<?>[0])));
+            enviar(ex, 200, JSON, "{\"status\":\"AUTENTICADO\"}");
+        } else {
+            erro(ex, 401, "MFA_NEGADO", "O segundo fator não foi validado. Inicie o login novamente se o desafio expirou.");
+        }
+    }
+
+    private void logout(HttpExchange ex) throws Exception {
+        String token;
+        try {
+            token = tokenPedido(ex);
+            chamar(servicoSessoesWeb(), "logout", new Class<?>[] { String.class }, token);
+        } catch (ClassNotFoundException e) {
+            // Não existe sessão utilizável quando o serviço de sessão não está disponível.
+        }
+        ex.getResponseHeaders().set("Set-Cookie",
+                "ABM_SESSAO=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0");
+        ex.sendResponseHeaders(204, -1);
+        ex.close();
+    }
+
+    private static void exigirJson(HttpExchange ex) {
+        String ct = ex.getRequestHeaders().getFirst("Content-Type");
+        if (ct == null || !ct.toLowerCase().startsWith("application/json")) {
+            throw new IllegalArgumentException("content-type");
+        }
+    }
+
+    private static void definirCookie(HttpExchange ex, String token) {
+        if (token == null || token.isBlank()) throw new IllegalArgumentException("token");
+        ex.getResponseHeaders().set("Set-Cookie",
+                "ABM_SESSAO=" + token + "; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800");
     }
 
     private void metricas(HttpExchange ex) throws Exception {
