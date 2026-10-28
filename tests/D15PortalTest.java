@@ -128,7 +128,7 @@ public class D15PortalTest {
             try {
                 String urlAnterior = base;
                 base = "http://127.0.0.1:" + falhaBanco.porta();
-                var erroBanco = post("{\\\"tipoEvento\\\":\\\"MATERIAL_VIEW\\\",\\\"materialSlug\\\":\\\"guia-rapido\\\"}", true);
+                var erroBanco = post("{\"tipoEvento\":\"MATERIAL_VIEW\",\"materialSlug\":\"guia-rapido\"}", true);
                 check(erroBanco.statusCode() == 500, "falha de banco -> 500");
                 check(!erroBanco.body().contains("detalhe interno do banco"),
                     "falha de banco nao expoe detalhes internos");
