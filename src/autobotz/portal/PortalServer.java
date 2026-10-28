@@ -127,11 +127,23 @@ public class PortalServer {
             erro(ex, 404, "NAO_ENCONTRADO", "Arquivo não encontrado.");
             return;
         }
+        Path arquivoReal;
+        try {
+            Path raizReal = raiz.toRealPath();
+            arquivoReal = arq.toRealPath();
+            if (!arquivoReal.startsWith(raizReal)) {
+                erro(ex, 404, "NAO_ENCONTRADO", "Arquivo não encontrado.");
+                return;
+            }
+        } catch (IOException e) {
+            erro(ex, 404, "NAO_ENCONTRADO", "Arquivo não encontrado.");
+            return;
+        }
         String nome = arq.getFileName().toString();
         String tipo = nome.endsWith(".html") ? "text/html; charset=utf-8"
             : nome.endsWith(".css") ? "text/css; charset=utf-8"
             : nome.endsWith(".js") ? "text/javascript; charset=utf-8" : "application/octet-stream";
-        enviar(ex, 200, tipo, Files.readAllBytes(arq));
+        enviar(ex, 200, tipo, Files.readAllBytes(arquivoReal));
     }
 
     private void erro(HttpExchange ex, int status, String codigo, String msg) throws IOException {
