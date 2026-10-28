@@ -80,6 +80,34 @@ public class D15PortalTest {
             check(backend.eventos().size() == 4, "so os dois eventos coerentes foram registrados");
 
             check(get("/api/treinamentos/metricas").statusCode() == 401, "metricas sem sessao -> 401");
+
+            PortalServer proibido = new PortalServer(0, backend, new CatalogoMateriais(content), pub, ex -> 403);
+            proibido.iniciar();
+            try {
+                String urlAnterior = base;
+                base = "http://127.0.0.1:" + proibido.porta();
+                check(get("/api/treinamentos/metricas?inicio=2026-10-01T00%3A00%3A00&fim=2026-11-01T00%3A00%3A00").statusCode() == 403,
+                    "metricas com sessao sem permissao -> 403");
+                base = urlAnterior;
+            } finally {
+                proibido.parar();
+            }
+
+            PortalServer permitido = new PortalServer(0, backend, new CatalogoMateriais(content), pub, ex -> 200);
+            permitido.iniciar();
+            try {
+                String urlAnterior = base;
+                base = "http://127.0.0.1:" + permitido.porta();
+                var rm = get("/api/treinamentos/metricas?inicio=2026-10-01T00%3A00%3A00&fim=2026-11-01T00%3A00%3A00");
+                check(rm.statusCode() == 200 && rm.body().contains("\\"origem\\":\\"DADOS_SIMULADOS\\""),
+                    "metricas autorizadas devolvem JSON e identificam backend simulado");
+                check(get("/api/treinamentos/metricas?inicio=ruim&fim=ruim").statusCode() == 400,
+                    "metricas com periodo invalido -> 400");
+                base = urlAnterior;
+            } finally {
+                permitido.parar();
+            }
+
             check(get("/api/treinamentos/outra").statusCode() == 404, "rota desconhecida -> 404");
             check(get("/").statusCode() == 200, "pagina inicial -> 200");
             check(get("/..%2Fsegredo.txt").statusCode() == 404, "arquivo fora da pasta publica -> 404");
