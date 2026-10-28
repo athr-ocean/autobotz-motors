@@ -13,6 +13,7 @@ Portal HTTP: ver `docs/D14_SESSAO_WEB.md`.
 | Aviso de bloqueio com tempo | A quinta falha já devolve `BLOQUEADO` com o tempo restante ("Acesso bloqueado ... Tente em 9 min 59 s"). Vale para **qualquer** nome digitado, existente ou não, então não revela se a conta existe |
 | Sem enumeração de usuário | Usuário inexistente e senha errada dão o mesmo `NEGADO` e a mesma mensagem; inexistente também é bloqueado igual; verificação "falsa" iguala o tempo de resposta |
 | MFA de uso único | `MfaService`: 6 dígitos, validade 5 min, 3 tentativas, consumo atômico, novo desafio invalida o anterior; só sal+hash no banco |
+| Política de segundo fator | `ADMIN` e `VENDEDOR` passam por MFA. O vendedor pode listar/cadastrar clientes e acessar o CRM, por isso senha isolada não deve abrir sessão. |
 | Trilha de segurança | Tabela `eventos_seguranca` (LOGIN, LOGIN_BLOQUEADO, MFA_EMITIDO, MFA_VERIFICACAO, HASH_MIGRADO, LOGOUT, ACESSO_NEGADO). `origem` fica NULL: não há IP remoto em execução local |
 | Consulta restrita | `SegurancaService.consultarEventos` exige `Permissao.CONSULTAR_EVENTOS_SEGURANCA` (só ADMIN); a checagem é no serviço |
 | Sessão do portal (401/403/200) | `SessaoWebService` — ver `docs/D14_SESSAO_WEB.md` |
@@ -27,9 +28,9 @@ Portal HTTP: ver `docs/D14_SESSAO_WEB.md`.
 `AuthService.autenticar(nome, senha)` foi mantido (usado por `CoreRegression`), mas é **somente o primeiro fator**:
 aplica bloqueio, trilha e migração de hash, porém **não** aplica MFA. Telas e servidores devem usar `iniciarLogin`.
 
-## Decisões a confirmar (Arthur / equipe)
+## Integração com outras frentes (Arthur / equipe)
 
-- **Política de MFA:** `AuthService.PERFIS_COM_MFA = {ADMIN}` (VENDEDOR entra só com senha).
+- **Política de MFA (atualizada em 2026-10-28):** `AuthService.PERFIS_COM_MFA = EnumSet.allOf(PerfilUsuario.class)`. Todos os perfis existentes (`ADMIN` e `VENDEDOR`) exigem senha + MFA simulado, pois ambos os fluxos incluem dados de clientes críticos. Um perfil novo deve ser avaliado antes de receber permissões; por padrão, esta política exige MFA.
 - **Permissões novas:** `CONSULTAR_EVENTOS_SEGURANCA` e `CONSULTAR_METRICAS_TREINAMENTO` no enum de `AutorizacaoService` (ADMIN recebe via `allOf`; VENDEDOR não).
 - **Migração 014:** contém só a parte de João. As colunas de cifra/índice HMAC de `clientes` são do Arthur.
 
@@ -48,8 +49,8 @@ javac -encoding UTF-8 -Xlint:all -d build/classes $(find src/autobotz -name '*.j
 javac -encoding UTF-8 -Xlint:all -cp build/classes -d build/tests tests/D14SegurancaTest.java tests/D14SessaoWebTest.java tests/D14JdbcIntegrationTest.java
 
 # sem banco (relógio controlável + repositório em memória): rode na raiz do projeto
-java -cp build/classes:build/tests:src D14SegurancaTest     # "D14_OK checks=70"
-java -cp build/classes:build/tests:src D14SessaoWebTest     # "D14_SESSAO_WEB_OK checks=52"
+java -cp build/classes:build/tests:src D14SegurancaTest     # execução local atual: D14_OK checks=72
+java -cp build/classes:build/tests:src D14SessaoWebTest     # execução local atual: D14_SESSAO_WEB_OK checks=59
 
 # com MariaDB de TESTE (recusa qualquer URL que não seja autobotz_*_test)
 export AUTOBOTZ_DB_URL=jdbc:mariadb://localhost:3306/autobotz_d14_test
@@ -62,7 +63,7 @@ Os `.properties` do projeto estão em ISO-8859-1; os testes leem como o `Resourc
 ## Limitações declaradas
 
 - MFA é **simulado**: não há envio real de SMS/e-mail. O código aparece na tela como demonstração.
-- `D14JdbcIntegrationTest` foi compilado, mas **não foi executado** (sem MariaDB onde foi escrito). O resultado real precisa ser registrado por quem rodar.
+- Nesta revisão, `D14JdbcIntegrationTest` foi compilado, mas **não foi executado**: o ZIP não inclui `.git` nem ambiente MariaDB `_test` configurado para esta execução. Não tratar a validação em memória como prova de integração JDBC.
 - Não há função "antirransomware"; o plano de resposta a incidentes (identificação, contenção, recuperação, comunicação, pós-incidente) é documento à parte.
 - Não existe painel Swing de eventos de segurança; `SegurancaService` está pronto para o Arthur ligar a um `JPanel`.
 - Hash PBKDF2 com menos iterações que o padrão é reforçado no próximo login.
