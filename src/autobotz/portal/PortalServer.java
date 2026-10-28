@@ -25,7 +25,7 @@ public class PortalServer {
         this.backend = backend;
         this.catalogo = catalogo;
         this.raiz = raizPublica.toAbsolutePath().normalize();
-        this.server = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), porta), 0);
+        this.server = HttpServer.create(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), porta), 0);
         server.createContext("/api/", this::api);
         server.createContext("/", this::estatico);
     }
