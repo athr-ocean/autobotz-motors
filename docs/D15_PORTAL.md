@@ -12,6 +12,8 @@ somente em `localhost`.
 
 - JDK 21 (o mesmo do projeto).
 - Executar sempre a partir da raiz do repositório.
+- Banco configurado pelas variáveis `AUTOBOTZ_DB_URL`, `AUTOBOTZ_DB_USER` e
+  `AUTOBOTZ_DB_PASSWORD`. Não versionar nem expor a senha.
 
 ## Executar
 
@@ -20,20 +22,25 @@ somente em `localhost`.
     java -cp /tmp/portal-out autobotz.portal.PortalLauncher
 
 Depois abra `http://localhost:8085`. Para usar outra porta: `AUTOBOTZ_PORTAL_PORT=8090`.
-Para parar, `Ctrl+C`. O modo `portal` no `scripts/run.sh` ainda não existe (depende do Arthur).
+Para usar outra pasta do portal: `AUTOBOTZ_PORTAL_DIR=/caminho/portal-treinamento`.
+Para parar, `Ctrl+C`. O modo `portal` no `scripts/run.sh` ainda depende do trabalho de integração do Arthur.
+
+O launcher padrão usa `TreinamentoPortalBackend` e `TreinamentoService` com o
+`ConexaoBanco.getDataSource()`: os eventos não devem ser considerados persistidos até a
+integração com o PR #22 e o teste de integração em banco isolado serem confirmados.
 
 ## Testes das rotas
 
     javac -sourcepath src -d /tmp/portal-out src/autobotz/portal/*.java tests/D15PortalTest.java
     java -cp /tmp/portal-out D15PortalTest
 
-Resultado esperado: linhas `PASS` e, no fim, `TODOS OS TESTES PASSARAM`. Os testes não usam banco:
-criam uma pasta temporária com catálogo de teste e um backend em memória.
+Os testes de rota não usam banco: criam uma pasta temporária com catálogo de teste e backend em memória.
 
 ## Estrutura
 
 - `src/autobotz/portal/` — servidor (`PortalServer`), catálogo (`CatalogoMateriais`),
-  interface do backend (`PortalBackend`) e implementação em memória (`MockPortalBackend`).
+  interface do backend (`PortalBackend`), backend em memória para testes (`MockPortalBackend`)
+  e adaptador persistente (`TreinamentoPortalBackend`).
 - `portal-treinamento/public/` — página, estilo e script do navegador.
 - `portal-treinamento/content/` — `catalogo.json` e os textos dos materiais (Markdown).
 - `tests/D15PortalTest.java` — testes das rotas.
@@ -50,25 +57,26 @@ criam uma pasta temporária com catálogo de teste e um backend em memória.
 ## Como conferir o funcionamento
 
 - A página lista os materiais publicados e mostra o texto ao clicar.
-- Cada abertura do portal e cada material aberto geram um evento (`PORTAL_OPEN`,
+- Cada abertura do portal e cada material aberto enviam um evento (`PORTAL_OPEN`,
   `MATERIAL_VIEW`, `VIDEO_VIEW`). Para testar a rota à mão, com o servidor ligado:
 
         curl -s -X POST -H 'Content-Type: application/json' \
           -d '{"tipoEvento":"PORTAL_OPEN"}' localhost:8085/api/treinamentos/eventos
 
-  A resposta é `201` com o identificador do evento.
+  Com banco e migration corretamente configurados, a resposta esperada é `201` com o identificador do evento.
 
 ## Estado atual e limitações
 
-- Os eventos são guardados **somente em memória** e somem quando o servidor para. A
-  persistência no MariaDB, pelo `TreinamentoService`, depende da decisão sobre a conexão
-  com o banco (Arthur).
-- `GET /api/treinamentos/metricas` responde `401` sempre. A autorização administrativa
-  depende da definição de sessão (Arthur e João). Não há painel de métricas.
+- O launcher e o atalho do ERP foram alterados para usar o adaptador persistente. A ligação efetiva
+  depende de o PR #22 estar integrado na base usada para compilar e de a configuração JDBC funcionar.
+  Validar a persistência real com `D15PersistenciaTest` em banco isolado `_test` antes de afirmar
+  que o fluxo integrado foi aprovado.
+- `GET /api/treinamentos/metricas` responde `401` até haver uma sessão ADMIN validada no servidor
+  (definição de Arthur e João). Não há painel de métricas; não contornar a autenticação.
 - O texto dos materiais aparece como texto puro; o Markdown não é renderizado.
 - O portal não está publicado na internet: funciona apenas em `localhost`.
-- Os textos em `content/` são cópias dos arquivos de `docs/` do Higor; a manutenção da
-  cópia ainda precisa ser combinada com ele.
+- Os textos em `content/` são cópias dos arquivos de `docs/` do Higor; o teste de conteúdo deve
+  continuar a confirmar que as cópias estão sincronizadas.
 
 ## Segurança aplicada
 
@@ -78,6 +86,7 @@ criam uma pasta temporária com catálogo de teste e um backend em memória.
 - Slugs inválidos são recusados; materiais não publicados respondem `404`.
 - Eventos exigem `Content-Type: application/json` e só aceitam material publicado.
 - Nenhum dado pessoal, IP ou identificador de sessão é coletado.
+- Métricas permanecem negadas até existir autorização administrativa server-side.
 
 ## Testes de conteúdo e de persistência
 
@@ -98,8 +107,8 @@ O Swing e o console chamam `autobotz.portal.PortalAtalho.abrir()`. Ela inicia o 
 única vez, em thread daemon, e abre o navegador. Nunca lança exceção: devolve um `Resultado`
 com `Status` (`ABERTO`, `NAVEGADOR_INDISPONIVEL`, `PORTA_OCUPADA`, `CONTEUDO_INDISPONIVEL`,
 `ERRO`) e a `url`. Os textos para o usuário vêm dos bundles da interface, não desta classe.
-Teste: `tests/D15AtalhoTest.java`. Enquanto o `ConexaoBanco.getDataSource()` não estiver na `main`,
-os eventos ficam em memória (`backendPadrao()`).
+O backend padrão usa `TreinamentoPortalBackend` com o serviço JDBC; os testes podem injetar
+`MockPortalBackend` para não depender do banco. Teste: `tests/D15AtalhoTest.java`.
 
 ## Tipos de material
 
