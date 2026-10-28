@@ -18,6 +18,7 @@ import autobotz.model.OrdemServico;
 import autobotz.model.Servico;
 import autobotz.model.Veiculo;
 import autobotz.model.Venda;
+import autobotz.portal.PortalAtalho;
 import autobotz.service.CRMService;
 import autobotz.service.ClienteService;
 import autobotz.service.RelatorioService;
@@ -112,6 +113,11 @@ final class AppFrame extends JFrame {
     label(menu, "gui.analysis");
     addNav(menu, "reports", "gui.reports", AutorizacaoService.Permissao.ACESSAR_RELATORIOS);
     addNav(menu, "audit", "gui.audit", AutorizacaoService.Permissao.ACESSAR_RELATORIOS);
+    Usuario currentUser = SessaoUsuario.getInstancia().getUsuario();
+    if (currentUser.getPerfil() == PerfilUsuario.ADMIN
+        || currentUser.getPerfil() == PerfilUsuario.VENDEDOR) {
+      addActionNav(menu, "gui.training_center", this::openTrainingCenter);
+    }
     side.add(menu, BorderLayout.CENTER);
     JPanel bottom = new JPanel();
     bottom.setOpaque(false);
@@ -154,6 +160,37 @@ final class AppFrame extends JFrame {
     b.addActionListener(e -> showPage(id));
     nav.put(id, b);
     p.add(b);
+  }
+  private void addActionNav(JPanel p, String key, Runnable action) {
+    JButton b = new JButton(SwingSupport.text(key));
+    b.setHorizontalAlignment(SwingConstants.LEFT);
+    b.setForeground(AppTheme.SIDEBAR_TEXT);
+    b.setBackground(AppTheme.SIDEBAR);
+    b.setBorder(BorderFactory.createEmptyBorder(11, 12, 11, 12));
+    b.setFocusPainted(false);
+    b.setContentAreaFilled(false);
+    b.addActionListener(e -> action.run());
+    p.add(b);
+  }
+  private void openTrainingCenter() {
+    try {
+      PortalAtalho.Resultado resultado = PortalAtalho.abrir();
+      switch (resultado.status()) {
+        case ABERTO -> SwingSupport.success(this, SwingSupport.text("gui.portal_opened"));
+        case NAVEGADOR_INDISPONIVEL -> SwingSupport.error(this,
+            SwingSupport.text("gui.portal_browser_unavailable") + "\n" + resultado.url());
+        case PORTA_OCUPADA -> SwingSupport.error(this,
+            SwingSupport.text("gui.portal_port_in_use") + portalUrl(resultado.url()));
+        case CONTEUDO_INDISPONIVEL -> SwingSupport.error(this,
+            SwingSupport.text("gui.portal_content_unavailable"));
+        case ERRO -> SwingSupport.error(this, SwingSupport.text("gui.portal_error"));
+      }
+    } catch (RuntimeException e) {
+      SwingSupport.error(this, SwingSupport.text("gui.portal_error"));
+    }
+  }
+  private String portalUrl(String url) {
+    return url == null ? "" : "\n" + url;
   }
   private JPanel workspace() {
     JPanel p = new JPanel(new BorderLayout());
