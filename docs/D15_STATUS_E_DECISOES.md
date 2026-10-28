@@ -74,4 +74,4 @@ PR #22 (DataSource) → PR #24 (portal) → PR do Arthur (`run.sh`, `AppFrame` e
 
 - A persistência ainda precisa ser confirmada com o PR #22 integrado e teste em banco isolado.
 - `/metricas` permanece negada por falta de sessão ADMIN.
-- Markdown aparece como texto puro; portal apenas em localhost.
+- Markdown básico é renderizado com segurança; links, tabelas e itálico ainda não são suportados. Portal apenas em localhost.
