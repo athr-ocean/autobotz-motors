@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS autobotz_db;
-USE autobotz_db;
+-- CREATE DATABASE IF NOT EXISTS autobotz_db;
 
+-- USE autobotz_db
 CREATE TABLE IF NOT EXISTS veiculos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     placa VARCHAR(10) NOT NULL UNIQUE,
