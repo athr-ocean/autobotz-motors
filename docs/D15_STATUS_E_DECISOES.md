@@ -34,6 +34,8 @@ Execução e testes: `docs/D15_PORTAL.md`. Contrato das rotas: `docs/D15_CONTRAT
 
 ## Testes
 
+Executor das três suítes sem banco: `bash scripts/test-d15.sh` (na raiz do repositório). A suíte `D15PersistenciaTest` só roda quando as variáveis de banco de teste estão definidas e recusa qualquer banco cujo nome não termine em `_test`.
+
 Os resultados anteriores registrados para as suítes D15 pertencem à versão anterior do código.
 Após esta atualização, executar novamente:
 - `D15PortalTest` (sem banco).
