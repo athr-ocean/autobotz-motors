@@ -120,6 +120,7 @@ CREATE TABLE IF NOT EXISTS mfa_desafios (
 
 
 
+
 -- ==================================================
 -- TABELAS DO MÓDULO DE COMPRAS (D11)
 -- ==================================================
@@ -137,6 +138,9 @@ CREATE TABLE IF NOT EXISTS solicitacoes_compra (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NULL,
     solicitante VARCHAR(100) NULL,
+    aprovador VARCHAR(100) NULL,
+    id_aprovador INT NULL,
+    aprovador_id INT NULL,
     descricao VARCHAR(255) NULL,
     valor DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
@@ -157,6 +161,9 @@ CREATE TABLE IF NOT EXISTS orcamentos_compra (
     fornecedor_id INT NULL,
     nome VARCHAR(100) NULL,
     solicitante VARCHAR(100) NULL,
+    aprovador VARCHAR(100) NULL,
+    id_aprovador INT NULL,
+    aprovador_id INT NULL,
     descricao VARCHAR(255) NULL,
     valor DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
@@ -179,12 +186,18 @@ CREATE TABLE IF NOT EXISTS pedidos_compra (
     fornecedor_id INT NULL,
     nome VARCHAR(100) NULL,
     solicitante VARCHAR(100) NULL,
+    aprovador VARCHAR(100) NULL,
+    id_aprovador INT NULL,
+    aprovador_id INT NULL,
     valor_total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
     saldo_atual DECIMAL(12,2) NULL DEFAULT 0.00,
     status VARCHAR(30) NOT NULL DEFAULT 'GERADO',
     data_emissao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+
+
 
 
 -- Compatibilidade com bancos criados antes desta correção.
