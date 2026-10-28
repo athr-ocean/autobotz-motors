@@ -1,0 +1,28 @@
+name: DataSource regression
+
+on:
+  push:
+    branches: [codex/datasource-d15]
+  pull_request:
+    paths:
+      - '.github/workflows/datasource-regression.yml'
+      - 'src/autobotz/util/ConexaoBanco.java'
+      - 'src/autobotz/util/ConexaoBancoDataSource.java'
+      - 'tests/ConexaoBancoDataSourceTest.java'
+
+jobs:
+  datasource:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Compile DataSource regression
+        run: mkdir -p "$RUNNER_TEMP/autobotz-datasource-classes" && javac -encoding UTF-8 -sourcepath src -d "$RUNNER_TEMP/autobotz-datasource-classes" tests/ConexaoBancoDataSourceTest.java
+      - name: Test independent connections without a database
+        env:
+          AUTOBOTZ_DB_URL: jdbc:autobotz-test:isolated
+          AUTOBOTZ_DB_PASSWORD: ci-dummy-not-a-secret
+        run: java -cp "$RUNNER_TEMP/autobotz-datasource-classes:src" ConexaoBancoDataSourceTest
