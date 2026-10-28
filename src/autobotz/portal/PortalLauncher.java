@@ -23,7 +23,7 @@ public class PortalLauncher {
         var backend = new TreinamentoPortalBackend(
             new TreinamentoService(ConexaoBanco.getDataSource()));
         new PortalServer(porta, backend, catalogo, base.resolve("public")).iniciar();
-        System.out.println("Portal de treinamento: http://localhost:" + porta
+        System.out.println("Portal de treinamento: http://127.0.0.1:" + porta
             + "  (eventos persistidos no banco; Ctrl+C para parar)");
     }
 }
