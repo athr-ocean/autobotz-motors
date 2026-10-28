@@ -1,6 +1,7 @@
 import autobotz.model.MetricaTreinamento;
 import autobotz.portal.CatalogoMateriais;
 import autobotz.portal.PortalServer;
+import autobotz.portal.PortalLauncher;
 import autobotz.portal.TreinamentoPortalBackend;
 import autobotz.service.TreinamentoService;
 
