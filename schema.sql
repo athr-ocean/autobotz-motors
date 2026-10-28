@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS clientes (
 CREATE TABLE IF NOT EXISTS usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nome_usuario VARCHAR(50) NOT NULL UNIQUE,
-    senha_hash CHAR(64) NOT NULL,
+    senha_hash VARCHAR(255) NOT NULL,
     perfil VARCHAR(20) NOT NULL
 );
 
