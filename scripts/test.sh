@@ -19,16 +19,19 @@ echo "[1/3] Limpando e compilando o projeto unificado..."
 mkdir -p bin
 rm -rf bin/*
 
-# Compilação de todas as classes com classpath compativel
+# Compilação de todas as classes Java
 javac -Xlint:all -cp "lib/*" -sourcepath src -d bin $(find src tests -name "*.java")
 
-# 3. Execução do CoreRegression (Uso obrigatorio de : no classpath para Linux)
+# Copiar ficheiros .properties mantendo a estrutura de diretórios para a pasta bin
+(cd src && find . -name "*.properties" -exec cp --parents {} ../bin/ \;) 2>/dev/null || true
+
+# 3. Execução do CoreRegression (incluindo bin, src e lib no classpath)
 echo "[2/3] Executando CoreRegression..."
-java -cp "bin:lib/*" CoreRegression
+java -cp "bin:src:lib/*" CoreRegression
 
 # 4. Execução do D11ComprasTest
 echo "[3/3] Executando D11ComprasTest..."
-java -cp "bin:lib/*" D11ComprasTest
+java -cp "bin:src:lib/*" D11ComprasTest
 
 echo "=================================================="
 echo "SUCCESS: Todos os testes passaram na base isolada!"
