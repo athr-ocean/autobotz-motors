@@ -50,7 +50,7 @@ function renderizarMarkdown(markdown) {
 
     const item = linha.match(/^\s*([-*]|\d+\.)\s+(.+)$/);
     if (item) {
-      const novoTipo = /^\\d+\\./.test(item[1]) ? "ol" : "ul";
+      const novoTipo = /^\d+\./.test(item[1]) ? "ol" : "ul";
       if (!lista || tipoLista !== novoTipo) {
         lista = document.createElement(novoTipo);
         fragmento.append(lista);
