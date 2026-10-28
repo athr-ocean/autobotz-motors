@@ -21,7 +21,7 @@ somente em `localhost`.
     javac -sourcepath src -d /tmp/portal-out src/autobotz/portal/*.java
     java -cp /tmp/portal-out autobotz.portal.PortalLauncher
 
-Depois abra `http://localhost:8085`. Para usar outra porta: `AUTOBOTZ_PORTAL_PORT=8090`.
+Depois abra `http://127.0.0.1:8085`. Para usar outra porta: `AUTOBOTZ_PORTAL_PORT=8090`.
 Para usar outra pasta do portal: `AUTOBOTZ_PORTAL_DIR=/caminho/portal-treinamento`.
 Para parar, `Ctrl+C`. O modo `portal` no `scripts/run.sh` ainda depende do trabalho de integração do Arthur.
 
@@ -61,7 +61,7 @@ Os testes de rota não usam banco: criam uma pasta temporária com catálogo de 
   `MATERIAL_VIEW`, `VIDEO_VIEW`). Para testar a rota à mão, com o servidor ligado:
 
         curl -s -X POST -H 'Content-Type: application/json' \
-          -d '{"tipoEvento":"PORTAL_OPEN"}' localhost:8085/api/treinamentos/eventos
+          -d '{"tipoEvento":"PORTAL_OPEN"}' 127.0.0.1:8085/api/treinamentos/eventos
 
   Com banco e migration corretamente configurados, a resposta esperada é `201` com o identificador do evento.
 
