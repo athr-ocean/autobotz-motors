@@ -1,6 +1,9 @@
 import autobotz.portal.CatalogoMateriais;
 import autobotz.portal.MockPortalBackend;
 import autobotz.portal.PortalServer;
+import autobotz.portal.PortalBackend;
+
+import java.sql.SQLException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -106,6 +109,32 @@ public class D15PortalTest {
                 base = urlAnterior;
             } finally {
                 permitido.parar();
+            }
+
+            PortalBackend bancoIndisponivel = new PortalBackend() {
+                @Override public long registrarAberturaPortal() throws SQLException {
+                    throw new SQLException("detalhe interno do banco");
+                }
+                @Override public long registrarVisualizacaoMaterial(String slug) throws SQLException {
+                    throw new SQLException("detalhe interno do banco");
+                }
+                @Override public long registrarVisualizacaoVideo(String slug) throws SQLException {
+                    throw new SQLException("detalhe interno do banco");
+                }
+            };
+            PortalServer falhaBanco = new PortalServer(0, bancoIndisponivel,
+                new CatalogoMateriais(content), pub);
+            falhaBanco.iniciar();
+            try {
+                String urlAnterior = base;
+                base = "http://127.0.0.1:" + falhaBanco.porta();
+                var erroBanco = post("{\\\"tipoEvento\\\":\\\"MATERIAL_VIEW\\\",\\\"materialSlug\\\":\\\"guia-rapido\\\"}", true);
+                check(erroBanco.statusCode() == 500, "falha de banco -> 500");
+                check(!erroBanco.body().contains("detalhe interno do banco"),
+                    "falha de banco nao expoe detalhes internos");
+                base = urlAnterior;
+            } finally {
+                falhaBanco.parar();
             }
 
             check(get("/api/treinamentos/outra").statusCode() == 404, "rota desconhecida -> 404");
