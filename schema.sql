@@ -120,87 +120,60 @@ CREATE TABLE IF NOT EXISTS mfa_desafios (
 );
 
 
--- ==================================================
--- TABELAS DO MÓDULO DE COMPRAS (D11)
--- ==================================================
-
 CREATE TABLE IF NOT EXISTS fornecedores (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    cnpj VARCHAR(20) NOT NULL UNIQUE,
+    cnpj VARCHAR(20) NULL,
     nome VARCHAR(100) NOT NULL,
-    email VARCHAR(100),
-    telefone VARCHAR(20),
-    ativo BOOLEAN DEFAULT TRUE
-);
-
-CREATE TABLE IF NOT EXISTS solicitacoes_compra (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NULL,
-    solicitante VARCHAR(100) NULL,
-    aprovador VARCHAR(100) NULL,
-    id_aprovador INT NULL,
-    aprovador_id INT NULL,
-    descricao VARCHAR(255) NULL,
-    motivo VARCHAR(255) NULL,
-    motivo_rejeicao VARCHAR(255) NULL,
-    valor DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
-    saldo_atual DECIMAL(12,2) NULL DEFAULT 0.00,
-    status VARCHAR(30) NOT NULL DEFAULT 'PENDENTE',
-    id_fornecedor INT NULL,
-    fornecedor_id INT NULL,
-    id_orcamento INT NULL,
-    orcamento_id INT NULL,
-    decidido_em DATETIME NULL
-);
+    email VARCHAR(100) NULL,
+    telefone VARCHAR(20) NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    UNIQUE KEY uq_fornecedores_cnpj (cnpj)
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS orcamentos_compra (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    id_solicitacao INT NULL,
-    solicitacao_id INT NULL,
-    id_fornecedor INT NULL,
-    fornecedor_id INT NULL,
-    nome VARCHAR(100) NULL,
-    solicitante VARCHAR(100) NULL,
-    aprovador VARCHAR(100) NULL,
-    id_aprovador INT NULL,
-    aprovador_id INT NULL,
-    descricao VARCHAR(255) NULL,
-    motivo VARCHAR(255) NULL,
-    motivo_rejeicao VARCHAR(255) NULL,
-    valor DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
-    saldo_atual DECIMAL(12,2) NULL DEFAULT 0.00,
-    saldo DECIMAL(12,2) NULL DEFAULT 0.00,
-    prazo_dias INT NULL,
-    observacoes VARCHAR(255) NULL,
-    aprovado BOOLEAN DEFAULT FALSE,
-    status VARCHAR(50) NULL,
-    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    nome VARCHAR(120) NOT NULL,
+    saldo_inicial DECIMAL(12,2) NOT NULL,
+    saldo_atual DECIMAL(12,2) NOT NULL,
+    CONSTRAINT chk_orcamento_saldo CHECK (
+        saldo_atual >= 0 AND saldo_atual <= saldo_inicial
+    )
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS solicitacoes_compra (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    orcamento_id INT NOT NULL,
+    fornecedor_id INT NOT NULL,
+    descricao VARCHAR(200) NOT NULL,
+    valor DECIMAL(12,2) NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDENTE',
+    solicitante VARCHAR(60) NOT NULL,
+    aprovador VARCHAR(60) NULL,
+    motivo_rejeicao VARCHAR(200) NULL,
+    decidido_em DATETIME NULL,
+    CONSTRAINT chk_solicitacao_valor CHECK (valor > 0),
+    CONSTRAINT fk_solicitacao_orcamento FOREIGN KEY (orcamento_id)
+        REFERENCES orcamentos_compra(id),
+    CONSTRAINT fk_solicitacao_fornecedor FOREIGN KEY (fornecedor_id)
+        REFERENCES fornecedores(id)
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS pedidos_compra (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    id_orcamento INT NULL,
-    orcamento_id INT NULL,
-    id_solicitacao INT NULL,
-    solicitacao_id INT NULL,
-    id_fornecedor INT NULL,
-    fornecedor_id INT NULL,
-    nome VARCHAR(100) NULL,
-    solicitante VARCHAR(100) NULL,
-    aprovador VARCHAR(100) NULL,
-    id_aprovador INT NULL,
-    aprovador_id INT NULL,
-    valor DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    valor_total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
-    saldo_atual DECIMAL(12,2) NULL DEFAULT 0.00,
-    status VARCHAR(30) NOT NULL DEFAULT 'GERADO',
-    data_emissao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-
+    solicitacao_id INT NOT NULL,
+    orcamento_id INT NOT NULL,
+    fornecedor_id INT NOT NULL,
+    valor DECIMAL(12,2) NOT NULL,
+    data_emissao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_pedido_solicitacao (solicitacao_id),
+    CONSTRAINT chk_pedido_valor CHECK (valor > 0),
+    CONSTRAINT fk_pedido_solicitacao FOREIGN KEY (solicitacao_id)
+        REFERENCES solicitacoes_compra(id),
+    CONSTRAINT fk_pedido_orcamento FOREIGN KEY (orcamento_id)
+        REFERENCES orcamentos_compra(id),
+    CONSTRAINT fk_pedido_fornecedor FOREIGN KEY (fornecedor_id)
+        REFERENCES fornecedores(id)
+) ENGINE=InnoDB;
 
 -- Compatibilidade com bancos criados antes desta correção.
 ALTER TABLE membros_projeto
@@ -213,17 +186,15 @@ CREATE TABLE IF NOT EXISTS planos_assinatura (
     nome VARCHAR(100) NOT NULL,
     preco_base DECIMAL(10,2) NOT NULL,
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
-    CONSTRAINT chk_plano_preco
-        CHECK (preco_base >= 0)
-);
+    CONSTRAINT chk_plano_preco CHECK (preco_base >= 0)
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS modulos_opcionais (
     id_modulo INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     preco DECIMAL(10,2) NOT NULL,
-    CONSTRAINT chk_modulo_preco
-        CHECK (preco >= 0)
-);
+    CONSTRAINT chk_modulo_preco CHECK (preco >= 0)
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS assinaturas_clientes (
     id_assinatura INT AUTO_INCREMENT PRIMARY KEY,
@@ -231,51 +202,39 @@ CREATE TABLE IF NOT EXISTS assinaturas_clientes (
     id_plano INT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'ATIVA',
     data_inicio DATE NOT NULL,
-    data_cancelamento DATE,
-    categoria_cancelamento VARCHAR(50),
-    motivo_cancelamento TEXT,
-    feedback_simulado TEXT,
-
-    CONSTRAINT fk_assinatura_cliente
-        FOREIGN KEY (id_cliente)
+    data_cancelamento DATE NULL,
+    categoria_cancelamento VARCHAR(50) NULL,
+    motivo_cancelamento TEXT NULL,
+    feedback_simulado TEXT NULL,
+    CONSTRAINT fk_assinatura_cliente FOREIGN KEY (id_cliente)
         REFERENCES clientes(id_cliente),
-
-    CONSTRAINT fk_assinatura_plano
-        FOREIGN KEY (id_plano)
+    CONSTRAINT fk_assinatura_plano FOREIGN KEY (id_plano)
         REFERENCES planos_assinatura(id_plano)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS assinatura_modulos (
     id_assinatura INT NOT NULL,
     id_modulo INT NOT NULL,
-
     PRIMARY KEY (id_assinatura, id_modulo),
-
-    CONSTRAINT fk_assmod_assinatura
-        FOREIGN KEY (id_assinatura)
+    CONSTRAINT fk_assmod_assinatura FOREIGN KEY (id_assinatura)
         REFERENCES assinaturas_clientes(id_assinatura),
-
-    CONSTRAINT fk_assmod_modulo
-        FOREIGN KEY (id_modulo)
+    CONSTRAINT fk_assmod_modulo FOREIGN KEY (id_modulo)
         REFERENCES modulos_opcionais(id_modulo)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS assinatura_eventos (
     id_evento INT AUTO_INCREMENT PRIMARY KEY,
     id_assinatura INT NOT NULL,
     tipo_evento VARCHAR(30) NOT NULL,
-    data_evento DATETIME NOT NULL
-        DEFAULT CURRENT_TIMESTAMP,
-    descricao TEXT,
-    valor_anterior DECIMAL(10,2),
-    valor_novo DECIMAL(10,2),
-    categoria_motivo VARCHAR(50),
-    feedback_simulado TEXT,
-
-    CONSTRAINT fk_evento_assinatura
-        FOREIGN KEY (id_assinatura)
+    data_evento DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    descricao TEXT NULL,
+    valor_anterior DECIMAL(10,2) NULL,
+    valor_novo DECIMAL(10,2) NULL,
+    categoria_motivo VARCHAR(50) NULL,
+    feedback_simulado TEXT NULL,
+    CONSTRAINT fk_evento_assinatura FOREIGN KEY (id_assinatura)
         REFERENCES assinaturas_clientes(id_assinatura)
-);
+) ENGINE=InnoDB;
 
 -- D14: espaço para campos cifrados e índice de busca HMAC do CPF.
 -- A migração dos dados existentes é explícita; este DDL não cifra registros.
