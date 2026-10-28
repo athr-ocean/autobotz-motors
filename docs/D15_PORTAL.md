@@ -73,7 +73,7 @@ Os testes de rota não usam banco: criam uma pasta temporária com catálogo de 
   que o fluxo integrado foi aprovado.
 - `GET /api/treinamentos/metricas` responde `401` até haver uma sessão ADMIN validada no servidor
   (definição de Arthur e João). Não há painel de métricas; não contornar a autenticação.
-- O texto dos materiais aparece como texto puro; o Markdown não é renderizado.
+- A interface renderiza Markdown básico com elementos DOM seguros: títulos, parágrafos, listas, negrito e código em linha. Links, tabelas, itálico e extensões Markdown ainda não são suportados.
 - O portal não está publicado na internet: funciona apenas em `localhost`.
 - Os textos em `content/` são cópias dos arquivos de `docs/` do Higor; o teste de conteúdo deve
   continuar a confirmar que as cópias estão sincronizadas.
