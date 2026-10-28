@@ -58,16 +58,8 @@ A divergência acadêmica sobre a exigência de Swing no D6 deve ser confirmada 
 
 ## Proteção de dados pessoais — D14
 
-A frente D14 acrescenta criptografia dos campos pessoais dos clientes em repouso. Configure uma chave persistente fora do repositório antes de usar cadastro, consulta, atualização ou anonimização de clientes:
+Os campos pessoais dos clientes são cifrados na camada de persistência. Antes de usar o cadastro, configure uma chave persistente fora do repositório e mantenha a mesma chave para ler os dados já gravados.
 
-    mkdir -p "$HOME/.config/autobotz"
-    chmod 700 "$HOME/.config/autobotz"
-    if [ ! -s "$HOME/.config/autobotz/pii.key" ]; then
-      (umask 077; openssl rand -base64 32 > "$HOME/.config/autobotz/pii.key")
-    fi
-    chmod 600 "$HOME/.config/autobotz/pii.key"
-    export AUTOBOTZ_PII_KEY_FILE="$HOME/.config/autobotz/pii.key"
+Em instalação nova, `schema.sql` inclui as colunas necessárias. Em banco existente, aplique `db/migrations/016_d14_client_pii.sql` depois das migrations 014 e 015. A conversão dos registros antigos é uma etapa separada e explícita; ela não roda na inicialização do ERP.
 
-Execute os comandos dentro de Bash. Preserve a chave entre sessões e mantenha backup seguro fora do Git; uma chave nova não consegue ler dados cifrados pela chave anterior.
-
-Para um banco existente, faça backup, aplique a atualização de schema.sql, compile e execute primeiro o diagnóstico da migração, conforme docs/D14_CIFRAGEM_DADOS_PESSOAIS.md. A migração de registros legados é explícita e não roda no startup.
+O guia [D14 — Criptografia e migração de dados pessoais](docs/D14_CIFRAGEM_DADOS_PESSOAIS.md) explica a configuração e o backup da chave, a preparação do banco e a execução segura da migração e dos testes.
