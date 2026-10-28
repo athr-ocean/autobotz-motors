@@ -1,6 +1,6 @@
 # D15 — Contrato de integração entre portal e métricas
 
-**Status: proposta atualizada para validação conjunta com Mauro, Arthur e João.** Este documento define o formato esperado; não afirma que as rotas já estejam implementadas ou publicadas.
+**Status:** contrato para integração. O PR #24 implementa as rotas do portal e as rotas de sessão descritas abaixo, mas a validação ponta a ponta depende da integração do serviço D14, do PR #22 e dos testes em ambiente isolado. Não anunciar o portal como lançado.
 
 ## 1. Responsabilidades
 
@@ -113,6 +113,16 @@ Resposta proposta:
 ```
 
 Esse endpoint deve exigir permissão administrativa no servidor. Ocultar o botão no portal não substitui a autorização no endpoint/serviço.
+
+### 3.5 Sessão web
+
+As rotas abaixo usam o serviço de sessão D14 no servidor. A identidade vem apenas do token emitido após autenticação; o perfil nunca é aceito do navegador.
+
+- `POST /api/login` recebe `usuario` e `senha`. `AUTENTICADO` cria cookie `ABM_SESSAO` com `HttpOnly; SameSite=Strict; Path=/` e responde 200. `MFA_NECESSARIA` responde 202 com ID/expiração e um código explicitamente rotulado como demonstração simulada. `NEGADO` responde 401; `BLOQUEADO` responde 429 e `Retry-After`.
+- `POST /api/login/mfa` recebe `desafioId` e `codigo`. Só em caso de sucesso cria o cookie de sessão; falha responde 401.
+- `POST /api/logout` invalida a sessão no servidor e limpa o cookie; responde 204.
+- `GET /api/treinamentos/metricas` extrai o token de `Authorization: Bearer` ou do cookie e chama `SessaoWebService.autorizarMetricas`. Sem sessão válida responde 401; sessão sem permissão responde 403; somente sessão autorizada responde 200.
+- Se o serviço D14 não estiver disponível na base integrada, as métricas falham fechadas com 401 e as rotas de login respondem 503. Nunca aceitar perfil ou token administrativo informado como campo JSON.
 
 ## 4. Formato de erro
 
