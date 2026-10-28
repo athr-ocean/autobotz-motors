@@ -19,6 +19,66 @@ function registrar(corpo) {
   }).catch(() => {});
 }
 
+// Renderização Markdown mínima e segura: cria elementos DOM e nunca interpreta HTML do material.
+function textoEmLinha(texto) {
+  const fragmento = document.createDocumentFragment();
+  const padrao = /(\\*\\*[^*]+\\*\\*|`[^`]+`)/g;
+  let inicio = 0;
+  for (const match of texto.matchAll(padrao)) {
+    if (match.index > inicio) fragmento.append(document.createTextNode(texto.slice(inicio, match.index)));
+    const token = match[0];
+    const elemento = token.startsWith("`") ? document.createElement("code") : document.createElement("strong");
+    elemento.textContent = token.startsWith("`") ? token.slice(1, -1) : token.slice(2, -2);
+    fragmento.append(elemento);
+    inicio = match.index + token.length;
+  }
+  if (inicio < texto.length) fragmento.append(document.createTextNode(texto.slice(inicio)));
+  return fragmento;
+}
+
+function renderizarMarkdown(markdown) {
+  const fragmento = document.createDocumentFragment();
+  let lista = null;
+  let tipoLista = null;
+
+  for (const linha of String(markdown).split(/\\r?\\n/)) {
+    if (!linha.trim()) {
+      lista = null;
+      tipoLista = null;
+      continue;
+    }
+
+    const item = linha.match(/^\\s*([-*]|\\d+\\.)\\s+(.+)$/);
+    if (item) {
+      const novoTipo = /^\\d+\\./.test(item[1]) ? "ol" : "ul";
+      if (!lista || tipoLista !== novoTipo) {
+        lista = document.createElement(novoTipo);
+        fragmento.append(lista);
+        tipoLista = novoTipo;
+      }
+      const li = document.createElement("li");
+      li.append(textoEmLinha(item[2]));
+      lista.append(li);
+      continue;
+    }
+
+    lista = null;
+    tipoLista = null;
+    const titulo = linha.match(/^(#{1,3})\\s+(.+)$/);
+    if (titulo) {
+      const nivel = Math.min(titulo[1].length + 2, 5);
+      const h = document.createElement("h" + nivel);
+      h.append(textoEmLinha(titulo[2]));
+      fragmento.append(h);
+    } else {
+      const p = document.createElement("p");
+      p.append(textoEmLinha(linha));
+      fragmento.append(p);
+    }
+  }
+  return fragmento;
+}
+
 function mostrar(tipo) {
   const itens = tipo ? materiais.filter((m) => m.tipo === tipo) : materiais;
   $("lista").replaceChildren();
@@ -53,7 +113,7 @@ async function abrir(slug) {
     h.tabIndex = -1;
     const t = document.createElement("div");
     t.className = "texto";
-    t.textContent = m.conteudo;
+    t.append(renderizarMarkdown(m.conteudo));
     $("detalhe").replaceChildren(h, t);
     $("detalhe").hidden = false;
     h.focus();
