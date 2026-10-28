@@ -137,6 +137,29 @@ CREATE TABLE IF NOT EXISTS solicitacoes_compra (
     CONSTRAINT fk_solic_fornecedor FOREIGN KEY (id_fornecedor) REFERENCES fornecedores(id)
 );
 
+
+CREATE TABLE IF NOT EXISTS orcamentos_compra (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_solicitacao INT NOT NULL,
+    id_fornecedor INT NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    prazo_dias INT NULL,
+    observacoes VARCHAR(255) NULL,
+    aprovado BOOLEAN DEFAULT FALSE,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_orc_solicitacao FOREIGN KEY (id_solicitacao) REFERENCES solicitacoes_compra(id),
+    CONSTRAINT fk_orc_fornecedor FOREIGN KEY (id_fornecedor) REFERENCES fornecedores(id)
+);
+
+CREATE TABLE IF NOT EXISTS pedidos_compra (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_orcamento INT NOT NULL,
+    valor_total DECIMAL(10,2) NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'GERADO',
+    data_emissao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ped_orcamento FOREIGN KEY (id_orcamento) REFERENCES orcamentos_compra(id)
+);
+
 -- Compatibilidade com bancos criados antes desta correção.
 ALTER TABLE membros_projeto
     ADD COLUMN IF NOT EXISTS id_projeto INT NULL AFTER id;
