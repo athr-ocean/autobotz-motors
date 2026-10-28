@@ -3,12 +3,12 @@ set -e
 
 echo "=================================================="
 echo "Iniciando verificacao e execucao segura de testes"
-echo "URL do Banco: ${AUTOBOTZ_DB_URL:-jdbc:mariadb://127.0.0.1:3306/autobotz_db_test}"
+echo "URL do Banco: ${AUTOBOTZ_DB_URL:-jdbc:mariadb://127.0.0.1:3308/autobotz_db_test}"
 echo "Utilizador:  ${AUTOBOTZ_DB_USER:-root}"
 echo "=================================================="
 
 # 1. Validação de segurança do banco de dados
-DB_URL="${AUTOBOTZ_DB_URL:-jdbc:mariadb://127.0.0.1:3306/autobotz_db_test}"
+DB_URL="${AUTOBOTZ_DB_URL:-jdbc:mariadb://127.0.0.1:3308/autobotz_db_test}"
 if [[ "$DB_URL" != *"_test"* ]]; then
   echo "ERRO DE SEGURANCA: O banco de dados deve terminar com '_test'!"
   exit 3
