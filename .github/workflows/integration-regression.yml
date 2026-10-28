@@ -1,0 +1,91 @@
+name: Integrated ERP Regression
+
+on:
+  push:
+    branches:
+      - codex/integration-validation-20261028
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  integrated-regression:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: test-only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '26'
+
+      - name: Initialize disposable databases and migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          for db in autobotz_d11_test autobotz_d12_test autobotz_d13_test autobotz_d14_test autobotz_d15_test; do
+            [[ "$db" == *_test ]]
+            mysql -h 127.0.0.1 -uroot -ptest-only -e "CREATE DATABASE \`$db\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+            mysql -h 127.0.0.1 -uroot -ptest-only "$db" < schema.sql
+            for migration in db/migrations/0{11,12,13,14,15,16}_*.sql; do
+              mysql -h 127.0.0.1 -uroot -ptest-only "$db" < "$migration"
+            done
+          done
+
+      - name: Compile application and all test sources
+        run: |
+          mkdir -p "$RUNNER_TEMP/autobotz-classes" "$RUNNER_TEMP/autobotz-tests"
+          find src -name '*.java' -print0 | xargs -0 javac -encoding UTF-8 -Xlint:all -cp 'lib/*' -d "$RUNNER_TEMP/autobotz-classes"
+          find tests -name '*.java' -print0 | xargs -0 javac -encoding UTF-8 -Xlint:all -cp "$RUNNER_TEMP/autobotz-classes:src:lib/*" -d "$RUNNER_TEMP/autobotz-tests"
+
+      - name: Run deterministic service and portal suites
+        run: |
+          cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
+          AUTOBOTZ_DB_URL=jdbc:autobotz-test:isolated AUTOBOTZ_DB_PASSWORD=dummy java -cp "$cp" ConexaoBancoDataSourceTest
+          for test in AssinaturaServiceTest D13BlockchainApiTest D13LedgerIntegrityTest D14SegurancaTest D14SessaoWebTest D15PortalTest D15ConteudoTest D15AtalhoTest; do
+            java -cp "$cp" "$test"
+          done
+
+      - name: Run D11 and D12 JDBC suites
+        env:
+          AUTOBOTZ_DB_USER: root
+          AUTOBOTZ_DB_PASSWORD: test-only
+        run: |
+          cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
+          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d11_test java -cp "$cp" D11ComprasTest
+          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d12_test java -cp "$cp" AssinaturaDAOJdbcTest
+
+      - name: Run D13 and D14 JDBC suites
+        env:
+          AUTOBOTZ_DB_USER: root
+          AUTOBOTZ_DB_PASSWORD: test-only
+        run: |
+          cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
+          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d13_test java -cp "$cp" D13JdbcIntegrationTest
+          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d14_test java -cp "$cp" D14JdbcIntegrationTest
+
+      - name: Run D15 persistence and authenticated HTTP flow
+        env:
+          AUTOBOTZ_TEST_DB_URL: jdbc:mariadb://127.0.0.1:3306/autobotz_d15_test
+          AUTOBOTZ_TEST_DB_USER: root
+          AUTOBOTZ_TEST_DB_PASSWORD: test-only
+          AUTOBOTZ_DB_URL: jdbc:mariadb://127.0.0.1:3306/autobotz_d15_test
+          AUTOBOTZ_DB_USER: root
+          AUTOBOTZ_DB_PASSWORD: test-only
+        run: |
+          cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
+          java -cp "$cp" D15PersistenciaTest
+          java -cp "$cp" D15AuthHttpJdbcTest
