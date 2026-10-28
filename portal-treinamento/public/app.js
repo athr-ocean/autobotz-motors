@@ -22,7 +22,7 @@ function registrar(corpo) {
 // Renderização Markdown mínima e segura: cria elementos DOM e nunca interpreta HTML do material.
 function textoEmLinha(texto) {
   const fragmento = document.createDocumentFragment();
-  const padrao = /(\\*\\*[^*]+\\*\\*|`[^`]+`)/g;
+  const padrao = /(\*\*[^*]+\*\*|`[^`]+`)/g;
   let inicio = 0;
   for (const match of texto.matchAll(padrao)) {
     if (match.index > inicio) fragmento.append(document.createTextNode(texto.slice(inicio, match.index)));
@@ -41,14 +41,14 @@ function renderizarMarkdown(markdown) {
   let lista = null;
   let tipoLista = null;
 
-  for (const linha of String(markdown).split(/\\r?\\n/)) {
+  for (const linha of String(markdown).split(/\r?\n/)) {
     if (!linha.trim()) {
       lista = null;
       tipoLista = null;
       continue;
     }
 
-    const item = linha.match(/^\\s*([-*]|\\d+\\.)\\s+(.+)$/);
+    const item = linha.match(/^\s*([-*]|\d+\.)\s+(.+)$/);
     if (item) {
       const novoTipo = /^\\d+\\./.test(item[1]) ? "ol" : "ul";
       if (!lista || tipoLista !== novoTipo) {
@@ -64,7 +64,7 @@ function renderizarMarkdown(markdown) {
 
     lista = null;
     tipoLista = null;
-    const titulo = linha.match(/^(#{1,3})\\s+(.+)$/);
+    const titulo = linha.match(/^(#{1,3})\s+(.+)$/);
     if (titulo) {
       const nivel = Math.min(titulo[1].length + 2, 5);
       const h = document.createElement("h" + nivel);
