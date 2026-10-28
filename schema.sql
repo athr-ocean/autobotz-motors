@@ -129,7 +129,8 @@ CREATE TABLE IF NOT EXISTS fornecedores (
 
 CREATE TABLE IF NOT EXISTS solicitacoes_compra (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    descricao VARCHAR(255) NOT NULL,
+    nome VARCHAR(100) NULL,
+    descricao VARCHAR(255) NULL,
     valor DECIMAL(10,2) NOT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'PENDENTE',
     id_fornecedor INT NULL,
@@ -140,12 +141,15 @@ CREATE TABLE IF NOT EXISTS solicitacoes_compra (
 
 CREATE TABLE IF NOT EXISTS orcamentos_compra (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    id_solicitacao INT NOT NULL,
-    id_fornecedor INT NOT NULL,
+    id_solicitacao INT NULL,
+    id_fornecedor INT NULL,
+    nome VARCHAR(100) NULL,
+    descricao VARCHAR(255) NULL,
     valor DECIMAL(10,2) NOT NULL,
     prazo_dias INT NULL,
     observacoes VARCHAR(255) NULL,
     aprovado BOOLEAN DEFAULT FALSE,
+    status VARCHAR(50) NULL,
     criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_orc_solicitacao FOREIGN KEY (id_solicitacao) REFERENCES solicitacoes_compra(id),
     CONSTRAINT fk_orc_fornecedor FOREIGN KEY (id_fornecedor) REFERENCES fornecedores(id)
@@ -153,7 +157,8 @@ CREATE TABLE IF NOT EXISTS orcamentos_compra (
 
 CREATE TABLE IF NOT EXISTS pedidos_compra (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    id_orcamento INT NOT NULL,
+    id_orcamento INT NULL,
+    nome VARCHAR(100) NULL,
     valor_total DECIMAL(10,2) NOT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'GERADO',
     data_emissao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
