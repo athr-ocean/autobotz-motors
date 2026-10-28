@@ -48,13 +48,20 @@ if (!decisao.permitido()) {
 ## O que a classe garante (todos testados)
 
 - Token de 256 bits (`SecureRandom`), só o hash SHA-256 fica em memória.
-- Só `AuthService` abre sessão: ADMIN sem MFA válido nunca recebe token; o bloqueio de 5 falhas/10 min vale também na web.
+- Só `AuthService` abre sessão: ADMIN e VENDEDOR sem MFA válido nunca recebem token; o bloqueio de 5 falhas/10 min vale também na web.
 - Expira após 30 min ociosa ou 8 h no total (mesmo com uso). Logout invalida no servidor.
 - O perfil é relido do banco a cada requisição: ADMIN rebaixado passa a receber 403 e usuário removido passa a receber 401.
 - Login/logout web não tocam `SessaoUsuario`; um ADMIN logado no Swing **não** autoriza requisições HTTP.
 
 ## Limites
 
+- Nesta árvore fornecida existe o serviço de sessão e seu contrato de integração, mas não foi encontrada uma implementação de produção dos handlers HTTP em `src/`. A autorização está testada pelo serviço e por um servidor HTTP criado dentro do teste; a integração da rota real precisa ser verificada com o código do responsável pelo portal antes de declarar o portal protegido de ponta a ponta.
 - Sessões vivem na memória do processo: reiniciar o servidor encerra todas (é intencional nesta prova de conceito).
 - Não há HTTPS, limite por IP, "lembrar-me" nem renovação de token.
 - Proteção CSRF além de `SameSite=Strict` (ex.: checar `Origin` nas rotas `POST`) fica a cargo de quem implementa as rotas.
+
+## MFA para dados de clientes e CRM
+
+A política atual exige o segundo fator para os perfis `ADMIN` e `VENDEDOR`. O vendedor pode consultar/cadastrar clientes e acessar CRM; portanto, senha correta, isoladamente, devolve `MFA_NECESSARIA`, não uma sessão/token. A camada web continua a revalidar o token e a permissão do perfil no servidor em cada requisição. `LISTAR_CLIENTES`, `CADASTRAR_CLIENTE` e `ACESSAR_CRM` somente retornam 200 depois que o MFA for concluído e desde que a matriz permita a ação.
+
+O segundo fator é **SIMULADO**: a interface de demonstração exibe o código rotulado como demonstração. Não há entrega real por SMS ou e-mail.

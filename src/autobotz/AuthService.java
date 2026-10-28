@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
@@ -24,8 +25,13 @@ import autobotz.util.SenhaHash;
 public class AuthService {
     public static final int MAX_FALHAS = 5;
     public static final Duration JANELA = Duration.ofMinutes(10);
-    /** Perfis que exigem segundo fator no login. Política a confirmar com Arthur. */
-    public static final Set<PerfilUsuario> PERFIS_COM_MFA = EnumSet.of(PerfilUsuario.ADMIN);
+    /**
+     * Todos os perfis atuais exigem segundo fator: ADMIN tem acesso amplo, e
+     * VENDEDOR pode consultar/cadastrar clientes e acessar o CRM. Novos perfis
+     * devem entrar nesta política antes de receber permissões para dados críticos.
+     */
+    public static final Set<PerfilUsuario> PERFIS_COM_MFA =
+            Collections.unmodifiableSet(EnumSet.allOf(PerfilUsuario.class));
 
     private static final int MAX_NOME = 50;
 
@@ -45,7 +51,7 @@ public class AuthService {
         this.repo = repo;
         this.clock = clock;
         this.mfa = new MfaService(repo, clock);
-        this.perfisComMfa = perfisComMfa;
+        this.perfisComMfa = Set.copyOf(perfisComMfa);
     }
 
     /** Gera hash no formato atual (PBKDF2 com sal). */

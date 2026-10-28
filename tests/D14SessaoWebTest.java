@@ -49,8 +49,13 @@ public class D14SessaoWebTest {
 
     String tokenVendedor() throws Exception {
       var l = svc.iniciarLogin("vendedor", SENHA_VEND);
-      check(l.status() == ResultadoLogin.Status.AUTENTICADO && l.token() != null, "LOGIN_WEB_VENDEDOR_SEM_MFA");
-      return l.token();
+      check(l.status() == ResultadoLogin.Status.MFA_NECESSARIA
+          && l.token() == null && l.desafio() != null,
+          "LOGIN_WEB_VENDEDOR_SEM_MFA_NAO_EMITE_TOKEN");
+      var concluido = svc.concluirMfa(l.desafio().id(), l.desafio().codigoSimulado());
+      check(concluido.status() == ResultadoLogin.Status.AUTENTICADO && concluido.token() != null,
+          "LOGIN_WEB_VENDEDOR_EMITE_TOKEN_APOS_MFA");
+      return concluido.token();
     }
 
     String tokenAdmin() throws Exception {
@@ -74,13 +79,25 @@ public class D14SessaoWebTest {
       Ctx c = new Ctx();
       check(metricas(c, null) == 401 && metricas(c, "") == 401 && metricas(c, "lixo!") == 401
           && metricas(c, tokFalso) == 401, "METRICAS_401_SEM_SESSAO_VALIDA");
-      String tv = c.tokenVendedor();
+      var primeiroVendedor = c.svc.iniciarLogin("vendedor", SENHA_VEND);
+      check(primeiroVendedor.status() == ResultadoLogin.Status.MFA_NECESSARIA
+          && primeiroVendedor.token() == null,
+          "VENDEDOR_SENHA_SEM_MFA_NAO_ABRE_SESSAO_WEB");
+      check(c.svc.autenticar(primeiroVendedor.token()).httpStatus() == 401
+          && c.svc.autorizar(primeiroVendedor.token(), Permissao.LISTAR_CLIENTES).httpStatus() == 401
+          && c.svc.autorizar(primeiroVendedor.token(), Permissao.CADASTRAR_CLIENTE).httpStatus() == 401
+          && c.svc.autorizar(primeiroVendedor.token(), Permissao.ACESSAR_CRM).httpStatus() == 401,
+          "SEM_MFA_VENDEDOR_NAO_ACESSA_CLIENTES_CRM");
+      String tv = c.svc.concluirMfa(primeiroVendedor.desafio().id(),
+          primeiroVendedor.desafio().codigoSimulado()).token();
       var dv = c.svc.autorizarMetricas(tv);
       check(dv.acesso() == Acesso.PROIBIDO && dv.httpStatus() == 403, "METRICAS_403_VENDEDOR_AUTENTICADO");
       check(c.svc.autenticar(tv).httpStatus() == 200
           && c.svc.autorizar(tv, Permissao.LISTAR_CLIENTES).httpStatus() == 200
+          && c.svc.autorizar(tv, Permissao.CADASTRAR_CLIENTE).httpStatus() == 200
+          && c.svc.autorizar(tv, Permissao.ACESSAR_CRM).httpStatus() == 200
           && c.svc.autorizar(tv, Permissao.EXCLUIR_VEICULO).httpStatus() == 403,
-          "VENDEDOR_RECEBE_SO_O_QUE_A_MATRIZ_PERMITE");
+          "VENDEDOR_APOS_MFA_RECEBE_SO_PERMISSOES_DA_MATRIZ");
       String ta = c.tokenAdmin();
       var da = c.svc.autorizarMetricas(ta);
       check(da.acesso() == Acesso.PERMITIDO && da.httpStatus() == 200
@@ -120,6 +137,11 @@ public class D14SessaoWebTest {
       var certa = c.svc.iniciarLogin("vendedor", SENHA_VEND);
       check(certa.status() == ResultadoLogin.Status.BLOQUEADO && certa.token() == null,
           "WEB_BLOQUEADO_NAO_EMITE_TOKEN_NEM_COM_SENHA_CERTA");
+      c.clock.advance(Duration.ofMinutes(10));
+      var aposBloqueio = c.svc.iniciarLogin("vendedor", SENHA_VEND);
+      check(aposBloqueio.status() == ResultadoLogin.Status.MFA_NECESSARIA
+          && aposBloqueio.token() == null,
+          "WEB_APOS_BLOQUEIO_EXIGE_MFA_ANTES_DE_EMITIR_TOKEN");
     }
 
     // ===== Logout =====
@@ -208,8 +230,10 @@ public class D14SessaoWebTest {
       String ta = c.tokenAdmin();
       c.svc.logout(ta);
       boolean vaza = c.repo.eventos.stream().anyMatch(e -> e.toString().contains(tv) || e.toString().contains(ta));
-      var login = c.svc.iniciarLogin("vendedor", SENHA_VEND);
-      check(!vaza && !login.toString().contains(login.token()), "TOKEN_NAO_APARECE_NA_TRILHA_NEM_NO_TOSTRING");
+      var primeiro = c.svc.iniciarLogin("vendedor", SENHA_VEND);
+      var login = c.svc.concluirMfa(primeiro.desafio().id(), primeiro.desafio().codigoSimulado());
+      check(!vaza && login.token() != null && !login.toString().contains(login.token()),
+          "TOKEN_NAO_APARECE_NA_TRILHA_NEM_NO_TOSTRING");
       check(tv.length() == 43 && !tv.equals(ta) && tv.matches("[A-Za-z0-9_-]+"), "TOKEN_256_BITS_URL_SAFE");
     }
 
