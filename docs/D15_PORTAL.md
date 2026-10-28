@@ -88,6 +88,19 @@ Os testes de rota não usam banco: criam uma pasta temporária com catálogo de 
 - Nenhum dado pessoal, IP ou identificador de sessão é coletado.
 - Métricas permanecem negadas até existir autorização administrativa server-side.
 
+## Executar as suítes D15
+
+Na raiz do repositório, execute:
+
+    bash scripts/test-d15.sh
+
+O script compila o portal e executa `D15PortalTest`, `D15ConteudoTest` e `D15AtalhoTest`
+sem banco. Se as três variáveis `AUTOBOTZ_TEST_DB_URL`, `AUTOBOTZ_TEST_DB_USER` e
+`AUTOBOTZ_TEST_DB_PASSWORD` estiverem definidas, também executa `D15PersistenciaTest`;
+essa suíte recusa URLs cujo banco não termine em `_test`. O driver MariaDB pode ser indicado
+por `AUTOBOTZ_JDBC_JAR`. O script não cria banco nem aplica testes fora do banco explicitamente
+configurado.
+
 ## Testes de conteúdo e de persistência
 
 Conteúdo (cópias em `content/` iguais aos textos oficiais em `docs/`):
