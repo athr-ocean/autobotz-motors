@@ -151,6 +151,8 @@ public class D15PortalTest {
             check(get("/api/treinamentos/outra").statusCode() == 404, "rota desconhecida -> 404");
             check(get("/").statusCode() == 200, "pagina inicial -> 200");
             check(get("/..%2Fsegredo.txt").statusCode() == 404, "arquivo fora da pasta publica -> 404");
+            Files.createSymbolicLink(pub.resolve("atalho-segredo.txt"), tmp.resolve("segredo.txt"));
+            check(get("/atalho-segredo.txt").statusCode() == 404, "symlink externo fora da pasta publica -> 404");
 
             Path ruim = Files.createDirectory(tmp.resolve("ruim"));
             Files.writeString(ruim.resolve("catalogo.json"),
