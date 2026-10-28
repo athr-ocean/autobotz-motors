@@ -120,7 +120,6 @@ CREATE TABLE IF NOT EXISTS mfa_desafios (
 
 
 
-
 -- ==================================================
 -- TABELAS DO MÓDULO DE COMPRAS (D11)
 -- ==================================================
@@ -142,6 +141,8 @@ CREATE TABLE IF NOT EXISTS solicitacoes_compra (
     id_aprovador INT NULL,
     aprovador_id INT NULL,
     descricao VARCHAR(255) NULL,
+    motivo VARCHAR(255) NULL,
+    motivo_rejeicao VARCHAR(255) NULL,
     valor DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
     saldo_atual DECIMAL(12,2) NULL DEFAULT 0.00,
@@ -165,6 +166,8 @@ CREATE TABLE IF NOT EXISTS orcamentos_compra (
     id_aprovador INT NULL,
     aprovador_id INT NULL,
     descricao VARCHAR(255) NULL,
+    motivo VARCHAR(255) NULL,
+    motivo_rejeicao VARCHAR(255) NULL,
     valor DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     saldo_inicial DECIMAL(12,2) NULL DEFAULT 0.00,
     saldo_atual DECIMAL(12,2) NULL DEFAULT 0.00,
@@ -195,7 +198,6 @@ CREATE TABLE IF NOT EXISTS pedidos_compra (
     status VARCHAR(30) NOT NULL DEFAULT 'GERADO',
     data_emissao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
 
 
 
