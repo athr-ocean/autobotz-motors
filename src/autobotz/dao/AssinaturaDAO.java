@@ -18,10 +18,6 @@ import autobotz.model.ModuloOpcional;
 
 public class AssinaturaDAO {
 	
-	int idPlanoAnterior;
-	BigDecimal precoAnterior = null;
-	BigDecimal precoNovo = null;
-
 	public int salvar(AssinaturaCliente assinatura)
 	        throws SQLException {
 
@@ -214,11 +210,10 @@ public class AssinaturaDAO {
         Connection conexao = ConexaoBanco.getConexao();
 
         boolean autoCommitOriginal = conexao.getAutoCommit();
-        BigDecimal totalModulos =
-        	    somarModulos(conexao, idAssinatura);
-
-        	precoAnterior = precoAnterior.add(totalModulos);
-        	precoNovo = precoNovo.add(totalModulos);
+        int idPlanoAnterior;
+        BigDecimal precoAnterior;
+        BigDecimal precoNovo;
+        BigDecimal totalModulos;
 
         String sqlConsulta = """
             SELECT a.id_plano, a.status, p.preco_base
@@ -271,6 +266,9 @@ public class AssinaturaDAO {
                     idPlanoAnterior = rs.getInt("id_plano");
                     precoAnterior = rs.getBigDecimal("preco_base");
                 }
+
+                totalModulos = somarModulos(conexao, idAssinatura);
+                precoAnterior = precoAnterior.add(totalModulos);
             }
 
             if (idPlanoAnterior == idNovoPlano) {
@@ -296,6 +294,7 @@ public class AssinaturaDAO {
                     precoNovo = rs.getBigDecimal("preco_base");
                 }
             }
+            precoNovo = precoNovo.add(totalModulos);
             try (PreparedStatement stmt =
                     conexao.prepareStatement(sqlAtualizar)) {
 

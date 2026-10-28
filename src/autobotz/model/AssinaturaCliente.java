@@ -42,7 +42,7 @@ public class AssinaturaCliente {
     		this.clienteId = clienteId;
     		this.plano = plano;
 			this.modulos = new ArrayList<>();
-			this.status = "ATIVA";
+			this.status = status;
 			this.dataInicio = dataInicio;
 			
 			}
