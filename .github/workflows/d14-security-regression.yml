@@ -41,20 +41,7 @@ jobs:
       - name: Prepare isolated schema and migrations
         run: |
           mysql -h 127.0.0.1 -P 3306 -u root -pci-root-not-a-secret -e "CREATE DATABASE autobotz_d14_test"
-          python3 - <<'PY'
-          import os
-          from pathlib import Path
-          source = Path("schema.sql").read_text()
-          assert source.count("CREATE DATABASE IF NOT EXISTS autobotz_db;") == 1
-          assert source.count("USE autobotz_db;") == 1
-          source = source.replace(
-              "CREATE DATABASE IF NOT EXISTS autobotz_db;\nUSE autobotz_db;",
-              "CREATE DATABASE IF NOT EXISTS autobotz_d14_test;\nUSE autobotz_d14_test;",
-              1,
-          )
-          Path(os.environ["RUNNER_TEMP"], "schema-d14-test.sql").write_text(source)
-          PY
-          mysql -h 127.0.0.1 -P 3306 -u root -pci-root-not-a-secret < "$RUNNER_TEMP/schema-d14-test.sql"
+          mysql -h 127.0.0.1 -P 3306 -u root -pci-root-not-a-secret autobotz_d14_test < schema.sql
           mysql -h 127.0.0.1 -P 3306 -u root -pci-root-not-a-secret autobotz_d14_test < db/migrations/014_d14_security.sql
           mysql -h 127.0.0.1 -P 3306 -u root -pci-root-not-a-secret autobotz_d14_test < db/migrations/015_d15_treinamento.sql
       - name: Compile D14 sources and regressions
