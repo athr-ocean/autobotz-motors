@@ -9,7 +9,7 @@ out="$(mktemp -d)"
 trap 'rm -rf "$out"' EXIT
 
 mapfile -d '' portal_sources < <(find src/autobotz/portal -name '*.java' -print0)
-mapfile -d '' test_sources < <(find tests -maxdepth 1 -type f \( -name 'D15PortalTest.java' -o -name 'D15ConteudoTest.java' -o -name 'D15AtalhoTest.java' -o -name 'D15PersistenciaTest.java' \) -print0)
+mapfile -d '' test_sources < <(find tests -maxdepth 1 -type f \( -name 'D15PortalTest.java' -o -name 'D15ConteudoTest.java' -o -name 'D15AtalhoTest.java' -o -name 'D15PersistenciaTest.java' -o -name 'D14SegurancaTest.java' -o -name 'D14JdbcIntegrationTest.java' \) -print0)
 
 printf '%s\n' '== Compilando portal e testes D15 =='
 javac -encoding UTF-8 -sourcepath src -d "$out" "${portal_sources[@]}" "${test_sources[@]}"
@@ -36,6 +36,11 @@ if [[ -n "${AUTOBOTZ_TEST_DB_URL:-}" && -n "${AUTOBOTZ_TEST_DB_USER:-}" && -n "$
     AUTOBOTZ_DB_USER="$AUTOBOTZ_TEST_DB_USER" \
     AUTOBOTZ_DB_PASSWORD="$AUTOBOTZ_TEST_DB_PASSWORD" \
     java -cp "$cp" D15PersistenciaTest
+  printf '%s\n' '== D14JdbcIntegrationTest (portal HTTP real) =='
+  AUTOBOTZ_DB_URL="$AUTOBOTZ_TEST_DB_URL" \
+    AUTOBOTZ_DB_USER="$AUTOBOTZ_TEST_DB_USER" \
+    AUTOBOTZ_DB_PASSWORD="$AUTOBOTZ_TEST_DB_PASSWORD" \
+    java -cp "$cp" D14JdbcIntegrationTest
 else
   printf '%s\n' 'PULADO: D15PersistenciaTest requer AUTOBOTZ_TEST_DB_URL, AUTOBOTZ_TEST_DB_USER e AUTOBOTZ_TEST_DB_PASSWORD.'
 fi
