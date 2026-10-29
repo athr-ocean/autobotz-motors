@@ -1,5 +1,8 @@
 # Validação
 
+> **Registro histórico:** as verificações abaixo se referem à primeira etapa, em setembro de 2026. Para a integração D11–D15, os testes JDBC de 29/10/2026, as PRs e o estado atual, consulte `RELATORIO_GERAL_RODADA2.md` e `CHECKLIST_FINAL.md`. Não interprete limitações históricas como estado final sem essa conferência.
+
+
 Registro da validação do working tree em `integration/final`, baseada em `eeac6be`. Nenhum resultado abaixo representa uma inspeção visual do Swing.
 
 ## Build e compilação
