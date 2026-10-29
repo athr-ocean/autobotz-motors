@@ -33,7 +33,7 @@ public final class SimuladorPlanosPanel extends JPanel {
   private final JCheckBox vendas = new JCheckBox(SwingSupport.text("gui.plan_sales"));
   private final JTextArea saida = new JTextArea(8, 42);
 
-  SimuladorPlanosPanel() {
+  public SimuladorPlanosPanel() {
     setLayout(new BorderLayout(0, 20));
     setBorder(BorderFactory.createEmptyBorder(24, 28, 24, 28));
     setBackground(AppTheme.BACKGROUND);
