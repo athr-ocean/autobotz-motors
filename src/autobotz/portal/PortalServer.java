@@ -46,7 +46,7 @@ public class PortalServer {
             MetricasAuthorizer autorizadorMetricas) throws IOException {
         this.backend = backend;
         this.catalogo = catalogo;
-        this.raiz = raizPublica.toAbsolutePath().normalize();
+        this.raiz = raizPublica.toRealPath();
         this.autorizadorMetricas = autorizadorMetricas == null ? this::autorizarComSessaoWeb : autorizadorMetricas;
         this.server = HttpServer.create(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), porta), 0);
         server.createContext("/api/", this::api);
@@ -327,21 +327,29 @@ public class PortalServer {
             return;
         }
         String p = ex.getRequestURI().getPath();
-        Path arq;
+        final Path arq;
+        final Path real;
         try {
             arq = raiz.resolve(p.equals("/") ? "index.html" : p.substring(1)).normalize();
-        } catch (RuntimeException e) {
-            arq = null;
-        }
-        if (arq == null || !arq.startsWith(raiz) || !Files.isRegularFile(arq)) {
+            if (!arq.startsWith(raiz)) {
+                erro(ex, 404, "NAO_ENCONTRADO", "Arquivo não encontrado.");
+                return;
+            }
+            // Normalizar não resolve links simbólicos. Validar o caminho real antes de ler.
+            real = arq.toRealPath();
+            if (!real.startsWith(raiz) || !Files.isRegularFile(real)) {
+                erro(ex, 404, "NAO_ENCONTRADO", "Arquivo não encontrado.");
+                return;
+            }
+        } catch (IOException | RuntimeException e) {
             erro(ex, 404, "NAO_ENCONTRADO", "Arquivo não encontrado.");
             return;
         }
-        String nome = arq.getFileName().toString();
+        String nome = real.getFileName().toString();
         String tipo = nome.endsWith(".html") ? "text/html; charset=utf-8"
             : nome.endsWith(".css") ? "text/css; charset=utf-8"
             : nome.endsWith(".js") ? "text/javascript; charset=utf-8" : "application/octet-stream";
-        enviar(ex, 200, tipo, Files.readAllBytes(arq));
+        enviar(ex, 200, tipo, Files.readAllBytes(real));
     }
 
     private void erro(HttpExchange ex, int status, String codigo, String msg) throws IOException {
