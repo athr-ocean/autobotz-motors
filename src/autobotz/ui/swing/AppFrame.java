@@ -118,6 +118,7 @@ final class AppFrame extends JFrame {
     Usuario currentUser = SessaoUsuario.getInstancia().getUsuario();
     if (currentUser.getPerfil() == PerfilUsuario.ADMIN
         || currentUser.getPerfil() == PerfilUsuario.VENDEDOR) {
+      addNav(menu, "plans", "gui.plans");
       addActionNav(menu, "gui.training_center", this::openTrainingCenter);
     }
     side.add(menu, BorderLayout.CENTER);
@@ -231,6 +232,7 @@ final class AppFrame extends JFrame {
       case "projects" -> projects();
       case "crm" -> crm();
       case "purchases" -> purchases();
+      case "plans" -> new SimuladorPlanosPanel();
       case "reports" -> reports();
       case "audit" -> audit();
       default -> dashboard();

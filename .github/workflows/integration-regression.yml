@@ -55,7 +55,7 @@ jobs:
         run: |
           cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
           AUTOBOTZ_DB_URL=jdbc:autobotz-test:isolated AUTOBOTZ_DB_PASSWORD=dummy java -cp "$cp" ConexaoBancoDataSourceTest
-          for test in AssinaturaServiceTest D13BlockchainApiTest D13LedgerIntegrityTest D14SegurancaTest D14SessaoWebTest D15PortalTest D15ConteudoTest D15AtalhoTest; do
+          for test in AssinaturaServiceTest D12SimuladorUITest D13BlockchainApiTest D13LedgerIntegrityTest D14SegurancaTest D14SessaoWebTest D15PortalTest D15ConteudoTest D15AtalhoTest; do
             java -cp "$cp" "$test"
           done
 
