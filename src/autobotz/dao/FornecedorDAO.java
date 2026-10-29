@@ -54,10 +54,16 @@ public class FornecedorDAO {
     }
 
     public List<Fornecedor> listar() throws SQLException {
+        try (Connection c = abrirConexao()) {
+            return listar(c);
+        }
+    }
+
+    /** Lista usando a conexão do serviço, sem abrir uma segunda conexão. */
+    public List<Fornecedor> listar(Connection c) throws SQLException {
         String sql = "SELECT id, nome, cnpj FROM fornecedores ORDER BY nome, id";
         List<Fornecedor> lista = new ArrayList<>();
-        try (Connection c = abrirConexao();
-             PreparedStatement ps = c.prepareStatement(sql);
+        try (PreparedStatement ps = c.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 lista.add(mapear(rs));

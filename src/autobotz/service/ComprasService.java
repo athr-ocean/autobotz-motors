@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -92,6 +93,11 @@ public class ComprasService {
         });
     }
 
+    public List<Fornecedor> listarFornecedores() throws ComprasException, SQLException {
+        exigir(Acao.CONSULTAR);
+        return emTransacao(fornecedorDAO::listar);
+    }
+
     public Fornecedor buscarFornecedor(int id) throws ComprasException, SQLException {
         exigir(Acao.CONSULTAR);
         return emTransacao(c -> {
@@ -111,6 +117,11 @@ public class ComprasService {
             int id = compraDAO.inserirOrcamento(c, new OrcamentoCompra(0, nomeLimpo, saldo, saldo));
             return new OrcamentoCompra(id, nomeLimpo, saldo, saldo);
         });
+    }
+
+    public List<OrcamentoCompra> listarOrcamentos() throws ComprasException, SQLException {
+        exigir(Acao.CONSULTAR);
+        return emTransacao(compraDAO::listarOrcamentos);
     }
 
     // ---------- fluxo de compra ----------
@@ -174,6 +185,11 @@ public class ComprasService {
             }
             return compraDAO.buscarPedidoPorSolicitacao(c, s.getId());
         });
+    }
+
+    public List<SolicitacaoCompra> listarSolicitacoes() throws ComprasException, SQLException {
+        exigir(Acao.CONSULTAR);
+        return emTransacao(compraDAO::listarSolicitacoes);
     }
 
     /** Rejeita uma solicitação PENDENTE. Não mexe no saldo. */

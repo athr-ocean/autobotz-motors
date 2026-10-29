@@ -46,11 +46,18 @@ O launcher não cria o banco, não instala dependências e não carrega arquivos
 - vendas transacionais e histórico de relacionamento com clientes;
 - serviços e ordens de serviço com itens, totais e regra de garantia;
 - projetos com responsáveis, equipes, status e membros vinculados ao projeto;
+- compras D11 com fornecedores, orçamento, solicitação, aprovação transacional e pedido;
 - relatórios e consulta de auditoria;
 - interface em português do Brasil e inglês dos Estados Unidos.
 
 As permissões são definidas por `AutorizacaoService`. A validação e as limitações conhecidas estão registradas em [docs/VALIDACAO.md](docs/VALIDACAO.md); a documentação de autoria e integração está em [docs/AUTORIA_INTEGRACAO.md](docs/AUTORIA_INTEGRACAO.md).
 
 `src/` é a árvore fonte usada pelo launcher. As classes compiladas são gravadas em `build/classes`, e os recursos são lidos de `src/`. `bin/` e `autobotz-motors-main/` são árvores antigas rastreadas e não são usadas por esse launcher. No Eclipse, configure `M2_REPO` para o repositório Maven local e selecione JDK 21 ou superior.
+
+## D11 — Compras
+
+A tela **Compras** é restrita a `ADMIN` na matriz atual e permite cadastrar fornecedor/orçamento, registrar solicitação, consultar estado, aprovar e gerar pedido ou rejeitar com motivo. Antes de usar o módulo, aplique `db/migrations/011_d11_compras.sql` ao banco de destino selecionado. Para instalação nova, as mesmas tabelas estão no `schema.sql`.
+
+Para o teste de aceite JDBC, configure `AUTOBOTZ_DB_URL` para um banco descartável terminado em `_test`, `AUTOBOTZ_DB_USER`, `AUTOBOTZ_DB_PASSWORD` e, se necessário, `AUTOBOTZ_JDBC_JAR`. Depois execute `bash scripts/test-d11-compras.sh`. O script recusa destinos fora de `_test` e remove apenas registros criados pelo próprio teste. O mapa do fluxo, riscos e evidências esperadas está em [docs/D11_COMPRAS_RELATORIO.md](docs/D11_COMPRAS_RELATORIO.md).
 
 A divergência acadêmica sobre a exigência de Swing no D6 deve ser confirmada com o professor antes da entrega.

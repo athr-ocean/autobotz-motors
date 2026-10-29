@@ -12,6 +12,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * SQL do fluxo de compra. Todos os métodos recebem a {@link Connection} do chamador:
@@ -59,6 +61,20 @@ public class CompraDAO {
         }
     }
 
+    /** Lista os orçamentos para seleção no formulário, incluindo o saldo atual. */
+    public List<OrcamentoCompra> listarOrcamentos(Connection c) throws SQLException {
+        String sql = "SELECT id, nome, saldo_inicial, saldo_atual FROM orcamentos_compra ORDER BY nome, id";
+        List<OrcamentoCompra> lista = new ArrayList<>();
+        try (PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                lista.add(new OrcamentoCompra(rs.getInt("id"), rs.getString("nome"),
+                        rs.getBigDecimal("saldo_inicial"), rs.getBigDecimal("saldo_atual")));
+            }
+        }
+        return lista;
+    }
+
     // ---------- solicitação ----------
 
     public int inserirSolicitacao(Connection c, SolicitacaoCompra s) throws SQLException {
@@ -92,6 +108,23 @@ public class CompraDAO {
                         rs.getString("aprovador"), rs.getString("motivo_rejeicao"));
             }
         }
+    }
+
+    /** Lista as solicitações mais recentes primeiro, para consulta e aprovação na interface. */
+    public List<SolicitacaoCompra> listarSolicitacoes(Connection c) throws SQLException {
+        String sql = "SELECT id, orcamento_id, fornecedor_id, descricao, valor, status, solicitante, "
+                + "aprovador, motivo_rejeicao FROM solicitacoes_compra ORDER BY criado_em DESC, id DESC";
+        List<SolicitacaoCompra> lista = new ArrayList<>();
+        try (PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                lista.add(new SolicitacaoCompra(rs.getInt("id"), rs.getInt("orcamento_id"),
+                        rs.getInt("fornecedor_id"), rs.getString("descricao"), rs.getBigDecimal("valor"),
+                        StatusSolicitacao.valueOf(rs.getString("status")), rs.getString("solicitante"),
+                        rs.getString("aprovador"), rs.getString("motivo_rejeicao")));
+            }
+        }
+        return lista;
     }
 
     /** Registra a decisão (aprovador, motivo, data) e muda o status, só se o status atual for {@code de}. */
