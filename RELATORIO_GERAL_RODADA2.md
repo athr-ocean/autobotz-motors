@@ -62,11 +62,11 @@ As verificações acima não equivalem à certificação de produção. A interf
 | D6–D10 sem regressões principais | DAOs e serviços preexistentes | `CoreRegression` passou no MariaDB de teste |
 | D11 compra e orçamento | `ComprasService`, `ComprasPanel` | testes D11 serviço/JDBC passaram; cliques Swing não ensaiados |
 | D11 testes, CI, sustentabilidade | scripts/workflows, relatório D11 | CI passou; medição energética e tempo manual pendentes |
-| D12 planos, assinatura, transações | `AssinaturaDAO`, `AssinaturaService` | testes offline/JDBC passaram; projeções simuladas |
+| D12 planos, assinatura, transações e simulador Swing | `AssinaturaDAO`, `AssinaturaService`, `SimuladorPlanosPanel` | testes de serviço/JDBC anteriores e novo teste headless; projeções simuladas |
 | D13 contratos, hash-chain e PoC | `ContratoService`, `LedgerContratoDAO` | testes offline/JDBC passaram; API e pagamento simulados |
 | D14 autenticação e MFA | `AuthService`, `SegurancaDAO` | testes de segurança e HTTP/JDBC passaram; fator demonstrativo |
 | D14 dados pessoais | AES-GCM, HMAC e migration 016 | `CoreRegression` e validação de schema passaram |
-| D15 materiais, eventos e métricas | `PortalLauncher`, `TreinamentoService` | portal offline e HTTP/JDBC passaram; efeito em chamados não medido |
+| D15 materiais, eventos, pesquisa e métricas | `PortalLauncher`, `TreinamentoService` e `docs/D15_ANALISE_TICKETS_PESQUISA.md` | testes HTTP/JDBC anteriores; tickets/pesquisa são fictícios e redução de chamados não medida |
 | Entrega final | `README.md`, documentos e código `main` | gerar e conferir ZIP a partir do merge final |
 
 ## 6. Limitações e entrega
@@ -76,3 +76,15 @@ As verificações acima não equivalem à certificação de produção. A interf
 - O vídeo será gravado pela equipe; o roteiro em `ROTEIRO_VIDEO.md` serve como guia.
 - A demonstração visual do Swing, medição temporal manual, telemetria energética e comparação real de chamados continuam sem evidência.
 - O pacote de entrega deve ser montado a partir do commit final da `main`, sem `.git`, arquivos de chaves, segredos e resíduos de build. O procedimento seguro está em `GUIA_GIT_ARTHUR.md`.
+
+## 7. Complemento de aceite documental e de interface (29/10/2026)
+
+Após o fechamento do merge `b55c3b6`, nova comparação com o enunciado identificou lacunas de material: faltavam os relatórios específicos `docs/D12_PLANOS_SIMULACAO.md` e `docs/D15_ANALISE_TICKETS_PESQUISA.md`; o documento D11 confundia estimativas com medições; e o cálculo D12 estava no serviço, mas faltava uma interface para executar cenários.
+
+Foram adicionados:
+- `SimuladorPlanosPanel`, tela Swing de cenários 30/50/20 com preços e módulos opcionais editáveis, rotulação de dados fictícios, sem gravação em banco;
+- `D12SimuladorUITest` com dez verificações em ambiente headless, inclusive criação do painel e recusas de entradas inválidas;
+- os relatórios de análise financeira, comunicação e suporte D12 e de tickets/pesquisa D15, com dados explicitamente **simulados**;
+- revisão do relatório D11 com protocolo de medição, sem alegar redução observada de energia ou tempo.
+
+A compilação com Java 21 e as **11 classes de teste offline** (10 anteriores + `D12SimuladorUITest`) passaram no ambiente isolado após as mudanças. A suíte JDBC **8/8** foi executada pelo responsável na revisão anterior (commit `718fe28`), não após a inclusão do painel. O GitHub Actions da nova PR deve confirmar a integração antes da atualização do ZIP. A demonstração visual Swing em tela real continua sem ensaio documentado.
