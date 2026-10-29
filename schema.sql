@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS autobotz_db;
-USE autobotz_db;
+-- CREATE DATABASE IF NOT EXISTS autobotz_db;
+-- USE autobotz_db;
 
 CREATE TABLE IF NOT EXISTS veiculos (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -13,17 +13,18 @@ CREATE TABLE IF NOT EXISTS veiculos (
 
 CREATE TABLE IF NOT EXISTS clientes (
     id_cliente INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    cpf VARCHAR(14) NOT NULL,
-    telefone VARCHAR(20),
-    email VARCHAR(150),
+    nome VARCHAR(1024) NOT NULL,
+    cpf VARCHAR(1024) NOT NULL,
+    cpf_hash CHAR(64) NULL,
+    telefone VARCHAR(1024),
+    email VARCHAR(1024),
     ativo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nome_usuario VARCHAR(50) NOT NULL UNIQUE,
-    senha_hash CHAR(64) NOT NULL,
+    senha_hash VARCHAR(255) NOT NULL,
     perfil VARCHAR(20) NOT NULL
 );
 
@@ -118,13 +119,13 @@ CREATE TABLE IF NOT EXISTS mfa_desafios (
     INDEX idx_mfa_usuario (id_usuario, consumido)
 );
 
-
 -- Compatibilidade com bancos criados antes desta correção.
 ALTER TABLE membros_projeto
     ADD COLUMN IF NOT EXISTS id_projeto INT NULL AFTER id;
 
 ALTER TABLE membros_projeto
     MODIFY COLUMN id INT NOT NULL AUTO_INCREMENT;
+
 -- D11: compras e fornecedores. Mantido em sincronia com db/migrations/011_d11_compras.sql.
 CREATE TABLE IF NOT EXISTS fornecedores (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -194,4 +195,122 @@ CREATE TABLE IF NOT EXISTS pedidos_compra (
     CONSTRAINT fk_d11_pedido_fornecedor FOREIGN KEY (fornecedor_id)
         REFERENCES fornecedores(id),
     CONSTRAINT ck_d11_pedido_valor CHECK (valor > 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- D12: planos, assinaturas, módulos e eventos financeiros.
+CREATE TABLE IF NOT EXISTS planos_assinatura (
+    id_plano INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    preco_base DECIMAL(10,2) NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT chk_plano_preco CHECK (preco_base >= 0)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS modulos_opcionais (
+    id_modulo INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    preco DECIMAL(10,2) NOT NULL,
+    CONSTRAINT chk_modulo_preco CHECK (preco >= 0)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS assinaturas_clientes (
+    id_assinatura INT AUTO_INCREMENT PRIMARY KEY,
+    id_cliente INT NOT NULL,
+    id_plano INT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'ATIVA',
+    data_inicio DATE NOT NULL,
+    data_cancelamento DATE NULL,
+    categoria_cancelamento VARCHAR(50) NULL,
+    motivo_cancelamento TEXT NULL,
+    feedback_simulado TEXT NULL,
+    CONSTRAINT fk_assinatura_cliente FOREIGN KEY (id_cliente)
+        REFERENCES clientes(id_cliente),
+    CONSTRAINT fk_assinatura_plano FOREIGN KEY (id_plano)
+        REFERENCES planos_assinatura(id_plano)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS assinatura_modulos (
+    id_assinatura INT NOT NULL,
+    id_modulo INT NOT NULL,
+    PRIMARY KEY (id_assinatura, id_modulo),
+    CONSTRAINT fk_assmod_assinatura FOREIGN KEY (id_assinatura)
+        REFERENCES assinaturas_clientes(id_assinatura),
+    CONSTRAINT fk_assmod_modulo FOREIGN KEY (id_modulo)
+        REFERENCES modulos_opcionais(id_modulo)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS assinatura_eventos (
+    id_evento INT AUTO_INCREMENT PRIMARY KEY,
+    id_assinatura INT NOT NULL,
+    tipo_evento VARCHAR(30) NOT NULL,
+    data_evento DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    descricao TEXT NULL,
+    valor_anterior DECIMAL(10,2) NULL,
+    valor_novo DECIMAL(10,2) NULL,
+    categoria_motivo VARCHAR(50) NULL,
+    feedback_simulado TEXT NULL,
+    CONSTRAINT fk_evento_assinatura FOREIGN KEY (id_assinatura)
+        REFERENCES assinaturas_clientes(id_assinatura)
+) ENGINE=InnoDB;
+
+-- D13: contratos de fornecedores e ledger de integridade simulado.
+CREATE TABLE IF NOT EXISTS contratos_fornecedor (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    fornecedor_id INT NOT NULL,
+    valor DECIMAL(12,2) NOT NULL,
+    data_vencimento DATE NOT NULL,
+    estado VARCHAR(24) NOT NULL DEFAULT 'RASCUNHO',
+    nota_fiscal_validada BOOLEAN NOT NULL DEFAULT FALSE,
+    pagamento_simulado_liberado BOOLEAN NOT NULL DEFAULT FALSE,
+    ledger_ultima_sequencia INT NOT NULL DEFAULT 0,
+    ledger_ultimo_hash CHAR(64) NOT NULL DEFAULT '0000000000000000000000000000000000000000000000000000000000000000',
+    criado_em DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    CONSTRAINT chk_contrato_valor_positivo CHECK (valor > 0),
+    CONSTRAINT chk_contrato_ledger_sequencia CHECK (ledger_ultima_sequencia >= 0),
+    CONSTRAINT fk_contrato_fornecedor
+        FOREIGN KEY (fornecedor_id) REFERENCES fornecedores(id)
+        ON UPDATE RESTRICT ON DELETE RESTRICT,
+    INDEX idx_contrato_vencimento (data_vencimento, estado, nota_fiscal_validada)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS ledger_contratos (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    contrato_id BIGINT NOT NULL,
+    sequencia INT NOT NULL,
+    tipo_evento VARCHAR(40) NOT NULL,
+    payload TEXT NOT NULL,
+    hash_conteudo CHAR(64) NOT NULL,
+    hash_anterior CHAR(64) NOT NULL,
+    hash_registro CHAR(64) NOT NULL,
+    data_hora DATETIME(6) NOT NULL,
+    CONSTRAINT uq_ledger_contrato_sequencia UNIQUE (contrato_id, sequencia),
+    CONSTRAINT chk_ledger_sequencia_positiva CHECK (sequencia > 0),
+    CONSTRAINT fk_ledger_contrato
+        FOREIGN KEY (contrato_id) REFERENCES contratos_fornecedor(id)
+        ON UPDATE RESTRICT ON DELETE RESTRICT,
+    INDEX idx_ledger_contrato_data (contrato_id, data_hora)
+) ENGINE=InnoDB;
+
+-- D14: espaço para campos cifrados e índice de busca HMAC do CPF.
+-- A migração dos dados existentes é explícita; este DDL não cifra registros.
+ALTER TABLE clientes
+    MODIFY COLUMN nome VARCHAR(1024) NOT NULL,
+    MODIFY COLUMN cpf VARCHAR(1024) NOT NULL,
+    MODIFY COLUMN telefone VARCHAR(1024) NULL,
+    MODIFY COLUMN email VARCHAR(1024) NULL;
+
+ALTER TABLE clientes
+    ADD COLUMN IF NOT EXISTS cpf_hash CHAR(64) NULL AFTER cpf;
+
+CREATE INDEX IF NOT EXISTS idx_clientes_cpf_hash ON clientes(cpf_hash);
+
+-- D15: eventos do portal de treinamento e métricas agregadas
+CREATE TABLE IF NOT EXISTS treinamento_eventos (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    tipo_evento VARCHAR(32) NOT NULL,
+    material_slug VARCHAR(100) NULL,
+    ocorrido_em DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (id),
+    INDEX idx_treinamento_ocorrido_tipo (ocorrido_em, tipo_evento),
+    INDEX idx_treinamento_material_ocorrido (material_slug, ocorrido_em)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

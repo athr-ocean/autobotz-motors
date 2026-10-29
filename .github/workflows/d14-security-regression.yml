@@ -1,0 +1,64 @@
+name: D14 security regression
+
+on:
+  push:
+    branches: [codex/fix-d14-jdbc-test-mfa]
+  pull_request:
+    paths:
+      - '.github/workflows/d14-security-regression.yml'
+      - 'db/migrations/014_d14_security.sql'
+      - 'db/migrations/015_d15_treinamento.sql'
+      - 'schema.sql'
+      - 'src/autobotz/AuthService.java'
+      - 'src/autobotz/service/SessaoWebService.java'
+      - 'tests/D14JdbcIntegrationTest.java'
+      - 'tests/D14SegurancaTest.java'
+      - 'tests/D14SessaoWebTest.java'
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: ci-root-not-a-secret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Download MariaDB Connector/J
+        run: curl -fsSL --retry 3 -o "$RUNNER_TEMP/mariadb-java-client.jar" https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.5.10/mariadb-java-client-3.5.10.jar
+      - name: Prepare isolated schema and migrations
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -u root -pci-root-not-a-secret -e "CREATE DATABASE autobotz_d14_test"
+          mysql -h 127.0.0.1 -P 3306 -u root -pci-root-not-a-secret autobotz_d14_test < schema.sql
+          mysql -h 127.0.0.1 -P 3306 -u root -pci-root-not-a-secret autobotz_d14_test < db/migrations/014_d14_security.sql
+          mysql -h 127.0.0.1 -P 3306 -u root -pci-root-not-a-secret autobotz_d14_test < db/migrations/015_d15_treinamento.sql
+      - name: Compile D14 sources and regressions
+        run: |
+          mkdir -p "$RUNNER_TEMP/classes"
+          find src -name '*.java' > "$RUNNER_TEMP/sources.txt"
+          javac -encoding UTF-8 -cp "$RUNNER_TEMP/mariadb-java-client.jar" -d "$RUNNER_TEMP/classes" \
+            @"$RUNNER_TEMP/sources.txt" \
+            tests/D14SegurancaTest.java tests/D14SessaoWebTest.java tests/D14JdbcIntegrationTest.java
+      - name: Run in-memory security and session suites
+        run: |
+          classpath="$RUNNER_TEMP/classes:src:$RUNNER_TEMP/mariadb-java-client.jar"
+          java -cp "$classpath" D14SegurancaTest
+          java -cp "$classpath" D14SessaoWebTest
+      - name: Run JDBC integration against disposable database
+        env:
+          AUTOBOTZ_DB_URL: jdbc:mariadb://127.0.0.1:3306/autobotz_d14_test?sslMode=disable
+          AUTOBOTZ_DB_USER: root
+          AUTOBOTZ_DB_PASSWORD: ci-root-not-a-secret
+        run: java -cp "$RUNNER_TEMP/classes:src:$RUNNER_TEMP/mariadb-java-client.jar" D14JdbcIntegrationTest

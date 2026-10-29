@@ -61,3 +61,12 @@ A tela **Compras** é restrita a `ADMIN` na matriz atual e permite cadastrar for
 Para o teste de aceite JDBC, configure `AUTOBOTZ_DB_URL` para um banco descartável terminado em `_test`, `AUTOBOTZ_DB_USER`, `AUTOBOTZ_DB_PASSWORD` e, se necessário, `AUTOBOTZ_JDBC_JAR`. Depois execute `bash scripts/test-d11-compras.sh`. O script recusa destinos fora de `_test` e remove apenas registros criados pelo próprio teste. O mapa do fluxo, riscos e evidências esperadas está em [docs/D11_COMPRAS_RELATORIO.md](docs/D11_COMPRAS_RELATORIO.md).
 
 A divergência acadêmica sobre a exigência de Swing no D6 deve ser confirmada com o professor antes da entrega.
+
+
+## Proteção de dados pessoais — D14
+
+Os campos pessoais dos clientes são cifrados na camada de persistência. Antes de usar o cadastro, configure uma chave persistente fora do repositório e mantenha a mesma chave para ler os dados já gravados.
+
+Em instalação nova, `schema.sql` inclui as colunas necessárias. Em banco existente, aplique `db/migrations/016_d14_client_pii.sql` depois das migrations 014 e 015. A conversão dos registros antigos é uma etapa separada e explícita; ela não roda na inicialização do ERP.
+
+O guia [D14 — Criptografia e migração de dados pessoais](docs/D14_CIFRAGEM_DADOS_PESSOAIS.md) explica a configuração e o backup da chave, a preparação do banco e a execução segura da migração e dos testes.

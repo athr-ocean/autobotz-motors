@@ -19,6 +19,8 @@ import autobotz.model.Venda;
 import autobotz.service.CRMService;
 import autobotz.service.ServicoService;
 import autobotz.util.ConexaoBanco;
+import autobotz.util.CriptografiaDadosPessoais;
+import autobotz.util.MigracaoDadosPessoais;
 import autobotz.util.I18nUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -54,10 +56,70 @@ public class CoreRegression {
       return r.getInt(1);
     }
   }
+  static String[] rawClientPii(int id) throws Exception {
+    String sql = "SELECT nome, cpf, cpf_hash, telefone, email "
+        + "FROM clientes WHERE id_cliente = ?";
+    try (var stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+      stmt.setInt(1, id);
+      try (var rs = stmt.executeQuery()) {
+        if (!rs.next()) {
+          throw new AssertionError("Cliente de regressão não encontrado");
+        }
+        return new String[] {
+            rs.getString("nome"), rs.getString("cpf"), rs.getString("cpf_hash"),
+            rs.getString("telefone"), rs.getString("email")
+        };
+      }
+    }
+  }
   public static void main(String[] args) throws Exception {
+    if (args.length == 2 && "--wrong-key-probe".equals(args[0])) {
+      try {
+        CriptografiaDadosPessoais.revelar(args[1], "nome");
+        throw new AssertionError("Texto cifrado foi aceito com chave errada");
+      } catch (java.sql.SQLException expected) {
+        System.out.println("PII_WRONG_KEY_REJECTED");
+      }
+      return;
+    }
     check(System.getenv("AUTOBOTZ_DB_URL")
               .matches(".*autobotz_.*_test(?:[?].*)?"),
           "ISOLATED_TEST_DATABASE");
+    CriptografiaDadosPessoais.validarConfiguracao();
+    check(true, "PII_KEY_CONFIGURED");
+    String cipherProbe = CriptografiaDadosPessoais.proteger("probe", "nome");
+    check("probe".equals(CriptografiaDadosPessoais.revelar(cipherProbe, "nome")),
+          "PII_CIPHER_ROUNDTRIP");
+    try {
+      CriptografiaDadosPessoais.revelar(cipherProbe, "cpf");
+      throw new AssertionError("Campo cifrado foi aceito em outra coluna");
+    } catch (java.sql.SQLException expected) {
+      check(true, "PII_AAD_FIELD_BINDING");
+    }
+    String tamperedProbe = cipherProbe.substring(0, cipherProbe.length() - 1)
+        + (cipherProbe.endsWith("A") ? "B" : "A");
+    try {
+      CriptografiaDadosPessoais.revelar(tamperedProbe, "nome");
+      throw new AssertionError("Texto cifrado alterado foi aceito");
+    } catch (java.sql.SQLException expected) {
+      check(true, "PII_CIPHER_TAMPER_REJECTED");
+    }
+
+    String javaBinary = java.nio.file.Path.of(
+        System.getProperty("java.home"), "bin", "java").toString();
+    var wrongKeyProbe = new ProcessBuilder(
+        javaBinary, "-cp", System.getProperty("java.class.path"),
+        CoreRegression.class.getName(), "--wrong-key-probe", cipherProbe)
+        .redirectErrorStream(true);
+    wrongKeyProbe.environment().put("AUTOBOTZ_PII_KEY",
+        java.util.Base64.getEncoder().encodeToString(new byte[32]));
+    var wrongKeyProcess = wrongKeyProbe.start();
+    String wrongKeyOutput = new String(
+        wrongKeyProcess.getInputStream().readAllBytes(),
+        java.nio.charset.StandardCharsets.UTF_8);
+    check(wrongKeyProcess.waitFor() == 0
+              && wrongKeyOutput.contains("PII_WRONG_KEY_REJECTED"),
+          "PII_WRONG_KEY_REJECTED");
     check(ConexaoBanco.getConexao().isValid(2), "JDBC");
     var pt = I18nUtils.getBundle(Locale.forLanguageTag("pt-BR"));
     var en = I18nUtils.getBundle(Locale.US);
@@ -102,6 +164,25 @@ public class CoreRegression {
     int cid = cd.buscarPorCpf("AUDIT001").getId();
     int cid2 = cd.buscarPorCpf("AUDIT002").getId();
     check(cd.listar().size() == 2, "CLIENT_CREATE_READ");
+    String[] rawPii = rawClientPii(cid);
+    check(CriptografiaDadosPessoais.isProtegido(rawPii[0])
+              && CriptografiaDadosPessoais.isProtegido(rawPii[1])
+              && rawPii[2] != null && rawPii[2].matches("[0-9a-f]{64}")
+              && CriptografiaDadosPessoais.isProtegido(rawPii[3])
+              && CriptografiaDadosPessoais.isProtegido(rawPii[4]),
+          "CLIENT_PII_ENCRYPTED_AT_REST");
+    var decodedClient = cd.buscarPorCpf("AUDIT001");
+    check(decodedClient != null && decodedClient.getNome().equals("Audit Client")
+              && decodedClient.getEmail().equals("audit@example.invalid"),
+          "CLIENT_PII_LOOKUP_AND_DECRYPT");
+    String longUnicodeName = "🚘".repeat(100);
+    cd.salvar(new Cliente(longUnicodeName, "LONG-UNICODE-001", "000",
+                          "unicode@example.invalid"));
+    var longUnicodeClient = cd.buscarPorCpf("LONG-UNICODE-001");
+    String[] rawLongUnicode = rawClientPii(longUnicodeClient.getId());
+    check(rawLongUnicode[0].length() > 512 && rawLongUnicode[0].length() <= 1024
+              && longUnicodeClient.getNome().equals(longUnicodeName),
+          "CLIENT_LONG_UTF8_CIPHERTEXT_FITS_SCHEMA");
     var vd = new VeiculoDAO();
     vd.cadastrar(new Veiculo("AUD0001", "Model", "Brand", 2026, 1000));
     vd.cadastrar(new Veiculo("AUD0002", "Model", "Brand", 2026, 2000));
@@ -127,9 +208,13 @@ public class CoreRegression {
     od.inserirOrdem(os);
     od.inserirItem(new ItemOS(os.getId(), review.getId(), 2, 100));
     od.inserirItem(new ItemOS(os.getId(), other.getId(), 3, 50));
-    check(od.buscarItensObjetos(os.getId()).size() == 2 &&
-              od.buscarItensDaOrdem(os.getId()).size() == 2,
+    var orderDetails = od.buscarItensDaOrdem(os.getId());
+    check(od.buscarItensObjetos(os.getId()).size() == 2
+              && orderDetails.size() == 2,
           "OS_TWO_ITEMS_JOIN");
+    check(orderDetails.stream().allMatch(line ->
+              line.contains("Audit Client") && !line.contains("enc:v1:")),
+          "D14_WORKSHOP_DECRYPTS_CLIENT_NAME");
     check(od.calcularTotal(os.getId()) == 350, "OS_TOTAL_350");
     var service = new ServicoService(od, sd, vendas);
     var total = service.calcularTotalOS(os.getId());
@@ -157,6 +242,12 @@ public class CoreRegression {
               vendas.listarVendasPorCliente(cid).size() == 2 &&
               od.buscarPorId(os.getId()).getClienteId() == cid,
           "ANONYMIZE_FK_PRESERVED");
+    String[] rawAnonymousPii = rawClientPii(cid);
+    check(CriptografiaDadosPessoais.isProtegido(rawAnonymousPii[0])
+              && CriptografiaDadosPessoais.isProtegido(rawAnonymousPii[1])
+              && rawAnonymousPii[3] == null && rawAnonymousPii[4] == null
+              && cd.buscarPorId(cid).getNome().equals("ANÔNIMO"),
+          "ANONYMIZATION_PII_PROTECTED");
     var pd = new ProjetoDAO(en);
     pd.criarProjeto("A", "OwnerA", "TeamA", "OPEN");
     pd.criarProjeto("B", "OwnerB", "TeamB", "CLOSED");
@@ -219,6 +310,74 @@ public class CoreRegression {
     check(cd.buscarPorId(cid).isAtivo() &&
               vendas.listarVendasPorCliente(cid).size() == 2,
           "CLIENT_UPDATE_REFERENCES");
+    String[] rawUpdatedPii = rawClientPii(cid);
+    check(CriptografiaDadosPessoais.isProtegido(rawUpdatedPii[0])
+              && CriptografiaDadosPessoais.isProtegido(rawUpdatedPii[1])
+              && rawUpdatedPii[2].equals(
+                      CriptografiaDadosPessoais.fingerprintCpf("UPDATE-TEST")),
+          "CLIENT_UPDATE_ENCRYPTS_PII");
+    // D14: valida diagnóstico somente leitura e migração de um registro legado.
+    try (var stmt = ConexaoBanco.getConexao().prepareStatement(
+        "INSERT INTO clientes (nome, cpf, cpf_hash, telefone, email, ativo) "
+            + "VALUES (?, ?, NULL, ?, ?, TRUE)")) {
+      stmt.setString(1, "Legacy Migration Client");
+      stmt.setString(2, "MIGRATE-001");
+      stmt.setString(3, "111");
+      stmt.setString(4, "migration@example.invalid");
+      stmt.executeUpdate();
+    }
+    var legacyClient = cd.buscarPorCpf("MIGRATE-001");
+    check(legacyClient != null
+              && legacyClient.getNome().equals("Legacy Migration Client"),
+          "MIGRATION_LEGACY_LOOKUP");
+    int legacyId = legacyClient.getId();
+    String[] rawLegacy = rawClientPii(legacyId);
+    check(!CriptografiaDadosPessoais.isProtegido(rawLegacy[0])
+              && !CriptografiaDadosPessoais.isProtegido(rawLegacy[1])
+              && rawLegacy[2] == null
+              && !CriptografiaDadosPessoais.isProtegido(rawLegacy[3])
+              && !CriptografiaDadosPessoais.isProtegido(rawLegacy[4]),
+          "MIGRATION_LEGACY_PRECONDITION");
+
+    String migrationCheck = capture(
+        () -> MigracaoDadosPessoais.main(new String[] {"--check"}));
+    check(migrationCheck.contains(
+              "MIGRACAO_DADOS_PESSOAIS=DIAGNOSTICO_SEM_ALTERACOES"),
+          "MIGRATION_CHECK_MODE");
+    check(java.util.Arrays.equals(rawLegacy, rawClientPii(legacyId)),
+          "MIGRATION_CHECK_READ_ONLY");
+
+    String activeDatabase = ConexaoBanco.getConexao().getCatalog();
+    String migrationApply = capture(
+        () -> MigracaoDadosPessoais.main(new String[] {
+            "--apply", "--confirm-db=" + activeDatabase
+        }));
+    check(migrationApply.contains("MIGRACAO_DADOS_PESSOAIS=APLICADA"),
+          "MIGRATION_APPLY_MODE");
+
+    String[] rawMigrated = rawClientPii(legacyId);
+    check(CriptografiaDadosPessoais.isProtegido(rawMigrated[0])
+              && CriptografiaDadosPessoais.isProtegido(rawMigrated[1])
+              && rawMigrated[2] != null
+              && rawMigrated[2].equals(
+                  CriptografiaDadosPessoais.fingerprintCpf("MIGRATE-001"))
+              && CriptografiaDadosPessoais.isProtegido(rawMigrated[3])
+              && CriptografiaDadosPessoais.isProtegido(rawMigrated[4]),
+          "MIGRATION_LEGACY_ENCRYPTED");
+    var migratedClient = cd.buscarPorCpf("MIGRATE-001");
+    check(migratedClient != null
+              && migratedClient.getNome().equals("Legacy Migration Client")
+              && migratedClient.getCpf().equals("MIGRATE-001")
+              && migratedClient.getTelefone().equals("111")
+              && migratedClient.getEmail().equals("migration@example.invalid"),
+          "MIGRATION_LEGACY_LOOKUP_PRESERVED");
+
+    String migrationRepeat = capture(
+        () -> MigracaoDadosPessoais.main(new String[] {
+            "--apply", "--confirm-db=" + activeDatabase
+        }));
+    check(migrationRepeat.contains("REGISTROS_PENDENTES=0"),
+          "MIGRATION_IDEMPOTENT");
     System.out.println("CORE_REGRESSION_OK");
   }
 }

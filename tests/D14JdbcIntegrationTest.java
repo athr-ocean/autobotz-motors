@@ -84,10 +84,12 @@ public class D14JdbcIntegrationTest {
       Usuario leg = usuarios.buscarPorNome(nLeg);
       idsCriados.add(leg.getId());
       check(!usuarios.atualizarSenhaHash(leg.getId(), "hash-que-nao-e-o-atual", "x"), "CAS_RECUSA_HASH_DESATUALIZADO");
-      check(auth.iniciarLogin(nLeg, "legado-it").getStatus() == ResultadoLogin.Status.AUTENTICADO
-          && usuarios.buscarPorNome(nLeg).getSenhaHash().startsWith("pbkdf2_sha256$")
-          && auth.iniciarLogin(nLeg, "legado-it").getStatus() == ResultadoLogin.Status.AUTENTICADO,
-          "LEGADO_MIGRA_NO_BANCO_E_CONTINUA_ENTRANDO");
+      var loginLegado = auth.iniciarLogin(nLeg, "legado-it");
+      check(loginLegado.getStatus() == ResultadoLogin.Status.MFA_NECESSARIA
+          && usuarios.buscarPorNome(nLeg).getSenhaHash().startsWith("pbkdf2_sha256$"),
+          "LEGADO_MIGRA_NO_BANCO_E_EXIGE_MFA");
+      check(auth.concluirMfa(loginLegado.getDesafio().id(), loginLegado.getDesafio().codigoSimulado()).getStatus()
+          == ResultadoLogin.Status.AUTENTICADO, "LEGADO_ENTRA_APOS_MFA_VALIDO");
 
       // bloqueio 5/10min com a consulta SQL real
       for (int i = 0; i < 4; i++)
