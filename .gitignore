@@ -9,3 +9,12 @@
 *.key
 *.pem
 *.p12
+
+# Dados locais e cópias antigas do projeto
+/clientes.txt
+/veiculos.txt
+/vendas.txt
+/autobotz-motors-main/
+*.log
+*.bak
+.env.*
