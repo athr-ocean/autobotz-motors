@@ -70,3 +70,11 @@ Os campos pessoais dos clientes são cifrados na camada de persistência. Antes 
 Em instalação nova, `schema.sql` inclui as colunas necessárias. Em banco existente, aplique `db/migrations/016_d14_client_pii.sql` depois das migrations 014 e 015. A conversão dos registros antigos é uma etapa separada e explícita; ela não roda na inicialização do ERP.
 
 O guia [D14 — Criptografia e migração de dados pessoais](docs/D14_CIFRAGEM_DADOS_PESSOAIS.md) explica a configuração e o backup da chave, a preparação do banco e a execução segura da migração e dos testes.
+
+## Rodada 2 — D12 a D15
+
+O simulador **Planos de Assinatura** está disponível na interface Swing para ADMIN e VENDEDOR. É um cálculo local com preços e módulos editáveis e distribuição 30%/50%/20%. **Não altera o banco de dados**. Veja [D12 — análise, simulação e comunicação](docs/D12_PLANOS_SIMULACAO.md). O teste `D12SimuladorUITest` verifica a criação do painel em modo headless, os totais e entradas inválidas.
+
+Relatórios acadêmicos: [D11 — qualidade e sustentabilidade](docs/D11_QUALIDADE_SUSTENTABILIDADE.md), [D13 — contratos](docs/D13_CONTRATOS_LEDGER.md), [D14 — segurança](docs/D14_CIFRAGEM_DADOS_PESSOAIS.md), [D15 — tickets/pesquisa simulada](docs/D15_ANALISE_TICKETS_PESQUISA.md), [relatório geral](RELATORIO_GERAL_RODADA2.md) e [checklist](CHECKLIST_FINAL.md).
+
+Não confunda dados sintéticos de D12/D15, API/ledger simulado de D13 ou MFA demonstrativo com dados reais ou certificação de produção.
