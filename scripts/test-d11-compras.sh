@@ -4,7 +4,9 @@ project_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_dir"
 
 url="${AUTOBOTZ_DB_URL:-}"
-if [[ ! "$url" =~ autobotz_.*_test ]]; then
+db_name="${url##*/}"
+db_name="${db_name%%\?*}"
+if [[ ! "$db_name" =~ ^autobotz_[[:alnum:]_]*_test$ ]]; then
   printf '%s\n' 'Recusado: defina AUTOBOTZ_DB_URL para um banco autobotz_*_test.' >&2
   exit 2
 fi

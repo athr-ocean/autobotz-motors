@@ -39,8 +39,10 @@ public class AutorizacaoService {
         CONSULTAR_EVENTOS_SEGURANCA,
 
         // D15: métricas agregadas do portal de treinamento (somente ADMIN).
-        CONSULTAR_METRICAS_TREINAMENTO
+        CONSULTAR_METRICAS_TREINAMENTO,
 
+        // D11: acesso ao fluxo de compras. Restrito a ADMIN até a matriz ser validada pela equipe.
+        ACESSAR_COMPRAS
     }
 
     private final Map<PerfilUsuario, Set<Permissao>> matriz;

@@ -15,4 +15,10 @@ public final class D11ComprasPermissaoTest {
         "PERFIL_AUSENTE_NAO_PODE_ACESSAR_COMPRAS");
     System.out.println("D11_COMPRAS_PERMISSAO_OK=3");
   }
+
+  private static void check(boolean condicao, String nome) {
+    if (!condicao)
+      throw new AssertionError("FAIL " + nome);
+    System.out.println("PASS " + nome);
+  }
 }

@@ -20,6 +20,7 @@ import autobotz.model.Veiculo;
 import autobotz.model.Venda;
 import autobotz.service.CRMService;
 import autobotz.service.ClienteService;
+import autobotz.service.ComprasService;
 import autobotz.service.RelatorioService;
 import autobotz.service.ServicoService;
 import autobotz.service.VendaService;
@@ -109,6 +110,7 @@ final class AppFrame extends JFrame {
     label(menu, "gui.management");
     addNav(menu, "projects", "gui.projects", AutorizacaoService.Permissao.CONSULTAR_PROJETOS);
     addNav(menu, "crm", "gui.crm", AutorizacaoService.Permissao.ACESSAR_CRM);
+    addNav(menu, "purchases", "gui.purchases", AutorizacaoService.Permissao.ACESSAR_COMPRAS);
     label(menu, "gui.analysis");
     addNav(menu, "reports", "gui.reports", AutorizacaoService.Permissao.ACESSAR_RELATORIOS);
     addNav(menu, "audit", "gui.audit", AutorizacaoService.Permissao.ACESSAR_RELATORIOS);
@@ -191,6 +193,7 @@ final class AppFrame extends JFrame {
       case "workshop" -> workshop();
       case "projects" -> projects();
       case "crm" -> crm();
+      case "purchases" -> purchases();
       case "reports" -> reports();
       case "audit" -> audit();
       default -> dashboard();
@@ -1042,6 +1045,16 @@ final class AppFrame extends JFrame {
     p.add(card, BorderLayout.CENTER);
     return p;
   }
+  private JPanel purchases() {
+    if (!allowed(AutorizacaoService.Permissao.ACESSAR_COMPRAS)) {
+      SwingSupport.error(this, SwingSupport.text("gui.no_permission"));
+      return dashboard();
+    }
+    ComprasService service = new ComprasService(
+        acao -> allowed(AutorizacaoService.Permissao.ACESSAR_COMPRAS));
+    return new ComprasPanel(service);
+  }
+
   private JPanel reports() {
     JPanel p = page(SwingSupport.text("gui.reports_subtitle"));
     JTextArea area = new JTextArea();
