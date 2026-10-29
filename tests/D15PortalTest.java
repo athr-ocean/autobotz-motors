@@ -152,6 +152,11 @@ public class D15PortalTest {
             check(get("/").statusCode() == 200, "pagina inicial -> 200");
             check(get("/..%2Fsegredo.txt").statusCode() == 404, "arquivo fora da pasta publica -> 404");
 
+            Path link = pub.resolve("segredo-link.txt");
+            Files.createSymbolicLink(link, tmp.resolve("segredo.txt"));
+            check(get("/segredo-link.txt").statusCode() == 404,
+                "link simbolico para arquivo fora da pasta publica -> 404");
+
             Path ruim = Files.createDirectory(tmp.resolve("ruim"));
             Files.writeString(ruim.resolve("catalogo.json"),
                 "{\"materiais\":[{\"slug\":\"x\",\"titulo\":\"T\",\"tipo\":\"GUIA\",\"status\":\"PUBLICADO\","
