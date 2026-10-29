@@ -3,3 +3,9 @@
 .settings/
 /build/
 .env
+*.class
+
+# Segredos e chaves locais
+*.key
+*.pem
+*.p12

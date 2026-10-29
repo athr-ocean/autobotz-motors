@@ -9,11 +9,12 @@ if [[ ! -f "$jdbc_jar" ]]; then
 fi
 mkdir -p build/classes
 mapfile -d '' source_files < <(find src/autobotz -name '*.java' -print0)
-javac -encoding UTF-8 -cp "$jdbc_jar" -d build/classes "${source_files[@]}"
+javac -encoding UTF-8 -sourcepath src -cp "$jdbc_jar" -d build/classes "${source_files[@]}"
 if [[ "${1:-swing}" == build ]]; then exit 0; fi
 case "${1:-swing}" in
   console) main_class=autobotz.Main ;;
   swing) main_class=autobotz.ui.swing.SwingMain ;;
-  *) printf '%s\n' 'Uso: bash scripts/run.sh [swing|console|build]' >&2; exit 2 ;;
+  portal) main_class=autobotz.portal.PortalLauncher ;;
+  *) printf '%s\n' 'Uso: bash scripts/run.sh [swing|console|portal|build]' >&2; exit 2 ;;
 esac
 exec java -cp "build/classes:src:$jdbc_jar" "$main_class"

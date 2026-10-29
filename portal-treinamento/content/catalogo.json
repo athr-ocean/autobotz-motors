@@ -1,0 +1,28 @@
+{
+  "materiais": [
+    {
+      "slug": "guia-rapido",
+      "titulo": "Guia rápido do AutoBotz Motors",
+      "tipo": "GUIA",
+      "status": "PUBLICADO",
+      "formato": "MARKDOWN",
+      "arquivo": "guia-rapido.md"
+    },
+    {
+      "slug": "faq",
+      "titulo": "Perguntas frequentes",
+      "tipo": "FAQ",
+      "status": "PUBLICADO",
+      "formato": "MARKDOWN",
+      "arquivo": "faq.md"
+    },
+    {
+      "slug": "roteiro-video-30-min",
+      "titulo": "Roteiro de vídeo de treinamento — 30 minutos (gravação pendente)",
+      "tipo": "ROTEIRO",
+      "status": "PUBLICADO",
+      "formato": "MARKDOWN",
+      "arquivo": "roteiro-video-30-min.md"
+    }
+  ]
+}
