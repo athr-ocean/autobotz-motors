@@ -4,7 +4,11 @@ import java.math.BigDecimal;
 
 public final class D12SimuladorUITest {
   private static int verificacoes;
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
+    javax.swing.SwingUtilities.invokeAndWait(() -> {
+      SimuladorPlanosPanel painel = new SimuladorPlanosPanel();
+      check(painel.getComponentCount() == 2, "painel Swing inicializa sem banco");
+    });
     ResultadoSimulacao r = SimuladorPlanosPanel.simular(100,
         new BigDecimal("100.00"), new BigDecimal("80.00"),
         new BigDecimal("150.00"), true, false);
