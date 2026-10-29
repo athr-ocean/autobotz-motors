@@ -34,13 +34,13 @@ public class D15AtalhoTest {
             Resultado r = PortalAtalho.abrir(0, tmp.resolve("inexistente"), null);
             check(r.status() == Status.CONTEUDO_INDISPONIVEL && r.url() == null, "sem conteudo -> CONTEUDO_INDISPONIVEL");
 
-            try (ServerSocket ocupada = new ServerSocket(0, 0, InetAddress.getLoopbackAddress())) {
+            try (ServerSocket ocupada = new ServerSocket(0, 0, InetAddress.getByName("127.0.0.1"))) {
                 r = PortalAtalho.abrir(ocupada.getLocalPort(), base, new MockPortalBackend());
                 check(r.status() == Status.PORTA_OCUPADA, "porta em uso -> PORTA_OCUPADA");
             }
 
             r = PortalAtalho.abrir(0, base, new MockPortalBackend());
-            check(r.status() == Status.NAVEGADOR_INDISPONIVEL && r.url() != null && r.url().startsWith("http://localhost:"),
+            check(r.status() == Status.NAVEGADOR_INDISPONIVEL && r.url() != null && r.url().startsWith("http://127.0.0.1:"),
                 "servidor sobe e devolve a url (sem navegador no teste)");
             check(codigo(r.url()) == 200, "a pagina responde na url devolvida");
 

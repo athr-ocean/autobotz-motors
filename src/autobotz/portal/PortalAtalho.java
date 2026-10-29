@@ -1,10 +1,14 @@
 package autobotz.portal;
 
+import autobotz.service.TreinamentoService;
+import autobotz.util.ConexaoBanco;
+
 import java.awt.Desktop;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.URI;
 import java.nio.file.Path;
+import java.sql.SQLException;
 
 /**
  * Ponto de entrada para o ERP (Swing ou console) abrir o portal de treinamento. Inicia o servidor
@@ -48,9 +52,9 @@ public final class PortalAtalho {
                     catalogo, base.resolve("public"));
                 iniciarComoDaemon(novo);
                 servidor = novo;
-                url = "http://localhost:" + novo.porta();
+                url = "http://127.0.0.1:" + novo.porta();
             } catch (BindException e) {
-                return new Resultado(Status.PORTA_OCUPADA, "http://localhost:" + porta);
+                return new Resultado(Status.PORTA_OCUPADA, "http://127.0.0.1:" + porta);
             } catch (Exception e) {
                 System.err.println("Portal: falha ao iniciar: " + e);
                 return new Resultado(Status.ERRO, null);
@@ -68,9 +72,9 @@ public final class PortalAtalho {
         }
     }
 
-    /** Trocar pelo TreinamentoPortalBackend(new TreinamentoService(ConexaoBanco.getDataSource())) apos o PR #22. */
-    private static PortalBackend backendPadrao() {
-        return new MockPortalBackend();
+    /** Usa o servico real e conexoes independentes do banco configurado no ERP. */
+    private static PortalBackend backendPadrao() throws SQLException {
+        return new TreinamentoPortalBackend(new TreinamentoService(ConexaoBanco.getDataSource()));
     }
 
     /** A thread do dispatcher herda o estado daemon de quem chama start(). */

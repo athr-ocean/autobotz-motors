@@ -1,6 +1,9 @@
 import autobotz.portal.CatalogoMateriais;
 import autobotz.portal.MockPortalBackend;
 import autobotz.portal.PortalServer;
+import autobotz.portal.PortalBackend;
+
+import java.sql.SQLException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -80,6 +83,71 @@ public class D15PortalTest {
             check(backend.eventos().size() == 4, "so os dois eventos coerentes foram registrados");
 
             check(get("/api/treinamentos/metricas").statusCode() == 401, "metricas sem sessao -> 401");
+            var loginSemJson = HTTP.send(HttpRequest.newBuilder(URI.create(base + "/api/login"))
+                .POST(HttpRequest.BodyPublishers.ofString("{}")).build(), HttpResponse.BodyHandlers.ofString());
+            check(loginSemJson.statusCode() == 400, "login sem Content-Type JSON -> 400");
+            var mfaSemJson = HTTP.send(HttpRequest.newBuilder(URI.create(base + "/api/login/mfa"))
+                .POST(HttpRequest.BodyPublishers.ofString("{}")).build(), HttpResponse.BodyHandlers.ofString());
+            check(mfaSemJson.statusCode() == 400, "MFA sem Content-Type JSON -> 400");
+            var logoutSemSessao = HTTP.send(HttpRequest.newBuilder(URI.create(base + "/api/logout"))
+                .POST(HttpRequest.BodyPublishers.noBody()).build(), HttpResponse.BodyHandlers.ofString());
+            check(logoutSemSessao.statusCode() == 204, "logout sem sessao e idempotente -> 204");
+            check(logoutSemSessao.headers().firstValue("Set-Cookie").orElse("").contains("Max-Age=0"),
+                "logout limpa cookie da sessao");
+
+            PortalServer proibido = new PortalServer(0, backend, new CatalogoMateriais(content), pub, ex -> 403);
+            proibido.iniciar();
+            try {
+                String urlAnterior = base;
+                base = "http://127.0.0.1:" + proibido.porta();
+                check(get("/api/treinamentos/metricas?inicio=2026-10-01T00%3A00%3A00&fim=2026-11-01T00%3A00%3A00").statusCode() == 403,
+                    "metricas com sessao sem permissao -> 403");
+                base = urlAnterior;
+            } finally {
+                proibido.parar();
+            }
+
+            PortalServer permitido = new PortalServer(0, backend, new CatalogoMateriais(content), pub, ex -> 200);
+            permitido.iniciar();
+            try {
+                String urlAnterior = base;
+                base = "http://127.0.0.1:" + permitido.porta();
+                var rm = get("/api/treinamentos/metricas?inicio=2026-10-01T00%3A00%3A00&fim=2026-11-01T00%3A00%3A00");
+                check(rm.statusCode() == 200 && rm.body().contains("\"origem\":\"DADOS_SIMULADOS\""),
+                    "metricas autorizadas devolvem JSON e identificam backend simulado");
+                check(get("/api/treinamentos/metricas?inicio=ruim&fim=ruim").statusCode() == 400,
+                    "metricas com periodo invalido -> 400");
+                base = urlAnterior;
+            } finally {
+                permitido.parar();
+            }
+
+            PortalBackend bancoIndisponivel = new PortalBackend() {
+                @Override public long registrarAberturaPortal() throws SQLException {
+                    throw new SQLException("detalhe interno do banco");
+                }
+                @Override public long registrarVisualizacaoMaterial(String slug) throws SQLException {
+                    throw new SQLException("detalhe interno do banco");
+                }
+                @Override public long registrarVisualizacaoVideo(String slug) throws SQLException {
+                    throw new SQLException("detalhe interno do banco");
+                }
+            };
+            PortalServer falhaBanco = new PortalServer(0, bancoIndisponivel,
+                new CatalogoMateriais(content), pub);
+            falhaBanco.iniciar();
+            try {
+                String urlAnterior = base;
+                base = "http://127.0.0.1:" + falhaBanco.porta();
+                var erroBanco = post("{\"tipoEvento\":\"MATERIAL_VIEW\",\"materialSlug\":\"guia-rapido\"}", true);
+                check(erroBanco.statusCode() == 500, "falha de banco -> 500");
+                check(!erroBanco.body().contains("detalhe interno do banco"),
+                    "falha de banco nao expoe detalhes internos");
+                base = urlAnterior;
+            } finally {
+                falhaBanco.parar();
+            }
+
             check(get("/api/treinamentos/outra").statusCode() == 404, "rota desconhecida -> 404");
             check(get("/").statusCode() == 200, "pagina inicial -> 200");
             check(get("/..%2Fsegredo.txt").statusCode() == 404, "arquivo fora da pasta publica -> 404");
