@@ -17,10 +17,6 @@ import java.time.LocalDate;
 import autobotz.model.ModuloOpcional;
 
 public class AssinaturaDAO {
-	
-	int idPlanoAnterior;
-	BigDecimal precoAnterior = null;
-	BigDecimal precoNovo = null;
 
 	public int salvar(AssinaturaCliente assinatura)
 	        throws SQLException {
@@ -212,13 +208,14 @@ public class AssinaturaDAO {
             throws SQLException {
     	
         Connection conexao = ConexaoBanco.getConexao();
-
+        
+        int idPlanoAnterior;
+        BigDecimal precoAnterior;
+        BigDecimal precoNovo;
         boolean autoCommitOriginal = conexao.getAutoCommit();
+        
         BigDecimal totalModulos =
         	    somarModulos(conexao, idAssinatura);
-
-        	precoAnterior = precoAnterior.add(totalModulos);
-        	precoNovo = precoNovo.add(totalModulos);
 
         String sqlConsulta = """
             SELECT a.id_plano, a.status, p.preco_base
@@ -296,6 +293,8 @@ public class AssinaturaDAO {
                     precoNovo = rs.getBigDecimal("preco_base");
                 }
             }
+        	precoAnterior = precoAnterior.add(totalModulos);
+        	precoNovo = precoNovo.add(totalModulos);
             try (PreparedStatement stmt =
                     conexao.prepareStatement(sqlAtualizar)) {
 
