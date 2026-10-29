@@ -52,7 +52,7 @@ O launcher não cria o banco, não instala dependências e não carrega arquivos
 
 As permissões são definidas por `AutorizacaoService`. A validação e as limitações conhecidas estão registradas em [docs/VALIDACAO.md](docs/VALIDACAO.md); a documentação de autoria e integração está em [docs/AUTORIA_INTEGRACAO.md](docs/AUTORIA_INTEGRACAO.md).
 
-`src/` é a árvore fonte usada pelo launcher. As classes compiladas são gravadas em `build/classes`, e os recursos são lidos de `src/`. `bin/` e `autobotz-motors-main/` são árvores antigas rastreadas e não são usadas por esse launcher. No Eclipse, configure `M2_REPO` para o repositório Maven local e selecione JDK 21 ou superior.
+`src/` é a árvore fonte usada pelo launcher. As classes compiladas são gravadas em `build/classes`, e os recursos são lidos de `src/`. `bin/` e a antiga cópia `autobotz-motors-main/` foram removidas do versionamento por serem redundantes; o launcher utiliza somente `src/`. No Eclipse, configure `M2_REPO` para o repositório Maven local e selecione JDK 21 ou superior.
 
 ## D11 — Compras
 

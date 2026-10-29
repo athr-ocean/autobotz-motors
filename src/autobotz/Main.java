@@ -47,23 +47,11 @@ public class Main {
         I18nUtils.setLocale(locale);
         ResourceBundle bundle = I18nUtils.getBundle(locale);
 
-        /*
-         * ==============================
-         * AUTENTICAÇÃO
-         * ==============================
-         */
-
         UsuarioDAO usuarioDAO = new UsuarioDAO();
         AuthService authService = new AuthService(usuarioDAO);
         AutorizacaoService autorizacaoService = new AutorizacaoService(bundle);
         LoginMenu loginMenu = new LoginMenu(scanner, authService, bundle);
         ProjetoDAO projetoDAO = new ProjetoDAO(bundle);
-
-        /*
-         * ==============================
-         * DAOs E SERVIÇOS
-         * ==============================
-         */
 
         VeiculoDAO veiculoDAO = new VeiculoDAO();
         ClienteDAO clienteDAO = new ClienteDAO();
