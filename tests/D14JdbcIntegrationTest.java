@@ -9,6 +9,18 @@ import autobotz.service.ResultadoLogin;
 import autobotz.service.SessaoWebService;
 import autobotz.util.ConexaoBanco;
 import autobotz.util.SenhaHash;
+import autobotz.portal.CatalogoMateriais;
+import autobotz.portal.MockPortalBackend;
+import autobotz.portal.PortalServer;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.Duration;
@@ -62,6 +74,7 @@ public class D14JdbcIntegrationTest {
 
     String sufixo = Long.toString(System.currentTimeMillis(), 36);
     String nVend = "d14it_v_" + sufixo, nAdm = "d14it_a_" + sufixo, nLeg = "d14it_l_" + sufixo;
+    String nPortalVend = "d14it_pv_" + sufixo, nPortalAdm = "d14it_pa_" + sufixo;
     var clock = new D14SegurancaTest.MutableClock();
     clock.now = Instant.now();
     var usuarios = new UsuarioDAO();
@@ -71,10 +84,14 @@ public class D14JdbcIntegrationTest {
     try {
       // cadastro grava PBKDF2 (prova que a coluna comporta) e busca por id/nome funcionam
       check(auth.cadastrar(nVend, "Senha-it-1", PerfilUsuario.VENDEDOR)
-          && auth.cadastrar(nAdm, "Senha-it-2", PerfilUsuario.ADMIN), "CADASTRAR_GRAVA_HASH_LONGO");
+          && auth.cadastrar(nAdm, "Senha-it-2", PerfilUsuario.ADMIN)
+          && auth.cadastrar(nPortalVend, "Senha-portal-1", PerfilUsuario.VENDEDOR)
+          && auth.cadastrar(nPortalAdm, "Senha-portal-2", PerfilUsuario.ADMIN), "CADASTRAR_GRAVA_HASH_LONGO");
       Usuario vend = usuarios.buscarPorNome(nVend), adm = usuarios.buscarPorNome(nAdm);
       idsCriados.add(vend.getId());
       idsCriados.add(adm.getId());
+      idsCriados.add(usuarios.buscarPorNome(nPortalVend).getId());
+      idsCriados.add(usuarios.buscarPorNome(nPortalAdm).getId());
       check(vend.getSenhaHash().startsWith("pbkdf2_sha256$") && usuarios.buscarPorId(vend.getId()) != null
           && usuarios.buscarPorId(vend.getId()).getNomeUsuario().equals(nVend)
           && usuarios.buscarPorId(-1) == null, "BUSCAR_POR_ID");
@@ -132,10 +149,83 @@ public class D14JdbcIntegrationTest {
           "WEB_401_403_200_NO_BANCO");
       web.logout(ta);
       check(web.autorizarMetricas(ta).httpStatus() == 401, "WEB_LOGOUT_NO_BANCO");
+
+      // Integração HTTP real: login, MFA, autorização e logout sem autorizador falso.
+      testPortalHttp(nPortalVend, nPortalAdm);
     } finally {
       limpar();
     }
     System.out.println("D14_JDBC_OK checks=" + passed);
+  }
+
+  /** Exercita login, MFA, autorização e logout pelas rotas HTTP reais do portal. */
+  static void testPortalHttp(String nVend, String nAdm) throws Exception {
+    Path tmp = Files.createTempDirectory("d15-sessao-http");
+    Path content = Files.createDirectory(tmp.resolve("content"));
+    Path pub = Files.createDirectory(tmp.resolve("public"));
+    Files.writeString(content.resolve("catalogo.json"), "{\"materiais\":[]}");
+    Files.writeString(pub.resolve("index.html"), "ok");
+    PortalServer server = new PortalServer(0, new MockPortalBackend(),
+        new CatalogoMateriais(content), pub);
+    server.iniciar();
+    HttpClient http = HttpClient.newHttpClient();
+    String base = "http://127.0.0.1:" + server.porta();
+    String metricas = "/api/treinamentos/metricas?inicio=2026-10-01T00%3A00%3A00&fim=2026-11-01T00%3A00%3A00";
+    try {
+      check(http.send(HttpRequest.newBuilder(URI.create(base + metricas)).GET().build(),
+          HttpResponse.BodyHandlers.ofString()).statusCode() == 401, "HTTP_METRICAS_SEM_LOGIN_401");
+
+      var lv = http.send(HttpRequest.newBuilder(URI.create(base + "/api/login"))
+          .header("Content-Type", "application/json")
+          .POST(HttpRequest.BodyPublishers.ofString("{\"usuario\":\"" + nVend + "\",\"senha\":\"Senha-portal-1\"}"))
+          .build(), HttpResponse.BodyHandlers.ofString());
+      check(lv.statusCode() == 200, "HTTP_LOGIN_VENDEDOR_200");
+      String cv = cookie(lv);
+      var mv = http.send(HttpRequest.newBuilder(URI.create(base + metricas))
+          .header("Cookie", cv).GET().build(), HttpResponse.BodyHandlers.ofString());
+      check(mv.statusCode() == 403, "HTTP_AUTORIZACAO_SEM_PERMISSAO_403");
+
+      var la = http.send(HttpRequest.newBuilder(URI.create(base + "/api/login"))
+          .header("Content-Type", "application/json")
+          .POST(HttpRequest.BodyPublishers.ofString("{\"usuario\":\"" + nAdm + "\",\"senha\":\"Senha-portal-2\"}"))
+          .build(), HttpResponse.BodyHandlers.ofString());
+      check(la.statusCode() == 202, "HTTP_LOGIN_ADMIN_EXIGE_MFA_202");
+      String desafio = campoResposta(la.body(), "desafioId");
+      String codigo = campoResposta(la.body(), "codigoDemonstracao");
+      var mfa = http.send(HttpRequest.newBuilder(URI.create(base + "/api/login/mfa"))
+          .header("Content-Type", "application/json")
+          .POST(HttpRequest.BodyPublishers.ofString("{\"desafioId\":" + desafio + ",\"codigo\":\"" + codigo + "\"}"))
+          .build(), HttpResponse.BodyHandlers.ofString());
+      check(mfa.statusCode() == 200, "HTTP_MFA_VALIDO_200");
+      String ca = cookie(mfa);
+      var ma = http.send(HttpRequest.newBuilder(URI.create(base + metricas))
+          .header("Cookie", ca).GET().build(), HttpResponse.BodyHandlers.ofString());
+      check(ma.statusCode() == 200, "HTTP_ADMIN_AUTORIZADO_200");
+
+      var logout = http.send(HttpRequest.newBuilder(URI.create(base + "/api/logout"))
+          .header("Cookie", ca).POST(HttpRequest.BodyPublishers.noBody()).build(),
+          HttpResponse.BodyHandlers.ofString());
+      check(logout.statusCode() == 204, "HTTP_LOGOUT_204");
+      var depois = http.send(HttpRequest.newBuilder(URI.create(base + metricas))
+          .header("Cookie", ca).GET().build(), HttpResponse.BodyHandlers.ofString());
+      check(depois.statusCode() == 401, "HTTP_SESSAO_INVALIDADA_APOS_LOGOUT_401");
+    } finally {
+      server.parar();
+      try (var paths = Files.walk(tmp)) {
+        paths.sorted(Comparator.reverseOrder()).forEach(x -> x.toFile().delete());
+      }
+    }
+  }
+
+  static String cookie(HttpResponse<?> response) {
+    return response.headers().firstValue("Set-Cookie").orElseThrow().split(";", 2)[0];
+  }
+
+  static String campoResposta(String json, String nome) {
+    Matcher m = Pattern.compile("\"" + Pattern.quote(nome)
+        + "\"\\s*:\\s*(?:\"([^\"]*)\"|(-?\\d+))").matcher(json);
+    if (!m.find()) throw new AssertionError("Campo ausente na resposta: " + nome);
+    return m.group(1) == null ? m.group(2) : m.group(1);
   }
 
   /** Remove apenas o que este teste criou. */
