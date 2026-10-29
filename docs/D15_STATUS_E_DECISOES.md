@@ -1,15 +1,17 @@
 # D15 — Status e decisões do portal de treinamento
 
-Atualizado em 27/10/2026. Responsável: Mauro (portal e servidor). Conteúdo e métricas: Higor.
+Atualizado em 28/10/2026. Responsável: Mauro (portal e servidor). Conteúdo e métricas: Higor.
 Execução e testes: `docs/D15_PORTAL.md`. Contrato das rotas: `docs/D15_CONTRATO_API.md`.
 
 ## Estado
 
-- Branch `feature/d15-training-portal-ui`, base `main` em `40a8803`. Pull Request #24, em Draft.
+- Branch `feature/d15-training-portal-ui`, localmente 10 commits atrás de `origin/main` (`13b32f2`). Pull Request #24, em Draft. O PR #29 do Arthur está aberto e empilhado sobre esta branch.
 - Pronto: servidor HTTP em localhost, interface web, catálogo de materiais, registro de eventos,
   adaptador do `TreinamentoService`, `PortalAtalho` para o ERP, contrato e documentação.
-- Não pronto: eventos do launcher ainda só em memória, `/metricas` fechada, modo `portal` no
-  `scripts/run.sh` e atalho no `AppFrame` (Arthur), página de métricas.
+- Em integração local: `PortalLauncher` usa o backend JDBC por padrão e só usa mock quando
+  `AUTOBOTZ_PORTAL_BACKEND=mock` é definido. O serviço valida a conexão antes de iniciar.
+- Não pronto: autenticação HTTP de login/MFA/logout no portal, `/metricas` (segue 401), página de
+  métricas e validação da persistência no launcher com banco `_test`.
 
 ## Decisões
 
@@ -23,7 +25,8 @@ Execução e testes: `docs/D15_PORTAL.md`. Contrato das rotas: `docs/D15_CONTRAT
 6. `/api/treinamentos/metricas` responde 401 até existir uma sessão ADMIN reconhecida pelo portal.
    Mecanismo em discussão com Arthur e João; token em query string foi descartado.
 7. `PortalBackend` espelha o `TreinamentoService`. Há uma implementação em memória e um adaptador
-   para o serviço real. A ligação ao `ConexaoBanco.getDataSource()` aguarda o PR #22.
+   para o serviço real. O launcher agora usa `ConexaoBanco.getDataSource()` por padrão; a API do
+   `DataSource` também está no PR #22, ainda aberto, e precisa ser consolidada na branch antes do merge.
 8. `PortalAtalho.abrir()` sobe o servidor uma vez, em thread daemon, nunca lança exceção e devolve
    um `Status` sem texto, para a interface traduzir pelos bundles.
 9. Testes em Java puro, com código de saída. O teste de persistência só roda em banco cujo nome
@@ -31,7 +34,7 @@ Execução e testes: `docs/D15_PORTAL.md`. Contrato das rotas: `docs/D15_CONTRAT
 
 ## Testes executados (JDK 21)
 
-| Suíte | Casos | Banco | Resultado |
+| Suíte | Casos | Banco | Resultado conhecido |
 |---|---|---|---|
 | `D15PortalTest` | 28 | não | passou |
 | `D15ConteudoTest` | 4 | não | passou |
@@ -40,20 +43,23 @@ Execução e testes: `docs/D15_PORTAL.md`. Contrato das rotas: `docs/D15_CONTRAT
 
 A migration `015_d15_treinamento.sql` foi aplicada duas vezes no banco de teste sem erro.
 Nenhuma suíte foi executada ainda no CI, e a regressão `CoreRegression` não foi rodada por este módulo.
+As mudanças locais de 28/10 que ligam `PortalLauncher` ao banco ainda não foram validadas.
 
 ## Ordem de merge sugerida
 
-PR #22 (DataSource) → PR #24 (portal) → PR do Arthur (`run.sh`, `AppFrame` e bundles).
+Atualizar a branch com a `main` atual → consolidar o `DataSource` do PR #22 e a integração do PR #29
+→ validar eventos no banco `_test` → concluir o contrato HTTP de sessão com João → pedir revisão e
+retirar o PR #24 do Draft.
 
 ## Pendências
 
 | Pendência | Responsável |
 |---|---|
-| PR #22 entrar na `main` | Arthur |
-| Revisão do PR #24 | Arthur e Higor |
-| `run.sh`, atalho no `AppFrame` e chaves PT-BR/EN-US | Arthur |
-| Regra de sessão ADMIN para `/metricas` | Arthur e João |
-| Ligar o portal ao banco e testar em `_test` | Mauro, após o #22 |
+| Consolidar o `DataSource` do PR #22, que segue aberto | Arthur e Mauro |
+| Atualizar a branch D15 com a `main` que recebeu o PR #25 | Mauro |
+| Integrar o modo `portal`, atalho Swing e bundles do PR #29, ainda aberto | Arthur e Mauro |
+| Adicionar login/MFA/logout HTTP e autorização ADMIN para `/metricas` usando sessão server-side | Mauro, João e Arthur |
+| Validar persistência do launcher e migration em banco `_test` | Mauro |
 | Página de métricas no portal | Mauro, após a regra de sessão |
 | Roteiro de vídeo e materiais de transição no catálogo | Higor e Mauro |
 | Conferir `README_D15_INTEGRACAO.md` e `docs/D15_METRICAS.md` contra o contrato | Higor |

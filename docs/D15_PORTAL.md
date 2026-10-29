@@ -17,10 +17,13 @@ somente em `localhost`.
 
     mkdir -p /tmp/portal-out
     javac -sourcepath src -d /tmp/portal-out src/autobotz/portal/*.java
-    java -cp /tmp/portal-out autobotz.portal.PortalLauncher
+    java -cp /tmp/portal-out:CAMINHO/mariadb-java-client-3.5.10.jar autobotz.portal.PortalLauncher
 
-Depois abra `http://localhost:8085`. Para usar outra porta: `AUTOBOTZ_PORTAL_PORT=8090`.
-Para parar, `Ctrl+C`. O modo `portal` no `scripts/run.sh` ainda não existe (depende do Arthur).
+Configure `AUTOBOTZ_DB_URL`, `AUTOBOTZ_DB_USER` e `AUTOBOTZ_DB_PASSWORD` para o banco que já
+recebeu a migration `015_d15_treinamento.sql`. O backend JDBC é o padrão e o launcher encerra
+com uma mensagem se não conseguir abrir conexão. Para testes manuais sem persistência, selecione
+explicitamente `AUTOBOTZ_PORTAL_BACKEND=mock`. Depois abra `http://localhost:8085`. Para usar outra
+porta: `AUTOBOTZ_PORTAL_PORT=8090`. Para parar, `Ctrl+C`.
 
 ## Testes das rotas
 
@@ -60,9 +63,9 @@ criam uma pasta temporária com catálogo de teste e um backend em memória.
 
 ## Estado atual e limitações
 
-- Os eventos são guardados **somente em memória** e somem quando o servidor para. A
-  persistência no MariaDB, pelo `TreinamentoService`, depende da decisão sobre a conexão
-  com o banco (Arthur).
+- O launcher usa o `TreinamentoService` e o `DataSource` JDBC por padrão. A migration
+  `015_d15_treinamento.sql` deve estar aplicada no banco configurado. O backend em memória só é
+  usado quando `AUTOBOTZ_PORTAL_BACKEND=mock` for definido explicitamente.
 - `GET /api/treinamentos/metricas` responde `401` sempre. A autorização administrativa
   depende da definição de sessão (Arthur e João). Não há painel de métricas.
 - O texto dos materiais aparece como texto puro; o Markdown não é renderizado.
@@ -98,8 +101,8 @@ O Swing e o console chamam `autobotz.portal.PortalAtalho.abrir()`. Ela inicia o 
 única vez, em thread daemon, e abre o navegador. Nunca lança exceção: devolve um `Resultado`
 com `Status` (`ABERTO`, `NAVEGADOR_INDISPONIVEL`, `PORTA_OCUPADA`, `CONTEUDO_INDISPONIVEL`,
 `ERRO`) e a `url`. Os textos para o usuário vêm dos bundles da interface, não desta classe.
-Teste: `tests/D15AtalhoTest.java`. Enquanto o `ConexaoBanco.getDataSource()` não estiver na `main`,
-os eventos ficam em memória (`backendPadrao()`).
+Teste: `tests/D15AtalhoTest.java`. O atalho inicia o launcher com backend JDBC padrão; prepare as
+variáveis de conexão e aplique a migration antes de abrir o portal.
 
 ## Tipos de material
 
