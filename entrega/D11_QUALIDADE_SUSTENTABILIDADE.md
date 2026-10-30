@@ -6,7 +6,7 @@
 
 O processo prioritário é **Fornecedor → Orçamento → Solicitação de Compra → Aprovação ou Rejeição → Pedido de Compra**, com transações InnoDB. O mapa de riscos e regras está em `entrega/D11_COMPRAS_RELATORIO.md`.
 
-Foram contemplados casos positivos e negativos: fornecedor e CNPJ, orçamento insuficiente, autorização, solicitação pendente, aprovação repetida, inserção do pedido, atualização do saldo e rollback após falha deliberada. As verificações exercitam serviços e persistência JDBC. **A simulação automática de cliques em formulário Swing ainda não foi executada**; a demonstração manual poderá ser gravada pela equipe.
+Foram contemplados casos positivos e negativos: fornecedor e CNPJ, orçamento insuficiente, autorização, solicitação pendente, aprovação repetida, inserção do pedido, atualização do saldo e rollback após falha deliberada. As verificações exercitam serviços e persistência JDBC. O teste automatizado `D11ComprasSwingTest` executou no CI o fluxo do formulário Swing em ambiente sem tela: fornecedor, orçamento, solicitação, aprovação, pedido e atualização de saldo. A inspeção visual manual não foi registrada.
 
 ## 2. Ferramentas e execução
 
@@ -56,6 +56,6 @@ A redução hipotética de tempo é **95,83%** para esse conjunto de premissas. 
 
 ## 6. Cobertura da interface e do pipeline
 
-Além dos testes de serviço/DAO, `tests/D11ComprasSwingTest.java` executa, no CI, o preenchimento do campo **Fornecedor** e o clique no botão **Salvar fornecedor**, verificando a persistência no banco descartável. É uma automação da interação Swing (sem janela gráfica na tela) e não substitui revisão visual de acessibilidade/usabilidade. O teste limpa somente o fornecedor fictício que criou. Execute-o exclusivamente em `autobotz_*_test`.
+Além dos testes de serviço/DAO, `tests/D11ComprasSwingTest.java` executa, no CI, o cadastro do **fornecedor**, a criação do **orçamento**, o preenchimento da **solicitação**, os botões de envio e aprovação, a persistência do **pedido** e a redução correta do saldo no banco descartável. É uma automação da interação Swing (sem janela gráfica na tela) e não substitui revisão visual de acessibilidade/usabilidade. O teste limpa somente o fornecedor fictício que criou. Execute-o exclusivamente em `autobotz_*_test`.
 
 O pipeline usa Java 21+ e MariaDB descartável para as operações críticas, evitando alegar que testes puramente unitários comprovam persistência.
