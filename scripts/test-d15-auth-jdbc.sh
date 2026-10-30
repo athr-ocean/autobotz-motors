@@ -15,7 +15,7 @@ if [[ ! "$AUTOBOTZ_TEST_DB_URL" =~ ^jdbc:(mariadb|mysql)://[^/]+/[^/?]*_test([?]
   exit 3
 fi
 
-jdbc_jar="${AUTOBOTZ_JDBC_JAR:-$HOME/.m2/repository/org/mariadb/jdbc/mariadb-java-client/3.5.10/mariadb-java-client-3.5.10.jar}"
+jdbc_jar="${AUTOBOTZ_JDBC_JAR:-$( [[ -f lib/mariadb-java-client-4.0.0.jar ]] && printf "%s" "lib/mariadb-java-client-4.0.0.jar" || printf "%s" "$HOME/.m2/repository/org/mariadb/jdbc/mariadb-java-client/3.5.10/mariadb-java-client-3.5.10.jar" )}"
 if [[ ! -f "$jdbc_jar" ]]; then
   printf '%s\n' 'Driver MariaDB ausente; defina AUTOBOTZ_JDBC_JAR.' >&2
   exit 1

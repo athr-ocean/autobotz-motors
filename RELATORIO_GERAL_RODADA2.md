@@ -75,7 +75,7 @@ As verificações acima não equivalem à certificação de produção. A interf
 - Não afirmar que foram enviados avisos reais, efetuados pagamentos ou gravados webinars/tutoriais não produzidos.
 - O vídeo será gravado pela equipe; o roteiro em `ROTEIRO_VIDEO.md` serve como guia.
 - A demonstração visual do Swing, medição temporal manual, telemetria energética e comparação real de chamados continuam sem evidência.
-- O pacote de entrega deve ser montado a partir do commit final da `main`, sem `.git`, arquivos de chaves, segredos e resíduos de build. O procedimento seguro está em `GUIA_GIT_ARTHUR.md`.
+- O pacote de entrega deve ser montado a partir do commit final da `main`, sem `.git`, arquivos de chaves, segredos e resíduos de build. O arquivo de entrega foi gerado por `git archive` a partir da `main`, sem histórico Git ou segredos locais.
 
 ## 7. Complemento de aceite documental e de interface (29/10/2026)
 
@@ -87,4 +87,4 @@ Foram adicionados:
 - os relatórios de análise financeira, comunicação e suporte D12 e de tickets/pesquisa D15, com dados explicitamente **simulados**;
 - revisão do relatório D11 com protocolo de medição, sem alegar redução observada de energia ou tempo.
 
-A compilação com Java 21 e as **11 classes de teste offline** (10 anteriores + `D12SimuladorUITest`) passaram no ambiente isolado após as mudanças. A suíte JDBC **8/8** foi executada pelo responsável na revisão anterior (commit `718fe28`), não após a inclusão do painel. O GitHub Actions da nova PR deve confirmar a integração antes da atualização do ZIP. A demonstração visual Swing em tela real continua sem ensaio documentado.
+A compilação com Java 21 e as **11 classes de teste offline** (10 anteriores + `D12SimuladorUITest`) passaram no ambiente isolado após as mudanças. A suíte JDBC **8/8** foi executada pelo responsável na revisão anterior (commit `718fe28`), não após a inclusão do painel. A PR #39 foi aprovada no GitHub Actions e mesclada na `main` no commit `fa580cde`. O ZIP final deste commit foi extraído, recompilado e passou em 11/11 suítes offline no CachyOS. Os testes JDBC completos locais de 8/8 suítes foram realizados na revisão anterior. A demonstração visual Swing em tela real continua sem ensaio documentado.

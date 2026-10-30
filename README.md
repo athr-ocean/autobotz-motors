@@ -1,80 +1,116 @@
 # AutoBotz Motors
 
-ERP acadêmico da Equipe B, desenvolvido em Java, JDBC e MariaDB. O frontend desktop atual é Java Swing; a aplicação de console continua disponível.
+ERP acadêmico da **Equipe B — Liga do Mal**, desenvolvido em Java 21, Swing, JDBC e MariaDB na disciplina Administração para Computação (2026.2). O projeto começou com operações de veículos e oficina (D6–D10) e foi ampliado com compras, assinaturas, contratos, segurança e treinamento (D11–D15).
+
+O código-fonte da entrega está na branch `main`. O sistema é um **protótipo acadêmico**, não uma solução certificada para produção.
+
+## Funcionalidades
+
+| Área | Implementação |
+| --- | --- |
+| Operação (D6–D10) | Clientes, veículos, vendas com transação e controle de estoque, ordens de serviço, garantia, CRM, projetos, relatórios e auditoria |
+| Idiomas e perfis | Interface PT-BR/EN-US, login e autorização ADMIN/VENDEDOR |
+| Compras (D11) | Fornecedores, orçamentos, solicitações, aprovação/rejeição, geração de pedido e rollback |
+| Assinaturas (D12) | Planos e módulos opcionais, persistência, churn, MRR e simulador de migração 30/50/20 no Swing |
+| Contratos (D13) | Contratos de fornecedores, alertas, ledger local de hashes SHA-256 e API didática |
+| Segurança (D14) | Bloqueio por tentativas, MFA demonstrativo, sessões HTTP, eventos, AES-GCM/HMAC para dados pessoais |
+| Treinamento (D15) | Portal web local, catálogo e FAQ, eventos persistidos e métricas com autorização administrativa |
+
+O simulador D12 utiliza dados fictícios e não modifica contratos reais. O ledger de D13 não é uma blockchain distribuída; o MFA é didático. Não foram comprovadas economias reais de energia nem redução de chamados.
+
+## Estrutura do repositório
+
+```text
+src/autobotz/          Código Java: modelos, DAOs, serviços, Swing, console e portal
+src/messages_*.properties   Recursos de internacionalização
+portal-treinamento/    Página web e materiais publicados
+db/migrations/         Migrações SQL 011 a 016
+schema.sql             Esquema SQL para instalação nova
+scripts/               Execução e testes
+tests/                 Suítes de regressão e integração
+lib/                   Driver MariaDB Connector/J versionado
+docs/                  Guias técnicos, relatórios e documentação dos desafios
+```
 
 ## Requisitos
 
-- JDK 21 ou superior;
-- MariaDB;
-- MariaDB Connector/J 3.5.10.
+- **Java JDK 21** ou superior (inclui `javac` e `java`);
+- **MariaDB** com banco e usuário de acesso configurados;
+- Bash (Linux);
+- Driver MariaDB Connector/J: o launcher usa `AUTOBOTZ_JDBC_JAR`, se definido; caso contrário, utiliza o JAR incluído em `lib/` e, como alternativa, a dependência local Maven.
 
-O launcher procura o driver em `~/.m2/repository/org/mariadb/jdbc/mariadb-java-client/3.5.10/mariadb-java-client-3.5.10.jar`. Para usar outro local, defina `AUTOBOTZ_JDBC_JAR`.
+Não é necessário Maven, Gradle, Eclipse ou VS Code para compilar pelo launcher. Arquivos gerados de IDE e bytecode não fazem parte da árvore versionada.
 
-Configure no ambiente, sem versionar credenciais:
+## Preparar o banco
 
-- `AUTOBOTZ_DB_URL`: URL JDBC do banco preparado com `schema.sql`;
-- `AUTOBOTZ_DB_USER`: usuário do banco;
-- `AUTOBOTZ_DB_PASSWORD`: senha desse usuário.
+A instalação nova requer um **banco previamente criado**, com usuário e senha definidos pelo responsável. O arquivo `schema.sql` apenas define as tabelas; **não cria nem seleciona automaticamente o banco**.
+
+Exemplo para um banco de desenvolvimento vazio já criado:
+
+```bash
+mariadb -u SEU_USUARIO -p -h 127.0.0.1 autobotz_dev < schema.sql
+```
+
+Em um banco existente, **não importe o esquema completo sobre dados reais**. Leia [a ordem e as condições das migrations](db/migrations/README.md) antes de aplicar `011` a `016`. A migration 016 adiciona estrutura de PII, mas a cifragem de dados legados exige uma operação separada e explícita.
+
+Configure as seguintes variáveis na sessão de execução, sem publicar valores secretos no Git:
+
+| Variável | Finalidade |
+| --- | --- |
+| `AUTOBOTZ_DB_URL` | URL JDBC, por exemplo `jdbc:mariadb://127.0.0.1:3306/autobotz_dev` |
+| `AUTOBOTZ_DB_USER` | Usuário do MariaDB com permissões no banco escolhido |
+| `AUTOBOTZ_DB_PASSWORD` | Senha; obrigatória e não vazia |
+| `AUTOBOTZ_PII_KEY` | Chave externa de criptografia; mantenha a mesma chave para reler dados cifrados |
+| `AUTOBOTZ_JDBC_JAR` | Opcional, para usar outro MariaDB Connector/J |
+
+Para configurar a chave PII, consulte [criptografia e migração](docs/D14_CIFRAGEM_DADOS_PESSOAIS.md). Nunca versionar senhas, chaves, backups ou bancos com informações pessoais.
 
 ## Executar
 
-Na raiz do projeto, inicie a aplicação Swing:
+Na raiz do repositório, com Java, banco e variáveis de ambiente preparados:
 
 ```bash
-bash scripts/run.sh swing
+bash scripts/run.sh build       # Compilar
+bash scripts/run.sh swing       # Interface desktop (padrão)
+bash scripts/run.sh console     # Menu em terminal
+bash scripts/run.sh portal      # Portal de treinamento local
 ```
 
-O console permanece disponível:
+O portal é servido somente em **http://127.0.0.1:8085** por padrão. É possível definir outra porta com `AUTOBOTZ_PORTAL_PORT`. O atalho no Swing abre o portal sob demanda; não existe hospedagem pública nem SSO automático entre Swing e navegador.
 
-```bash
-bash scripts/run.sh console
-```
-
-Para compilar sem iniciar a aplicação:
+## Testes
 
 ```bash
 bash scripts/run.sh build
+bash scripts/test-d15.sh
 ```
 
-O launcher não cria o banco, não instala dependências e não carrega arquivos de credenciais. Aplique `schema.sql` somente ao banco pretendido; se ele já contém dados, faça backup antes.
+A regressão integrada de D6–D15 está em [`.github/workflows/integration-regression.yml`](.github/workflows/integration-regression.yml), com banco MariaDB descartável. Os testes JDBC locais precisam de uma URL que aponte **exclusivamente para banco de teste**; confira os pré-requisitos de cada script antes de executá-lo. Nunca rode suítes destrutivas sobre `autobotz_db` ou dados reais.
 
-## Módulos
+**Evidência de fechamento:** em 29/10/2026, o ZIP correspondente ao commit `fa580cde` compilou e passou em **11/11 suítes offline** no CachyOS. A regressão JDBC de **8/8 suítes** foi executada na integração anterior; a PR #39 passou no GitHub Actions com testes JDBC após a inclusão do simulador. O ZIP final da segunda rodada foi verificado quanto à extração e integridade. Isso não substitui teste visual completo ou auditoria de segurança independente.
 
-- autenticação, sessão e autorização por perfil;
-- cadastro, consulta, atualização e anonimização de clientes;
-- cadastro, consulta, atualização e exclusão de veículos conforme as permissões;
-- vendas transacionais e histórico de relacionamento com clientes;
-- serviços e ordens de serviço com itens, totais e regra de garantia;
-- projetos com responsáveis, equipes, status e membros vinculados ao projeto;
-- compras D11 com fornecedores, orçamento, solicitação, aprovação transacional e pedido;
-- relatórios e consulta de auditoria;
-- interface em português do Brasil e inglês dos Estados Unidos.
+## Documentos essenciais
 
-As permissões são definidas por `AutorizacaoService`. A validação e as limitações conhecidas estão registradas em [docs/VALIDACAO.md](docs/VALIDACAO.md); a documentação de autoria e integração está em [docs/AUTORIA_INTEGRACAO.md](docs/AUTORIA_INTEGRACAO.md).
+- [Relatório geral da segunda rodada](RELATORIO_GERAL_RODADA2.md)
+- [Checklist de entregas e limites](CHECKLIST_FINAL.md)
+- [Roteiro de apresentação individual](ROTEIRO_VIDEO.md)
+- [D11 — compras e qualidade](docs/D11_COMPRAS_RELATORIO.md)
+- [D12 — assinaturas e simulação](docs/D12_PLANOS_SIMULACAO.md)
+- [D13 — contratos e integridade](docs/D13_CONTRATOS_LEDGER.md)
+- [D14 — autenticação, MFA e proteção de dados](docs/D14_LOGIN_MFA.md)
+- [D15 — portal de treinamento](docs/D15_PORTAL.md)
+- [D15 — tickets e pesquisa simulada](docs/D15_ANALISE_TICKETS_PESQUISA.md)
 
-`src/` é a árvore fonte usada pelo launcher. As classes compiladas são gravadas em `build/classes`, e os recursos são lidos de `src/`. `bin/` e a antiga cópia `autobotz-motors-main/` foram removidas do versionamento por serem redundantes; o launcher utiliza somente `src/`. No Eclipse, configure `M2_REPO` para o repositório Maven local e selecione JDK 21 ou superior.
+## Equipe e histórico
 
-## D11 — Compras
+| Frente da segunda rodada | Responsáveis |
+| --- | --- |
+| D11 | Alexandre (compras), Adryan (testes e CI) |
+| D12 | André (assinaturas) |
+| D13 | Gabriel (contratos) |
+| D14 | João (autenticação e MFA), Arthur (dados pessoais e integração) |
+| D15 | Mauro (portal), Higor (conteúdo e métricas), Arthur (integração) |
 
-A tela **Compras** é restrita a `ADMIN` na matriz atual e permite cadastrar fornecedor/orçamento, registrar solicitação, consultar estado, aprovar e gerar pedido ou rejeitar com motivo. Antes de usar o módulo, aplique `db/migrations/011_d11_compras.sql` ao banco de destino selecionado. Para instalação nova, as mesmas tabelas estão no `schema.sql`.
+A atribuição das frentes descreve a divisão interna; a autoria efetiva de cada arquivo está no histórico do Git. A integração foi realizada por pull requests sem reescrever commits dos colaboradores.
 
-Para o teste de aceite JDBC, configure `AUTOBOTZ_DB_URL` para um banco descartável terminado em `_test`, `AUTOBOTZ_DB_USER`, `AUTOBOTZ_DB_PASSWORD` e, se necessário, `AUTOBOTZ_JDBC_JAR`. Depois execute `bash scripts/test-d11-compras.sh`. O script recusa destinos fora de `_test` e remove apenas registros criados pelo próprio teste. O mapa do fluxo, riscos e evidências esperadas está em [docs/D11_COMPRAS_RELATORIO.md](docs/D11_COMPRAS_RELATORIO.md).
-
-A divergência acadêmica sobre a exigência de Swing no D6 deve ser confirmada com o professor antes da entrega.
-
-
-## Proteção de dados pessoais — D14
-
-Os campos pessoais dos clientes são cifrados na camada de persistência. Antes de usar o cadastro, configure uma chave persistente fora do repositório e mantenha a mesma chave para ler os dados já gravados.
-
-Em instalação nova, `schema.sql` inclui as colunas necessárias. Em banco existente, aplique `db/migrations/016_d14_client_pii.sql` depois das migrations 014 e 015. A conversão dos registros antigos é uma etapa separada e explícita; ela não roda na inicialização do ERP.
-
-O guia [D14 — Criptografia e migração de dados pessoais](docs/D14_CIFRAGEM_DADOS_PESSOAIS.md) explica a configuração e o backup da chave, a preparação do banco e a execução segura da migração e dos testes.
-
-## Rodada 2 — D12 a D15
-
-O simulador **Planos de Assinatura** está disponível na interface Swing para ADMIN e VENDEDOR. É um cálculo local com preços e módulos editáveis e distribuição 30%/50%/20%. **Não altera o banco de dados**. Veja [D12 — análise, simulação e comunicação](docs/D12_PLANOS_SIMULACAO.md). O teste `D12SimuladorUITest` verifica a criação do painel em modo headless, os totais e entradas inválidas.
-
-Relatórios acadêmicos: [D11 — qualidade e sustentabilidade](docs/D11_QUALIDADE_SUSTENTABILIDADE.md), [D13 — contratos](docs/D13_CONTRATOS_LEDGER.md), [D14 — segurança](docs/D14_CIFRAGEM_DADOS_PESSOAIS.md), [D15 — tickets/pesquisa simulada](docs/D15_ANALISE_TICKETS_PESQUISA.md), [relatório geral](RELATORIO_GERAL_RODADA2.md) e [checklist](CHECKLIST_FINAL.md).
-
-Não confunda dados sintéticos de D12/D15, API/ledger simulado de D13 ou MFA demonstrativo com dados reais ou certificação de produção.
+**Limites da entrega:** valores de churn, tickets e pesquisa são simulados; pagamentos e blockchain de D13 também. O trabalho não comprova redução medida de tempo manual, consumo energético ou tickets, e não inclui webinar ou fórum de produção.

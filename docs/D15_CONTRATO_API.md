@@ -1,6 +1,6 @@
 # D15 — Contrato de integração entre portal e métricas
 
-**Status:** contrato para integração. O PR #24 implementa as rotas do portal e as rotas de sessão descritas abaixo, mas a validação ponta a ponta depende da integração do serviço D14, do PR #22 e dos testes em ambiente isolado. Não anunciar o portal como lançado.
+**Status:** contrato HTTP implementado no portal local da `main`. O fluxo de login/MFA, métricas 401/403/200 e persistência foram verificados em MariaDB descartável em 29/10/2026. Isso não constitui lançamento público ou homologação de produção.
 
 ## 1. Responsabilidades
 
