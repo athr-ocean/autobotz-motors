@@ -43,7 +43,7 @@ A autoria efetiva está nos commits de Git. A PR #37 preservou o histórico; doc
 
 ## 4. Evidências verificadas na máquina do responsável (29/10/2026)
 
-**Versão testada:** `codex/integration-final-20261029`, commit `718fe28b2354b6fff8a3687b650dc65b6d17fcda`. **Sistema:** CachyOS, OpenJDK 21.0.12.1, MariaDB 13.0.2.
+**Versão testada:** `integração D11–D15`, commit `718fe28b2354b6fff8a3687b650dc65b6d17fcda`. **Sistema:** CachyOS, OpenJDK 21.0.12.1, MariaDB 13.0.2.
 
 - `javac -encoding UTF-8 -Xlint:all` sobre todas as fontes e testes: **aprovado**.
 - Testes sem banco (10/10): `AssinaturaServiceTest`, `ConexaoBancoDataSourceTest`, `D11ComprasPermissaoTest`, `D13BlockchainApiTest`, `D13LedgerIntegrityTest`, `D14SegurancaTest`, `D14SessaoWebTest`, `D15AtalhoTest`, `D15ConteudoTest`, `D15PortalTest`: **aprovados**.
@@ -66,7 +66,7 @@ As verificações acima não equivalem à certificação de produção. A interf
 | D13 contratos, hash-chain e PoC | `ContratoService`, `LedgerContratoDAO` | testes offline/JDBC passaram; API e pagamento simulados |
 | D14 autenticação e MFA | `AuthService`, `SegurancaDAO` | testes de segurança e HTTP/JDBC passaram; fator demonstrativo |
 | D14 dados pessoais | AES-GCM, HMAC e migration 016 | `CoreRegression` e validação de schema passaram |
-| D15 materiais, eventos, pesquisa e métricas | `PortalLauncher`, `TreinamentoService` e `docs/D15_ANALISE_TICKETS_PESQUISA.md` | testes HTTP/JDBC anteriores; tickets/pesquisa são fictícios e redução de chamados não medida |
+| D15 materiais, eventos, pesquisa e métricas | `PortalLauncher`, `TreinamentoService` e `entrega/D15_ANALISE_TICKETS_PESQUISA.md` | testes HTTP/JDBC anteriores; tickets/pesquisa são fictícios e redução de chamados não medida |
 | Entrega final | `README.md`, documentos e código `main` | gerar e conferir ZIP a partir do merge final |
 
 ## 6. Limitações e entrega
@@ -79,7 +79,7 @@ As verificações acima não equivalem à certificação de produção. A interf
 
 ## 7. Complemento de aceite documental e de interface (29/10/2026)
 
-Após o fechamento do merge `b55c3b6`, nova comparação com o enunciado identificou lacunas de material: faltavam os relatórios específicos `docs/D12_PLANOS_SIMULACAO.md` e `docs/D15_ANALISE_TICKETS_PESQUISA.md`; o documento D11 confundia estimativas com medições; e o cálculo D12 estava no serviço, mas faltava uma interface para executar cenários.
+Após o fechamento do merge `b55c3b6`, nova comparação com o enunciado identificou lacunas de material: faltavam os relatórios específicos `entrega/D12_PLANOS_SIMULACAO.md` e `entrega/D15_ANALISE_TICKETS_PESQUISA.md`; o documento D11 confundia estimativas com medições; e o cálculo D12 estava no serviço, mas faltava uma interface para executar cenários.
 
 Foram adicionados:
 - `SimuladorPlanosPanel`, tela Swing de cenários 30/50/20 com preços e módulos opcionais editáveis, rotulação de dados fictícios, sem gravação em banco;

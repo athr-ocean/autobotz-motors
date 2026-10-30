@@ -16,7 +16,7 @@ O desafio solicita a análise de tickets de três meses por categoria e funciona
 | Consultas e relatórios | 3 | 3 | 3 | 9 |
 | **Total fictício** | **15** | **14** | **16** | **45** |
 
-Pela distribuição inventada, o primeiro material a priorizar seria um guia de acesso, perfis e MFA, seguido de cadastro de clientes e fluxo de compra. **Essa prioridade é uma hipótese pedagógica**, não uma necessidade diagnosticada em usuários reais. O guia existente `docs/D15_GUIA_RAPIDO.md` explica clientes, veículos e vendas; a documentação `docs/D14_LOGIN_MFA.md` cobre os detalhes de autenticação. O vídeo tutorial de três minutos está somente em formato de roteiro, em `docs/D15_ROTEIRO_VIDEO.md`.
+Pela distribuição inventada, o primeiro material a priorizar seria um guia de acesso, perfis e MFA, seguido de cadastro de clientes e fluxo de compra. **Essa prioridade é uma hipótese pedagógica**, não uma necessidade diagnosticada em usuários reais. O guia existente `entrega/D15_GUIA_RAPIDO.md` explica clientes, veículos e vendas; a documentação `entrega/D14_LOGIN_MFA.md` cobre os detalhes de autenticação. O vídeo tutorial de três minutos está somente em formato de roteiro, em `entrega/D15_ROTEIRO_VIDEO.md`.
 
 ### Como distinguir o tipo de dificuldade
 
@@ -49,10 +49,10 @@ O instrumento **não foi disparado**, e essas respostas **não são depoimentos 
 ## Conteúdo e portal implementados
 
 - Portal HTTP local com catálogo de materiais publicados, guia rápido e FAQ.
-- Roteiro de tutorial curto em `docs/D15_ROTEIRO_VIDEO.md` e materiais em `portal-treinamento/content/`.
+- Roteiro de tutorial curto em `entrega/D15_ROTEIRO_VIDEO.md` e materiais em `portal-treinamento/content/`.
 - `TreinamentoService` registra eventos `PORTAL_OPEN`, `MATERIAL_VIEW` e `VIDEO_VIEW` em MariaDB, sem identificação pessoal.
 - Métricas por período e material; consulta administrativa protegida por sessão e perfil. Testes `D15PersistenciaTest` e `D15AuthHttpJdbcTest` aprovados em banco descartável, incluindo 401/403/200.
-- Materiais de lançamento preparados em `docs/D15_LANCAMENTO_E_MATERIAIS.md`; **nenhum e-mail em massa foi enviado**.
+- Materiais de lançamento preparados em `entrega/D15_LANCAMENTO_E_MATERIAIS.md`; **nenhum e-mail em massa foi enviado**.
 
 O portal roda em `127.0.0.1`; não é um serviço público hospedado. Não há evidência de webinar gravado ou fórum interativo implementado. Um FAQ existente **não é** um fórum.
 

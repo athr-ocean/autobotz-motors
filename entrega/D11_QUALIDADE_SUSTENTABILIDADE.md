@@ -4,7 +4,7 @@
 
 ## 1. Estratégia e casos de teste
 
-O processo prioritário é **Fornecedor → Orçamento → Solicitação de Compra → Aprovação ou Rejeição → Pedido de Compra**, com transações InnoDB. O mapa de riscos e regras está em `docs/D11_COMPRAS_RELATORIO.md`.
+O processo prioritário é **Fornecedor → Orçamento → Solicitação de Compra → Aprovação ou Rejeição → Pedido de Compra**, com transações InnoDB. O mapa de riscos e regras está em `entrega/D11_COMPRAS_RELATORIO.md`.
 
 Foram contemplados casos positivos e negativos: fornecedor e CNPJ, orçamento insuficiente, autorização, solicitação pendente, aprovação repetida, inserção do pedido, atualização do saldo e rollback após falha deliberada. As verificações exercitam serviços e persistência JDBC. **A simulação automática de cliques em formulário Swing ainda não foi executada**; a demonstração manual poderá ser gravada pela equipe.
 

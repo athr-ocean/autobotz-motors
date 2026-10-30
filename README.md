@@ -29,7 +29,7 @@ schema.sql             Esquema SQL para instalação nova
 scripts/               Execução e testes
 tests/                 Suítes de regressão e integração
 lib/                   Driver MariaDB Connector/J versionado
-docs/                  Guias técnicos, relatórios e documentação dos desafios
+entrega/                  Guias técnicos, relatórios e documentação dos desafios
 ```
 
 ## Requisitos
@@ -63,7 +63,7 @@ Configure as seguintes variáveis na sessão de execução, sem publicar valores
 | `AUTOBOTZ_PII_KEY` | Chave externa de criptografia; mantenha a mesma chave para reler dados cifrados |
 | `AUTOBOTZ_JDBC_JAR` | Opcional, para usar outro MariaDB Connector/J |
 
-Para configurar a chave PII, consulte [criptografia e migração](docs/D14_CIFRAGEM_DADOS_PESSOAIS.md). Nunca versionar senhas, chaves, backups ou bancos com informações pessoais.
+Para configurar a chave PII, consulte [criptografia e migração](entrega/D14_CIFRAGEM_DADOS_PESSOAIS.md). Nunca versionar senhas, chaves, backups ou bancos com informações pessoais.
 
 ## Executar
 
@@ -92,15 +92,15 @@ A regressão integrada de D6–D15 está em [`.github/workflows/integration-regr
 ## Documentos essenciais
 
 - [Relatório geral da segunda rodada](RELATORIO_GERAL_RODADA2.md)
-- [Matriz de aceite do professor: requisitos e evidências D11–D15](docs/MATRIZ_ACEITE_PROFESSOR.md)
+- [Matriz de aceite do professor: requisitos e evidências D11–D15](entrega/MATRIZ_ACEITE_PROFESSOR.md)
 - [Checklist de entregas e limites](CHECKLIST_FINAL.md)
 - [Roteiro de apresentação individual](ROTEIRO_VIDEO.md)
-- [D11 — compras e qualidade](docs/D11_COMPRAS_RELATORIO.md)
-- [D12 — assinaturas e simulação](docs/D12_PLANOS_SIMULACAO.md)
-- [D13 — contratos e integridade](docs/D13_CONTRATOS_LEDGER.md)
-- [D14 — autenticação, MFA e proteção de dados](docs/D14_LOGIN_MFA.md)
-- [D15 — portal de treinamento](docs/D15_PORTAL.md)
-- [D15 — tickets e pesquisa simulada](docs/D15_ANALISE_TICKETS_PESQUISA.md)
+- [D11 — compras e qualidade](entrega/D11_COMPRAS_RELATORIO.md)
+- [D12 — assinaturas e simulação](entrega/D12_PLANOS_SIMULACAO.md)
+- [D13 — contratos e integridade](entrega/D13_CONTRATOS_LEDGER.md)
+- [D14 — autenticação, MFA e proteção de dados](entrega/D14_LOGIN_MFA.md)
+- [D15 — portal de treinamento](entrega/D15_PORTAL.md)
+- [D15 — tickets e pesquisa simulada](entrega/D15_ANALISE_TICKETS_PESQUISA.md)
 
 ## Equipe e histórico
 

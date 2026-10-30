@@ -2,9 +2,9 @@ name: D12 regression
 
 on:
   push:
-    branches: [codex/fix-d12-integration]
+    branches: [main]
   pull_request:
-    branches: [feature/d12-subscriptions]
+    branches: [main]
     paths:
       - 'src/autobotz/model/AssinaturaCliente.java'
       - 'src/autobotz/model/ResultadoSimulacao.java'
