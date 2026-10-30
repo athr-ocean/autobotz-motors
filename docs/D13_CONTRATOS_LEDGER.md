@@ -35,7 +35,7 @@ O status `LIBERACAO_SIMULADA_ELEGIVEL` é uma decisão de elegibilidade da simul
 
 A migration `013_d13_contratos_ledger.sql` referencia `fornecedores(id)`. A validação JDBC deve ocorrer em banco descartável, com a migration D11 `011_d11_compras.sql`, depois a migration D12 `012_d12_assinaturas.sql`, e então a 013, conforme o plano de integração da equipe. A branch de trabalho não cria nem substitui as migrations 011/012, que pertencem a outros integrantes.
 
-Em 28/10/2026, a migration 011 ainda não estava integrada à `main`, e a migration 012 não estava disponível na branch de trabalho. Por isso, o teste JDBC D13 não pode ser declarado executado até essas dependências e o banco descartável estarem prontos.
+Na integração da segunda rodada, as migrations **011–016 foram incluídas na `main`**, aplicadas e reaplicadas num banco descartável; `D13JdbcIntegrationTest` e os testes determinísticos de ledger/API passaram. A API e os pagamentos continuam simulados.
 
 ## Testes
 
