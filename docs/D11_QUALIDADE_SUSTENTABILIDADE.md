@@ -40,3 +40,22 @@ Fórmulas: `tempo_economizado = T_manual − T_automatizado`; `redução_% = 100
 A automação oferece feedback repetível, reduz risco de regressão e tende a evitar retrabalho. Em matéria de sustentabilidade, **o benefício potencial depende de medição**; executar testes sem tela não prova menor gasto energético total porque runners, banco e tempo de processamento também consomem recursos.
 
 Recomenda-se manter testes rápidos a cada PR, organizar a bateria JDBC em banco descartável, armazenar logs sem segredos e revisar testes que se tornem instáveis. A qualidade da entrega está sustentada pelos testes aprovados e pela possibilidade de repetição, **não por porcentagens inventadas de produtividade ou energia**.
+
+## 5. Comparação didática de eficiência — valores simulados
+
+O enunciado autoriza uma **economia simulada**. Para apresentar um modelo reprodutível, adotam-se os valores exemplificativos do próprio desafio: execução manual de um conjunto fixo de casos em **120 minutos** e execução automatizada equivalente em **5 minutos**. Esses tempos não foram medidos no AutoBotz; a equivalência de cobertura precisa ser confirmada antes de qualquer comparação real.
+
+| Grandeza | Manual hipotético | Automatizado hipotético |
+|---|---:|---:|
+| Duração por ciclo | 120 min | 5 min |
+| Energia assumindo potência média idêntica de 60 W | 120 Wh | 5 Wh |
+| Tempo poupado por ciclo (modelo) | — | 115 min |
+| Energia poupada por ciclo (modelo) | — | 115 Wh |
+
+A redução hipotética de tempo é **95,83%** para esse conjunto de premissas. É um **resultado matemático de simulação, não um ganho observado**; em particular, 60 W não corresponde a uma medição do notebook, servidor ou runner. Para obter comprovação empírica de melhoria, medir cenários iguais com e sem automação, considerar esforço de manutenção dos testes e registrar potência com instrumento adequado.
+
+## 6. Cobertura da interface e do pipeline
+
+Além dos testes de serviço/DAO, `tests/D11ComprasSwingTest.java` executa, no CI, o preenchimento do campo **Fornecedor** e o clique no botão **Salvar fornecedor**, verificando a persistência no banco descartável. É uma automação da interação Swing (sem janela gráfica na tela) e não substitui revisão visual de acessibilidade/usabilidade. O teste limpa somente o fornecedor fictício que criou. Execute-o exclusivamente em `autobotz_*_test`.
+
+O pipeline usa Java 21+ e MariaDB descartável para as operações críticas, evitando alegar que testes puramente unitários comprovam persistência.
