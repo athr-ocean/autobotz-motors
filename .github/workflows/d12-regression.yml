@@ -2,9 +2,9 @@ name: D12 regression
 
 on:
   push:
-    branches: [codex/fix-d12-integration]
+    branches: [main]
   pull_request:
-    branches: [feature/d12-subscriptions]
+    branches: [main]
     paths:
       - 'src/autobotz/model/AssinaturaCliente.java'
       - 'src/autobotz/model/ResultadoSimulacao.java'
@@ -58,11 +58,8 @@ jobs:
           MYSQL_PWD: d12_test_password
         run: |
           curl -fsSL -o "$RUNNER_TEMP/mariadb-java-client.jar" https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.5.10/mariadb-java-client-3.5.10.jar
-          sed \
-            -e 's/CREATE DATABASE IF NOT EXISTS autobotz_db;/CREATE DATABASE IF NOT EXISTS autobotz_d12_test;/' \
-            -e 's/^USE autobotz_db;$/USE autobotz_d12_test;/' \
-            schema.sql > "$RUNNER_TEMP/schema.sql"
-          mysql -h 127.0.0.1 -P 3306 -u root < "$RUNNER_TEMP/schema.sql"
+          # O schema nao seleciona banco; a conexao escolhe o banco isolado.
+          mysql -h 127.0.0.1 -P 3306 -u root autobotz_d12_test < schema.sql
       - name: Run D12 JDBC regression
         env:
           AUTOBOTZ_DB_URL: jdbc:mariadb://127.0.0.1:3306/autobotz_d12_test

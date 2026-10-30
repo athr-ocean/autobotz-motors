@@ -1,6 +1,6 @@
 # D15 — Portal de treinamento (como executar e verificar)
 
-Responsável: Mauro. Conteúdo e métricas: Higor. Contrato das rotas: `docs/D15_CONTRATO_API.md`.
+Responsável: Mauro. Conteúdo e métricas: Higor. Contrato das rotas: `entrega/D15_CONTRATO_API.md`.
 
 ## O que é
 
@@ -76,7 +76,7 @@ Os testes de rota não usam banco: criam uma pasta temporária com catálogo de 
 - A rota de métricas requer `inicio` e `fim` em formato ISO local; a resposta identifica a origem dos dados. Não há painel de métricas completo.
 - A interface renderiza Markdown básico com elementos DOM seguros: títulos, parágrafos, listas, negrito e código em linha. Links, tabelas, itálico e extensões Markdown ainda não são suportados.
 - O portal não está publicado na internet: funciona apenas em `localhost`.
-- Os textos em `content/` são cópias dos arquivos de `docs/` do Higor; o teste de conteúdo deve
+- Os textos em `content/` são cópias dos arquivos de `entrega/` do Higor; o teste de conteúdo deve
   continuar a confirmar que as cópias estão sincronizadas.
 
 ## Segurança aplicada
@@ -105,7 +105,7 @@ configurado.
 
 ## Testes de conteúdo e de persistência
 
-Conteúdo (cópias em `content/` iguais aos textos oficiais em `docs/`):
+Conteúdo (cópias em `content/` iguais aos textos oficiais em `entrega/`):
 
     java -cp /tmp/portal-out D15ConteudoTest
 

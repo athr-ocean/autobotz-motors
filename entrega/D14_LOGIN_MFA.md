@@ -1,7 +1,7 @@
 # D14 — Login seguro, tentativas e MFA (João)
 
 Branch sugerida: `feature/d14-auth-mfa` · Migração: `db/migrations/014_d14_security.sql`
-Portal HTTP: ver `docs/D14_SESSAO_WEB.md`.
+Portal HTTP: ver `entrega/D14_SESSAO_WEB.md`.
 
 ## O que existe
 
@@ -15,7 +15,7 @@ Portal HTTP: ver `docs/D14_SESSAO_WEB.md`.
 | MFA de uso único | `MfaService`: 6 dígitos, validade 5 min, 3 tentativas, consumo atômico, novo desafio invalida o anterior; só sal+hash no banco |
 | Trilha de segurança | Tabela `eventos_seguranca` (LOGIN, LOGIN_BLOQUEADO, MFA_EMITIDO, MFA_VERIFICACAO, HASH_MIGRADO, LOGOUT, ACESSO_NEGADO). `origem` fica NULL: não há IP remoto em execução local |
 | Consulta restrita | `SegurancaService.consultarEventos` exige `Permissao.CONSULTAR_EVENTOS_SEGURANCA` (só ADMIN); a checagem é no serviço |
-| Sessão do portal (401/403/200) | `SessaoWebService` — ver `docs/D14_SESSAO_WEB.md` |
+| Sessão do portal (401/403/200) | `SessaoWebService` — ver `entrega/D14_SESSAO_WEB.md` |
 
 ## Fluxo de login (Swing e console)
 

@@ -2,7 +2,7 @@ name: D14 security regression
 
 on:
   push:
-    branches: [codex/fix-d14-jdbc-test-mfa]
+    branches: [main]
   pull_request:
     paths:
       - '.github/workflows/d14-security-regression.yml'

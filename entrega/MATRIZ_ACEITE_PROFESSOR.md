@@ -6,25 +6,25 @@ Critério: **IMPLEMENTADO** é recurso ou documento que existe; **SIMULAÇÃO** 
 
 | Desafio | Produto final exigido | Material presente | Estado / ressalva |
 | --- | --- | --- | --- |
-| D11 | Análise e planejamento de automação | `docs/D11_COMPRAS_RELATORIO.md`; `docs/D11_QUALIDADE_SUSTENTABILIDADE.md` | IMPLEMENTADO |
+| D11 | Análise e planejamento de automação | `entrega/D11_COMPRAS_RELATORIO.md`; `entrega/D11_QUALIDADE_SUSTENTABILIDADE.md` | IMPLEMENTADO |
 | D11 | Casos de teste automatizados (API e interface funcional) | `tests/D11ComprasTest.java`, `tests/D11ComprasJdbcTest.java`, `tests/D11ComprasSwingTest.java`, CI | IMPLEMENTADO; testar no CI antes de declarar aprovado |
-| D11 | Relatório de comparação de eficiência | `docs/D11_QUALIDADE_SUSTENTABILIDADE.md` | SIMULAÇÃO: 120 vs 5 min; medição real NÃO COMPROVADA |
-| D11 | Proposta de valor e sustentabilidade | `docs/D11_QUALIDADE_SUSTENTABILIDADE.md` | SIMULAÇÃO de energia com potência assumida; não observação de consumo |
-| D12 | Análise da crise, churn e cancelamentos | `docs/D12_PLANOS_SIMULACAO.md` | SIMULAÇÃO explicitamente fictícia |
+| D11 | Relatório de comparação de eficiência | `entrega/D11_QUALIDADE_SUSTENTABILIDADE.md` | SIMULAÇÃO: 120 vs 5 min; medição real NÃO COMPROVADA |
+| D11 | Proposta de valor e sustentabilidade | `entrega/D11_QUALIDADE_SUSTENTABILIDADE.md` | SIMULAÇÃO de energia com potência assumida; não observação de consumo |
+| D12 | Análise da crise, churn e cancelamentos | `entrega/D12_PLANOS_SIMULACAO.md` | SIMULAÇÃO explicitamente fictícia |
 | D12 | Novos planos e módulos documentados | `AssinaturaService`, DAO, migration 012, `SimuladorPlanosPanel` | IMPLEMENTADO em protótipo |
-| D12 | Simulação financeira e viabilidade | `docs/D12_PLANOS_SIMULACAO.md`, `D12SimuladorUITest` | SIMULAÇÃO de MRR; viabilidade completa requer custos, impostos e retenção |
-| D12 | Comunicação de lançamento e suporte | seção de e-mail e guia de suporte em `docs/D12_PLANOS_SIMULACAO.md` | Documento pronto; não houve envio real |
-| D13 | Relatório blockchain com processos/modelos | `docs/D13_MAPA_E_MODELAGEM.md`, `docs/D13_CONTRATOS_LEDGER.md` | IMPLEMENTADO como ledger local |
-| D13 | Apresentação da prova de conceito | `docs/D13_ROTEIRO_POC.md`, `ApiBlockchainSimulada` | SIMULAÇÃO demonstrável; gravação real NÃO COMPROVADA |
+| D12 | Simulação financeira e viabilidade | `entrega/D12_PLANOS_SIMULACAO.md`, `D12SimuladorUITest` | SIMULAÇÃO de MRR; viabilidade completa requer custos, impostos e retenção |
+| D12 | Comunicação de lançamento e suporte | seção de e-mail e guia de suporte em `entrega/D12_PLANOS_SIMULACAO.md` | Documento pronto; não houve envio real |
+| D13 | Relatório blockchain com processos/modelos | `entrega/D13_MAPA_E_MODELAGEM.md`, `entrega/D13_CONTRATOS_LEDGER.md` | IMPLEMENTADO como ledger local |
+| D13 | Apresentação da prova de conceito | `entrega/D13_ROTEIRO_POC.md`, `ApiBlockchainSimulada` | SIMULAÇÃO demonstrável; gravação real NÃO COMPROVADA |
 | D13 | Plano de testes e integridade | `D13LedgerIntegrityTest`, `D13BlockchainApiTest`, `D13JdbcIntegrationTest` | IMPLEMENTADO/testes anteriores passaram |
-| D13 | Plano de treinamento dos usuários | `docs/D13_GUIA_PRIMEIROS_PASSOS.md` | IMPLEMENTADO |
-| D14 | Relatório forense do incidente simulado | `docs/D14_RELATORIO_INCIDENTE_SIMULADO.md` | SIMULAÇÃO; IPs reais não disponíveis, não inventados |
-| D14 | Plano e configuração de segurança | `docs/D14_LOGIN_MFA.md`, `docs/D14_CIFRAGEM_DADOS_PESSOAIS.md`; `014`/`016` | IMPLEMENTADO; MFA é didático, chave externa |
-| D14 | Plano de resposta a incidentes | `docs/D14_RELATORIO_INCIDENTE_SIMULADO.md` | IMPLEMENTADO como plano |
-| D14 | Comunicação de crise | comunicado-modelo em `docs/D14_RELATORIO_INCIDENTE_SIMULADO.md` | Documento simulado; não enviado |
-| D15 | Relatório de tickets e pesquisa | `docs/D15_ANALISE_TICKETS_PESQUISA.md` | SIMULAÇÃO, dados explicitamente inventados |
-| D15 | Portal, guias e conteúdo | `portal-treinamento/`, `docs/D15_GUIA_RAPIDO.md`, FAQ e roteiro tutorial | IMPLEMENTADO como serviço local; vídeo de 3 min não gravado |
-| D15 | Campanha de lançamento | `docs/D15_LANCAMENTO_E_MATERIAIS.md`, aviso pop-up no Swing | Documento e aviso implementados; e-mail real não enviado |
+| D13 | Plano de treinamento dos usuários | `entrega/D13_GUIA_PRIMEIROS_PASSOS.md` | IMPLEMENTADO |
+| D14 | Relatório forense do incidente simulado | `entrega/D14_RELATORIO_INCIDENTE_SIMULADO.md` | SIMULAÇÃO; IPs reais não disponíveis, não inventados |
+| D14 | Plano e configuração de segurança | `entrega/D14_LOGIN_MFA.md`, `entrega/D14_CIFRAGEM_DADOS_PESSOAIS.md`; `014`/`016` | IMPLEMENTADO; MFA é didático, chave externa |
+| D14 | Plano de resposta a incidentes | `entrega/D14_RELATORIO_INCIDENTE_SIMULADO.md` | IMPLEMENTADO como plano |
+| D14 | Comunicação de crise | comunicado-modelo em `entrega/D14_RELATORIO_INCIDENTE_SIMULADO.md` | Documento simulado; não enviado |
+| D15 | Relatório de tickets e pesquisa | `entrega/D15_ANALISE_TICKETS_PESQUISA.md` | SIMULAÇÃO, dados explicitamente inventados |
+| D15 | Portal, guias e conteúdo | `portal-treinamento/`, `entrega/D15_GUIA_RAPIDO.md`, FAQ e roteiro tutorial | IMPLEMENTADO como serviço local; vídeo de 3 min não gravado |
+| D15 | Campanha de lançamento | `entrega/D15_LANCAMENTO_E_MATERIAIS.md`, aviso pop-up no Swing | Documento e aviso implementados; e-mail real não enviado |
 | D15 | Dashboard e monitoramento | painel do portal e `GET /api/treinamentos/metricas`, autenticação ADMIN | IMPLEMENTADO; análise de redução real de chamados depende de base real |
 | Integração | Construção contínua dos desafios | `main`, migrations 011–016, testes, CI, README | IMPLEM. / aceite CI final pendente |
 | Apresentação | Vídeo de 30 minutos da trajetória | `ROTEIRO_VIDEO.md` | EXTERNO: Arthur precisa gravar, conferir duração e submeter hoje |

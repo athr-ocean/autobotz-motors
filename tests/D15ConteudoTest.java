@@ -6,15 +6,15 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
- * Garante que os materiais do portal sao copias fieis dos textos oficiais em docs/ e que todo
+ * Garante que os materiais do portal sao copias fieis dos textos oficiais em entrega/ e que todo
  * material publicado tem conteudo. Executar na raiz do repositorio.
  */
 public class D15ConteudoTest {
     private static final Path CONTENT = Path.of("portal-treinamento", "content");
     private static final Map<String, String> OFICIAL = Map.of(
-        "guia-rapido.md", "docs/D15_GUIA_RAPIDO.md",
-        "faq.md", "docs/D15_FAQ.md",
-        "roteiro-video-30-min.md", "docs/D15_ROTEIRO_VIDEO_30_MIN.md");
+        "guia-rapido.md", "entrega/D15_GUIA_RAPIDO.md",
+        "faq.md", "entrega/D15_FAQ.md",
+        "roteiro-video-30-min.md", "entrega/D15_ROTEIRO_VIDEO_30_MIN.md");
     private static int falhas = 0;
 
     public static void main(String[] args) throws Exception {
