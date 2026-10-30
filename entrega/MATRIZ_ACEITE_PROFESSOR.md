@@ -7,7 +7,7 @@ Critério: **IMPLEMENTADO** é recurso ou documento que existe; **SIMULAÇÃO** 
 | Desafio | Produto final exigido | Material presente | Estado / ressalva |
 | --- | --- | --- | --- |
 | D11 | Análise e planejamento de automação | `entrega/D11_COMPRAS_RELATORIO.md`; `entrega/D11_QUALIDADE_SUSTENTABILIDADE.md` | IMPLEMENTADO |
-| D11 | Casos de teste automatizados (API e interface funcional) | `tests/D11ComprasTest.java`, `tests/D11ComprasJdbcTest.java`, `tests/D11ComprasSwingTest.java`, CI | IMPLEMENTADO; testar no CI antes de declarar aprovado |
+| D11 | Casos de teste automatizados (API e interface funcional) | `tests/D11ComprasTest.java`, `tests/D11ComprasJdbcTest.java`, `tests/D11ComprasSwingTest.java`, CI | IMPLEMENTADO; teste funcional Swing e JDBC aprovados no CI |
 | D11 | Relatório de comparação de eficiência | `entrega/D11_QUALIDADE_SUSTENTABILIDADE.md` | SIMULAÇÃO: 120 vs 5 min; medição real NÃO COMPROVADA |
 | D11 | Proposta de valor e sustentabilidade | `entrega/D11_QUALIDADE_SUSTENTABILIDADE.md` | SIMULAÇÃO de energia com potência assumida; não observação de consumo |
 | D12 | Análise da crise, churn e cancelamentos | `entrega/D12_PLANOS_SIMULACAO.md` | SIMULAÇÃO explicitamente fictícia |
@@ -26,7 +26,7 @@ Critério: **IMPLEMENTADO** é recurso ou documento que existe; **SIMULAÇÃO** 
 | D15 | Portal, guias e conteúdo | `portal-treinamento/`, `entrega/D15_GUIA_RAPIDO.md`, FAQ e roteiro tutorial | IMPLEMENTADO como serviço local; vídeo de 3 min não gravado |
 | D15 | Campanha de lançamento | `entrega/D15_LANCAMENTO_E_MATERIAIS.md`, aviso pop-up no Swing | Documento e aviso implementados; e-mail real não enviado |
 | D15 | Dashboard e monitoramento | painel do portal e `GET /api/treinamentos/metricas`, autenticação ADMIN | IMPLEMENTADO; análise de redução real de chamados depende de base real |
-| Integração | Construção contínua dos desafios | `main`, migrations 011–016, testes, CI, README | IMPLEM. / aceite CI final pendente |
+| Integração | Construção contínua dos desafios | `main`, migrations 011–016, testes, CI, README | IMPLEMENTADO; regressão integrada, D12 e D14 aprovadas na PR #44 |
 | Apresentação | Vídeo de 30 minutos da trajetória | `ROTEIRO_VIDEO.md` | EXTERNO: Arthur precisa gravar, conferir duração e submeter hoje |
 | Submissão | Documentos e código conforme orientação professor | `RELATORIO_GERAL_RODADA2.md`, `CHECKLIST_FINAL.md`, ZIP gerado por `git archive` | EXTERNO: gerar ZIP do **último commit**, anexar e obter comprovante |
 | Marco futuro | Artigo final previsto para 11/12/2026 | documentação atual pode servir de base | NÃO EXIGÍVEL no marco de 30/10/2026; etapa futura |
