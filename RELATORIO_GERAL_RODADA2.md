@@ -60,7 +60,7 @@ As verificações acima não equivalem à certificação de produção. A interf
 | Requisito | Implementação principal | Evidência e estado |
 |---|---|---|
 | D6–D10 sem regressões principais | DAOs e serviços preexistentes | `CoreRegression` passou no MariaDB de teste |
-| D11 compra e orçamento | `ComprasService`, `ComprasPanel` | testes D11 serviço/JDBC passaram; cliques Swing não ensaiados |
+| D11 compra e orçamento | `ComprasService`, `ComprasPanel` | testes D11 de serviço/JDBC e formulário Swing headless aprovados no CI; inspeção visual manual não feita |
 | D11 testes, CI, sustentabilidade | scripts/workflows, relatório D11 | CI passou; medição energética e tempo manual pendentes |
 | D12 planos, assinatura, transações e simulador Swing | `AssinaturaDAO`, `AssinaturaService`, `SimuladorPlanosPanel` | testes de serviço/JDBC anteriores e novo teste headless; projeções simuladas |
 | D13 contratos, hash-chain e PoC | `ContratoService`, `LedgerContratoDAO` | testes offline/JDBC passaram; API e pagamento simulados |
@@ -73,8 +73,8 @@ As verificações acima não equivalem à certificação de produção. A interf
 
 - Não confundir mock, valores de exemplo, cronograma futuro ou métricas simuladas com resultados medidos.
 - Não afirmar que foram enviados avisos reais, efetuados pagamentos ou gravados webinars/tutoriais não produzidos.
-- O vídeo será gravado pela equipe; o roteiro em `ROTEIRO_VIDEO.md` serve como guia.
-- A demonstração visual do Swing, medição temporal manual, telemetria energética e comparação real de chamados continuam sem evidência.
+- O vídeo individual será gravado por Arthur; o roteiro em `ROTEIRO_VIDEO.md` serve como guia.
+- A inspeção visual manual do Swing, medição temporal manual, telemetria energética e comparação real de chamados continuam sem evidência.
 - O pacote de entrega deve ser montado a partir do commit final da `main`, sem `.git`, arquivos de chaves, segredos e resíduos de build. O arquivo de entrega foi gerado por `git archive` a partir da `main`, sem histórico Git ou segredos locais.
 
 ## 7. Complemento de aceite documental e de interface (29/10/2026)
