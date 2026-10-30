@@ -1,7 +1,9 @@
 # D15 — Estado dos materiais e rascunho de lançamento
 
-**Atualizado:** 28/10/2026<br>
-**Estado geral:** não pronto para lançamento. O texto abaixo é um inventário de evidências e um rascunho; não prova que gravações, webinars ou integração ponta a ponta tenham sido concluídos.
+**Atualizado:** 30/10/2026
+
+
+**Estado geral:** protótipo local de treinamento integrado e validado por testes HTTP/JDBC; campanha e liberação pública não realizadas. A gravação de vídeo e qualquer webinar/fórum operacional permanecem ausentes.
 
 ## Inventário honesto
 
@@ -30,13 +32,17 @@ Por enquanto, este texto é apenas um rascunho de comunicação. A data, o ender
 Obrigado,<br>
 Equipa AutoBotz Motors
 
-## Critérios para liberar o e-mail
+## Critérios de lançamento — estado após integração
 
-- [ ] PR #22 integrado e dependências compiladas.
-- [ ] PR #24 revisto, testes sem banco executados e persistência validada em MariaDB isolado _test.
-- [ ] Login/MFA/logout web e autorização 401/403/200 verificados no servidor.
-- [ ] PR #29 integrado e pop-up de lançamento confirmado na interface ERP.
-- [ ] Guia conferido na versão integrada.
-- [ ] Vídeo efetivamente gravado, revisto e reproduzido; webinar e fórum descritos conforme o que realmente existir.
-- [ ] Link e canal de suporte confirmados.
-- [ ] Aprovação da equipa registada.
+- [x] DataSource e serviço de treinamento integrados à `main`.
+- [x] Portal, login/MFA e autorização 401/403/200 verificados no CI em banco descartável.
+- [x] Entrada do portal pela navegação Swing e **aviso pop-up** após abertura da janela.
+- [x] Roteiro curto de tutorial adicionado ao catálogo, identificado como **não gravado**.
+- [x] Dashboard no navegador para consultar contagens por material/período após autenticação ADMIN.
+- [ ] Ensaio visual do Swing e do dashboard no computador do responsável.
+- [ ] Gravação, edição e revisão dos vídeos que serão entregues efetivamente.
+- [ ] Webinar/fórum reais: a arquitetura informa **planejado**, sem simular serviço ativo.
+- [ ] Aprovação e envio real do e-mail; link e destinatários externos não existem no protótipo local.
+- [ ] Medição de redução real de chamados após treinamento (sem base real disponível).
+
+O e-mail acima é uma proposta de campanha para simulação acadêmica, não um envio realizado.

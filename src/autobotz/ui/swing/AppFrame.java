@@ -53,6 +53,8 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -79,6 +81,18 @@ final class AppFrame extends JFrame {
     root.add(workspace(), BorderLayout.CENTER);
     setContentPane(root);
     showPage("dashboard");
+    SwingUtilities.invokeLater(this::avisarCentralTreinamento);
+  }
+
+  private void avisarCentralTreinamento() {
+    if (!isDisplayable()) return;
+    var usuario = SessaoUsuario.getInstancia().getUsuario();
+    if (usuario == null) return;
+    int escolha = JOptionPane.showConfirmDialog(this,
+        SwingSupport.text("gui.training_announcement_message"),
+        SwingSupport.text("gui.training_center"),
+        JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+    if (escolha == JOptionPane.YES_OPTION) openTrainingCenter();
   }
   private JPanel sidebar() {
     JPanel side = new JPanel(new BorderLayout());

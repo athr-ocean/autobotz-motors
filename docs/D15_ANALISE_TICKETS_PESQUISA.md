@@ -69,3 +69,7 @@ Para comparar a taxa de tickets antes/depois de um lançamento real:
 5. Documentar sazonalidade e ausência de causalidade comprovada; não usar os 45 tickets fictícios como linha de base.
 
 **Conclusão:** o sistema tem infraestrutura técnica para acompanhar acesso ao treinamento, mas ainda não há série histórica real de tickets ou pesquisa que permita afirmar aumento de satisfação ou redução de suporte.
+
+## Implementação adicional da interface do dashboard
+
+O portal disponibiliza formulário de login/MFA demonstrativo e um painel visual de acesso restrito que consulta `GET /api/treinamentos/metricas` com datas inicial/final. O backend valida a sessão e o perfil: **401** sem autenticação, **403** para usuário sem privilégio e **200** apenas para ADMIN autenticado. A página agrega os dados retornados por tipo de evento e material; não interpreta visualizações como conclusão de treinamento. O roteiro de tutorial de três minutos está publicado no catálogo **como texto não gravado**, sem contagem artificial de `VIDEO_VIEW`. Seções de webinar e fórum aparecem como propostas em preparação.

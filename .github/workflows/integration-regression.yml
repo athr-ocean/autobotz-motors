@@ -37,6 +37,25 @@ jobs:
           bash -n scripts/*.sh
           bash scripts/run.sh build
 
+      - name: Validate training portal web interface
+        run: |
+          node --check portal-treinamento/public/app.js
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('portal-treinamento/public/index.html', 'utf8');
+          const js = fs.readFileSync('portal-treinamento/public/app.js', 'utf8');
+          const cat = JSON.parse(fs.readFileSync('portal-treinamento/content/catalogo.json', 'utf8'));
+          for (const id of ['login-form','mfa-form','dashboard','metricas-form','metricas-linhas','sair']) {
+            if (!html.includes('id="' + id + '"')) throw Error('Missing portal UI ' + id);
+          }
+          for (const url of ['/api/login','/api/login/mfa','/api/logout','/metricas']) {
+            if (!js.includes(url)) throw Error('Missing portal endpoint ' + url);
+          }
+          if (!cat.materiais.some(x => x.slug === 'roteiro-tutorial-3-min' && x.tipo === 'ROTEIRO'))
+            throw Error('Missing 3-minute tutorial script');
+          console.log('Portal HTML/JS/catalog OK');
+          NODE
+
       - name: Initialize disposable databases and migrations
         shell: bash
         run: |
@@ -71,6 +90,7 @@ jobs:
         run: |
           cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
           AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d11_test?sslMode=disable java -cp "$cp" D11ComprasTest
+          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d11_test?sslMode=disable java -Djava.awt.headless=true -cp "$cp" autobotz.ui.swing.D11ComprasSwingTest
           AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d12_test?sslMode=disable java -cp "$cp" AssinaturaDAOJdbcTest
 
       - name: Run D13 and D14 JDBC suites

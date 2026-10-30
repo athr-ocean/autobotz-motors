@@ -23,6 +23,14 @@
       "status": "PUBLICADO",
       "formato": "MARKDOWN",
       "arquivo": "roteiro-video-30-min.md"
+    },
+    {
+      "slug": "roteiro-tutorial-3-min",
+      "titulo": "Roteiro de tutorial curto — cerca de 3 minutos (não gravado)",
+      "tipo": "ROTEIRO",
+      "status": "PUBLICADO",
+      "formato": "MARKDOWN",
+      "arquivo": "roteiro-tutorial-3-min.md"
     }
   ]
 }
