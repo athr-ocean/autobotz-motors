@@ -87,7 +87,7 @@ bash scripts/test-d15.sh
 
 A regressão integrada de D6–D15 está em [`.github/workflows/integration-regression.yml`](.github/workflows/integration-regression.yml), com banco MariaDB descartável. Os testes JDBC locais precisam de uma URL que aponte **exclusivamente para banco de teste**; confira os pré-requisitos de cada script antes de executá-lo. Nunca rode suítes destrutivas sobre `autobotz_db` ou dados reais.
 
-**Evidência de fechamento:** em 29/10/2026, o ZIP correspondente ao commit `fa580cde` compilou e passou em **11/11 suítes offline** no CachyOS. A regressão JDBC de **8/8 suítes** foi executada na integração anterior; a PR #39 passou no GitHub Actions com testes JDBC após a inclusão do simulador. O ZIP final da segunda rodada foi verificado quanto à extração e integridade. Isso não substitui teste visual completo ou auditoria de segurança independente.
+**Evidência de fechamento:** o ZIP da revisão `fa580cde` compilou e passou em **11/11 suítes offline** no CachyOS em 29/10/2026. Na sequência, os módulos foram revisados, os relatórios foram organizados em `entrega/` e os workflows **Integrated ERP Regression, D12 Regression e D14 Security Regression** da PR #44 passaram, incluindo MariaDB/JDBC e interação Swing de compras. Para entregar a versão mais recente, gere novo ZIP a partir da `main`. Teste automatizado não equivale a inspeção visual completa ou certificação de segurança.
 
 ## Documentos essenciais
 
