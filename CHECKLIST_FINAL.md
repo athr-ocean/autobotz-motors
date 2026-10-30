@@ -6,7 +6,7 @@
 |---|---|---|
 | D6–D10: regressão principal | FEITO | `CoreRegression` JDBC passou |
 | D11: compras/fornecedores, orçamento, aprovação/rollback | FEITO | `D11ComprasTest`, `D11ComprasJdbcTest` passaram |
-| D11: permissão e testes automatizados | FEITO COM ACEITE CI PENDENTE | teste de formulário `D11ComprasSwingTest` adicionado ao pipeline, além da regressão JDBC |
+| D11: permissão e testes automatizados | FEITO — CI APROVADO | teste de formulário `D11ComprasSwingTest` adicionado ao pipeline, além da regressão JDBC |
 | D11: comparação de eficiência | FEITO COM RESSALVA | modelo matemático simulado 120 min vs 5 min no relatório D11; sem medição real equivalente |
 | D11: sustentabilidade | FEITO COM RESSALVA | cálculo simulado sob 60 W; consumo real não medido |
 | D12: assinaturas, cancelamento, indicadores, cenários | FEITO COM RESSALVA | `AssinaturaServiceTest`, `AssinaturaDAOJdbcTest` e `docs/D12_PLANOS_SIMULACAO.md`; dados simulados |
@@ -28,8 +28,14 @@
 | PRs antigas | FEITO | zero abertas após reconciliação (fechamentos registram motivo) |
 | Execução visual do Swing | NÃO COMPROVADO | código compila; demonstração manual necessária |
 | Vídeo de 30 minutos | NÃO FEITO | Arthur grava individualmente, somente rosto e fala; prazo acadêmico 30/10/2026 |
-| ZIP final limpo e extraível | FEITO NA BASE ANTERIOR; ATUALIZAR | o ZIP do commit `fa580cde` passou; gerar novo pacote depois do merge desta revisão |
+| ZIP final limpo e extraível | REGERAR NO COMPUTADOR | ZIP anteriormente verificado pertence a `fa580cde`; publicar pacote da `main` atual após este aceite |
 
-| D15: pop-up e dashboard de métricas | FEITO COM ACEITE CI PENDENTE | interface HTML/JS e aviso Swing adicionados; validar visualmente antes da gravação |
+| D15: pop-up e dashboard de métricas | FEITO — CI APROVADO | interface HTML/JS e aviso Swing adicionados; validar visualmente antes da gravação |
 | D15: lançamento externo / webinar / fórum | NÃO REALIZADO | campanha preparada, mas sem envio real ou canais externos publicados; cenários didáticos indicados |
-| Envio do ZIP e vídeo ao professor | NÃO CONFIRMADO | comprovar submissão na plataforma indicada hoje, 30/10/2026 |\n\n**Dados de exemplo e simulação:** não apresentá-los como evidência de clientes, pagamentos, pesquisas ou métricas reais. **Arquivos finais:** `RELATORIO_GERAL_RODADA2.md`, `ROTEIRO_VIDEO.md`, `CHECKLIST_FINAL.md`, relatórios D12/D15 e ZIP do projeto.
+| Envio do ZIP e vídeo ao professor | NÃO CONFIRMADO | comprovar submissão na plataforma indicada hoje, 30/10/2026 |\n\n## Estado do aceite em 30/10/2026
+
+O merge da PR #41 foi incorporado à `main` (`94a8f462`). O workflow `Integrated ERP Regression` terminou com sucesso para a versão da PR, incluindo validação do portal HTML/JS, compilação, testes determinísticos, teste funcional Swing do D11 e as suítes de integração JDBC D11–D15. A [matriz de aceite do professor](docs/MATRIZ_ACEITE_PROFESSOR.md) apresenta cada produto final exigido e a localização da evidência.
+
+**Fora da execução automática do GitHub:** gravar e enviar o vídeo de cerca de 30 minutos hoje; apresentar o PDF do relatório se exigido pela plataforma, anexar o ZIP gerado do último commit e guardar comprovante da entrega. As métricas reais de tempo/energia, os chamados reais, o webinar e o fórum operacional não foram produzidos. Os modelos permitidos pelo desafio foram identificados como `SIMULADO`. O artigo final consta para 11/12/2026, não para o marco de hoje.
+
+**Dados de exemplo e simulação:** não apresentá-los como evidência de clientes, pagamentos, pesquisas ou métricas reais. **Arquivos finais:** `RELATORIO_GERAL_RODADA2.md`, `ROTEIRO_VIDEO.md`, `CHECKLIST_FINAL.md`, relatórios D12/D15 e ZIP do projeto.
