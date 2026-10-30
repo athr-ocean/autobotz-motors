@@ -92,6 +92,7 @@ A regressão integrada de D6–D15 está em [`.github/workflows/integration-regr
 ## Documentos essenciais
 
 - [Relatório geral da segunda rodada](RELATORIO_GERAL_RODADA2.md)
+- [Matriz de aceite do professor: requisitos e evidências D11–D15](docs/MATRIZ_ACEITE_PROFESSOR.md)
 - [Checklist de entregas e limites](CHECKLIST_FINAL.md)
 - [Roteiro de apresentação individual](ROTEIRO_VIDEO.md)
 - [D11 — compras e qualidade](docs/D11_COMPRAS_RELATORIO.md)
