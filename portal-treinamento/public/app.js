@@ -134,4 +134,120 @@ async function iniciar() {
   }
 }
 
+
+
+// A sessão web do D14 usa cookie HttpOnly. O browser não lê ou armazena o token.
+const auth = { desafioId: null };
+function statusAuth(mensagem) { $("auth-status").textContent = mensagem; }
+function atualizarAutenticacao(autenticado) {
+  $("login-form").hidden = autenticado;
+  $("mfa-form").hidden = true;
+  $("sair").hidden = !autenticado;
+  $("dashboard").hidden = !autenticado;
+  if (!autenticado) $("metricas-linhas").replaceChildren();
+}
+async function entrar(evento) {
+  evento.preventDefault();
+  statusAuth("Validando credenciais...");
+  const usuario = $("usuario").value.trim();
+  const senha = $("senha").value;
+  try {
+    const resposta = await api("/api/login", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ usuario, senha })
+    });
+    $("senha").value = "";
+    if (resposta.status === "MFA_NECESSARIA") {
+      auth.desafioId = resposta.desafioId;
+      $("login-form").hidden = true;
+      $("mfa-form").hidden = false;
+      $("codigo-demo").textContent =
+        "Segundo fator SIMULADO, não enviado por e-mail/SMS. Código demonstrativo: "
+        + (resposta.codigoDemonstracao || "indisponível");
+      statusAuth("Informe o segundo fator de demonstração.");
+    } else if (resposta.status === "AUTENTICADO") {
+      atualizarAutenticacao(true);
+      statusAuth("Sessão autenticada. As métricas só são acessíveis a ADMIN.");
+    } else {
+      throw new Error("Resposta inesperada no login.");
+    }
+  } catch (erro) { statusAuth(erro.message); }
+}
+async function confirmarMfa(evento) {
+  evento.preventDefault();
+  if (auth.desafioId == null) return;
+  try {
+    await api("/api/login/mfa", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ desafioId: auth.desafioId, codigo: $("codigo-mfa").value.trim() })
+    });
+    auth.desafioId = null;
+    $("codigo-mfa").value = "";
+    $("codigo-demo").textContent = "";
+    atualizarAutenticacao(true);
+    statusAuth("Sessão autenticada. Consulte as métricas se o perfil for ADMIN.");
+  } catch (erro) { statusAuth(erro.message); }
+}
+async function sair() {
+  try { await api("/api/logout", {method: "POST"}); }
+  catch (_) { /* A sessão local é descartada mesmo se a rede falhar. */ }
+  auth.desafioId = null;
+  $("usuario").value = "";
+  $("senha").value = "";
+  atualizarAutenticacao(false);
+  statusAuth("Sessão encerrada. Faça login para consultar novamente.");
+}
+function diaSeguinte(iso) {
+  const data = new Date(iso + "T00:00:00Z");
+  data.setUTCDate(data.getUTCDate() + 1);
+  return data.toISOString().slice(0, 10);
+}
+async function consultarMetricas(evento) {
+  evento.preventDefault();
+  $("metricas-linhas").replaceChildren();
+  if ($("fim").value < $("inicio").value) {
+    $("metricas-status").textContent = "O fim precisa ser igual ou posterior ao início.";
+    return;
+  }
+  const inicio = $("inicio").value + "T00:00:00";
+  const fim = diaSeguinte($("fim").value) + "T00:00:00";
+  try {
+    const dados = await api(BASE + "/metricas?" +
+      new URLSearchParams({ inicio, fim }));
+    const linhas = Array.isArray(dados.metricas) ? dados.metricas : [];
+    for (const item of linhas) {
+      const tr = document.createElement("tr");
+      for (const valor of [item.tipoEvento, item.materialSlug || "—", item.total]) {
+        const td = document.createElement("td");
+        td.textContent = String(valor);
+        tr.append(td);
+      }
+      $("metricas-linhas").append(tr);
+    }
+    $("metricas-status").textContent = linhas.length
+      ? "Dados do backend: " + (dados.origem || "não identificada")
+      : "Nenhum evento encontrado no período.";
+  } catch (erro) {
+    $("metricas-status").textContent = "Consulta indisponível: " + erro.message +
+      " (permissão ADMIN necessária).";
+  }
+}
+function iniciarDashboard() {
+  const hoje = new Date();
+  $("fim").value = [
+    hoje.getFullYear(), String(hoje.getMonth() + 1).padStart(2, "0"),
+    String(hoje.getDate()).padStart(2, "0")].join("-");
+  const trinta = new Date(hoje);
+  trinta.setDate(trinta.getDate() - 29);
+  $("inicio").value = [
+    trinta.getFullYear(), String(trinta.getMonth() + 1).padStart(2, "0"),
+    String(trinta.getDate()).padStart(2, "0")].join("-");
+  $("login-form").addEventListener("submit", entrar);
+  $("mfa-form").addEventListener("submit", confirmarMfa);
+  $("sair").addEventListener("click", sair);
+  $("metricas-form").addEventListener("submit", consultarMetricas);
+  atualizarAutenticacao(false);
+}
+
+iniciarDashboard();
 iniciar();
