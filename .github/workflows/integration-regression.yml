@@ -32,6 +32,11 @@ jobs:
           distribution: temurin
           java-version: '26'
 
+      - name: Validate launchers and bundled JDBC driver
+        run: |
+          bash -n scripts/*.sh
+          bash scripts/run.sh build
+
       - name: Initialize disposable databases and migrations
         shell: bash
         run: |
