@@ -4,7 +4,7 @@ set -euo pipefail
 project_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_dir"
 
-jdbc_jar="${AUTOBOTZ_JDBC_JAR:-$HOME/.m2/repository/org/mariadb/jdbc/mariadb-java-client/3.5.10/mariadb-java-client-3.5.10.jar}"
+jdbc_jar="${AUTOBOTZ_JDBC_JAR:-$( [[ -f lib/mariadb-java-client-4.0.0.jar ]] && printf "%s" "lib/mariadb-java-client-4.0.0.jar" || printf "%s" "$HOME/.m2/repository/org/mariadb/jdbc/mariadb-java-client/3.5.10/mariadb-java-client-3.5.10.jar" )}"
 out="$(mktemp -d)"
 trap 'rm -rf "$out"' EXIT
 

@@ -1,179 +1,133 @@
-# Roteiro da apresentação — AutoBotz Motors | Rodada 2 (D11–D15)
+# Roteiro falado — AutoBotz Motors (Arthur, apresentação individual)
 
-**Disciplina:** Administração para Computação 2026.2 · **Equipe B** · **Duração planejada:** 30 minutos.
+> Vídeo apenas com Arthur falando para a câmera, sem slides, terminal ou compartilhamento de tela. Os títulos são marcas de leitura e não entram na gravação. Tempo aproximado: 29–32 minutos, a conferir em ensaio. Os exemplos identificados como simulações não representam operações ou clientes reais.
 
-Este roteiro destina-se à gravação do vídeo. Os integrantes devem conferir a divisão final e ensaiar os tempos. **O vídeo não está gravado.** Dados de assinaturas, incidentes, API, pagamentos e tickets são simulados onde indicado. A demonstração usa somente banco `_test` e dados fictícios.
+## 1. Abertura: o projeto e a segunda rodada
 
-## Preparar as telas antes de gravar
+Olá, professor. Eu sou Arthur, responsável pela coordenação e integração do AutoBotz Motors, e vou apresentar sozinho o trabalho da Equipe B na segunda rodada. O nosso projeto é um sistema de gestão de uma empresa do setor automotivo, construído em Java e MariaDB. Na primeira rodada, a equipe desenvolveu funcionalidades como clientes, veículos, vendas, oficina, CRM, projetos, relatórios e controle de acesso. Agora vou explicar como ampliamos esse sistema sem abandonar o que já funcionava.
 
-Na máquina do responsável, com a `main` atualizada e o MariaDB de teste já preparado:
+Nesta etapa nós trabalhamos com cinco desafios. O primeiro organiza compras e discute a qualidade do software e a sustentabilidade. O segundo trabalha a ideia de uma crise econômica, com planos de assinatura e simulações de receita. O terceiro envolve contratos e rastreabilidade. O quarto é segurança cibernética, com autenticação e proteção de informações pessoais. E o quinto é treinamento: como ajudar as pessoas a usar um sistema que ganhou várias funcionalidades.
 
-```bash
-cd ~/GitHub/autobotz-motors
-source "$HOME/.local/state/autobotz-final/test-env.sh"
-export AUTOBOTZ_DB_URL="jdbc:mariadb://127.0.0.1:3306/autobotz_d13_test"
-export AUTOBOTZ_TEST_DB_URL="$AUTOBOTZ_DB_URL"
-export AUTOBOTZ_TEST_DB_USER="$AUTOBOTZ_DB_USER"
-export AUTOBOTZ_TEST_DB_PASSWORD="$AUTOBOTZ_DB_PASSWORD"
-export AUTOBOTZ_JDBC_JAR="$HOME/.m2/repository/org/mariadb/jdbc/mariadb-java-client/3.5.10/mariadb-java-client-3.5.10.jar"
-bash scripts/run.sh build
-```
+Durante a apresentação, eu vou distinguir o que foi de fato implementado e testado do que é uma simulação acadêmica. Quando eu falar de churn, pesquisa de satisfação ou pagamento simulado, não estou falando de dados de clientes reais. Meu objetivo é explicar o trabalho da equipe com transparência, mostrar os módulos integrados e apresentar as verificações disponíveis.
 
-Em terminais separados, experimente `bash scripts/run.sh swing` e `bash scripts/run.sh portal`. O portal local costuma usar `http://127.0.0.1:8085`. **Não mostre a saída de `env`, as chaves, o conteúdo de `test-env.sh` ou credenciais em vídeo.** Não execute scripts que recriem ou apaguem bancos durante a gravação. Se o login visual não estiver preparado, mostre o teste automatizado como evidência, sem fingir uma sessão interativa.
+Antes de falar do lado técnico, quero situar a ideia principal. Um sistema de gestão só é útil quando as áreas conversam entre si. Não adianta a empresa cadastrar um fornecedor num lugar e ter de fazer todo o controle de contratos em outro, ou possuir uma boa regra de segurança que não seja respeitada pelo portal de treinamento. Por isso, nessa segunda rodada, o nosso maior esforço foi dar continuidade ao sistema, e não simplesmente entregar cinco programas isolados. Eu vou seguir uma sequência lógica para que seja possível entender cada desafio mesmo sem acompanhar o código.
 
-## Bloco 1 — 00:00–02:00 · Arthur · Apresentação (2 min)
+## 2. Como o AutoBotz funciona e por que a integração importa
 
-**Na tela:** nome do projeto, diretórios principais e equipe.
+Antes de entrar nos desafios novos, vale explicar rapidamente a estrutura. O AutoBotz não é composto por programas separados para cada integrante. A nossa meta foi que tudo funcionasse dentro de uma mesma aplicação. Por isso temos modelos de dados, classes DAO que acessam o MariaDB, serviços que aplicam regras de negócio, uma interface Swing e uma opção de console. O portal do treinamento é a parte web, mas ele também se conecta ao sistema.
 
-**Fala:**
+Essa separação faz diferença na prática. Por exemplo: numa compra, não basta o botão de aprovar existir. A regra precisa conferir se o usuário tem permissão, se ainda existe orçamento e se a gravação foi concluída. Se uma etapa dá erro, a operação tem de ser revertida. Isso é tratado no serviço e no banco. A tela é a forma de o usuário interagir, mas a consistência não pode depender só dela.
 
-“Boa tarde. Nós somos a Equipe B e vamos apresentar a segunda rodada do AutoBotz Motors. O projeto é um sistema de gestão desenvolvido em Java com MariaDB, interface Swing e uma aplicação de console. Na primeira fase ele já tinha recursos de clientes, veículos, vendas, oficina, CRM, projetos e controle de acesso. Nesta rodada o objetivo foi ampliar a operação sem perder essa base.
+Outra parte importante são os arquivos de atualização do banco. Na primeira rodada nós já tínhamos clientes, veículos, usuários, vendas, oficina e projetos. Agora entram tabelas de compras, planos, contratos, eventos de segurança e treinamento. As migrations vão da 011 até a 016, e a ordem importa: o contrato de fornecedor, por exemplo, depende de uma estrutura criada antes pelo módulo de compras.
 
-Dividimos o trabalho em cinco desafios: compras e sustentabilidade, planos e assinaturas em um cenário econômico difícil, contratos de fornecedores e rastreabilidade, segurança dos dados e treinamento dos usuários. Cada pessoa trabalhou na sua frente, e a etapa mais delicada foi fazer as peças conversarem entre si.
+Na validação final, nós preparamos um banco descartável para os testes, aplicamos o schema e executamos essa sequência de migrations duas vezes. A repetição terminou sem erro. Também executamos a regressão do sistema anterior, para conferir que as novas funcionalidades não tinham quebrado cadastro de cliente, venda, oficina, CRM, autenticação e outras partes da primeira etapa. Então a principal ideia aqui é continuidade: o projeto cresceu, mas continuou sendo um único ERP.
 
-Vamos mostrar o que foi desenvolvido, os testes que realmente passaram e o que é apenas uma simulação acadêmica. Nosso foco não é dizer que o sistema se tornou um produto comercial, mas demonstrar decisões, integração e resultados verificáveis.”
+As migrations são como um histórico organizado das mudanças estruturais no banco. Em vez de cada integrante criar tabelas de maneira independente e depois tentar juntar tudo, nós numeramos as alterações e respeitamos suas dependências. Isso ajuda a identificar por que uma tabela existe, em que momento ela entrou e quais módulos precisam dela. O cuidado é ainda maior quando tratamos segurança: uma atualização não pode fazer a aplicação perder a capacidade de autenticar usuários ou ler dados que já foram cadastrados. Foi por isso que a compatibilidade entre as migrations virou um ponto central da revisão final.
 
-**Demonstração (40 s):** mostrar `src/`, `tests/`, `db/migrations/` e `portal-treinamento/`.
+## 3. D11: compras, testes e sustentabilidade
 
-## Bloco 2 — 02:00–05:00 · Arthur · Arquitetura e continuidade (3 min)
+Começando pelo D11: o Alexandre ficou com a frente principal de compras, e eu vou explicar como ela foi integrada ao ERP. O fluxo é simples de entender: cadastrar um fornecedor, criar um orçamento, registrar uma solicitação e decidir se ela será aprovada ou rejeitada. Ao aprovar, o sistema cria o pedido e reduz o saldo previsto. Se o valor solicitado ultrapassar o que ainda existe no orçamento, ele não pode consumir dinheiro nem gerar pedido.
 
-**Na tela:** estrutura MVC/DAO/serviços, `schema.sql` e migrations.
+Na interface Swing existe o painel de compras, mas a parte principal da regra está no ComprasService. Assim, a aprovação é validada além da tela. Outra preocupação foi impedir o mesmo pedido de ser aprovado duas vezes. Uma solicitação que já gerou um pedido não pode continuar debitando o orçamento toda vez que alguém clicar. O sistema trata isso como uma transição inválida.
 
-**Fala:**
+Vou dar um exemplo simples, só para visualizar a regra. Suponha que a empresa reserve mil reais para uma categoria de compras e receba uma solicitação de trezentos reais. Se ela for aprovada corretamente, o orçamento passa a ter setecentos reais disponíveis, e o pedido correspondente fica registrado. Se a solicitação for rejeitada, o saldo continua igual. E se ocorrer um erro no meio da aprovação, o sistema não pode ficar com setecentos reais sem ter criado o pedido. É exatamente esse tipo de situação que torna as transações importantes numa aplicação administrativa.
 
-“A estrutura do projeto separa modelos, DAOs, serviços e interface. Isso permite que a validação de uma operação não fique só no botão da tela: o serviço aplica a regra e a camada de persistência registra o resultado no banco.
+Também implementamos o uso de transações no banco. Imagine que o valor tenha sido descontado, mas aconteça uma falha bem na hora de salvar o pedido. Se o saldo ficasse reduzido sem pedido registrado, a informação estaria errada. Por isso utilizamos rollback: a operação volta ao estado anterior quando não pode ser concluída. Os testes foram escritos para provocar esse cenário e verificar o resultado, não apenas para executar o caminho que dá certo.
 
-As novas tabelas foram criadas por migrations numeradas de 011 a 016. A ordem importa: contratos de fornecedores, por exemplo, dependem da estrutura de fornecedores do módulo de compras. A parte de criptografia também precisa conviver com as alterações de login e segurança sem substituir as tabelas do outro integrante.
+Além da implementação funcional, o Adryan contribuiu com os testes e com a integração contínua. No D11 nós temos testes de permissão, das regras de compra e de JDBC em um banco descartável. Eles verificam saldo insuficiente, aprovação repetida, geração do pedido e rollback após erro provocado. Assim, eu consigo demonstrar que a lógica foi validada além da aparência do formulário.
 
-No fechamento, nós testamos a importação do esquema e a aplicação dessas migrations num banco descartável. A sequência foi repetida e não apresentou erro. Além disso, executamos a regressão do sistema anterior para verificar que a expansão não tinha quebrado os fluxos básicos de clientes, vendas, oficina e autorização.
+O projeto também usa GitHub Actions para automatizar a regressão. Quando uma alteração entra em revisão, a automação pode compilar o código e repetir os cenários. Isso é útil porque o grupo está trabalhando em vários módulos: uma mudança numa classe compartilhada pode causar um erro em outro desafio, e sem teste seria mais difícil perceber.
 
-Aqui é importante separar duas coisas: compilar o projeto confirma a consistência do código, mas não confirma tudo que acontece na tela. Por isso mantivemos testes de banco e de serviços, além de demonstrar visualmente o que estiver disponível.”
+O enunciado também pede uma discussão sobre eficiência e sustentabilidade. Aqui nós preferimos separar o que é demonstrado do que é expectativa. A automação torna as verificações repetíveis, mas nós não medimos de forma comparável quanto tempo uma pessoa gastaria fazendo todos os testes manualmente. Também não medimos consumo real de energia. Então não seria correto dizer que economizamos um percentual específico. Nossa proposta de melhoria é reduzir retrabalho, documentar as execuções e criar um processo mais confiável.
 
-**Demonstração (1 min):** listar `db/migrations/`; apontar tabelas 011–016; mostrar `CoreRegression` no registro de testes.
+## 4. D12: crise econômica e planos de assinatura
 
-## Bloco 3 — 05:00–09:00 · Alexandre e Adryan · D11 compras, qualidade e sustentabilidade (4 min)
+No D12, a frente de planos e assinaturas foi conduzida pelo André. O problema proposto parte de uma situação econômica difícil: alguns clientes precisam reduzir despesas, e a empresa também precisa planejar como isso afeta a receita. Para tratar esse cenário, o ERP ganhou planos de assinatura, módulos opcionais e registros de eventos, como contratação, alteração e cancelamento. A ideia é analisar diferentes possibilidades sem alterar contratos verdadeiros.
 
-**Na tela:** `ComprasPanel`, `ComprasService`, `D11ComprasTest` e `D11ComprasJdbcTest`.
+Duas expressões aparecem nessa parte. A primeira é MRR, ou receita mensal recorrente: o total mensal dos contratos ativos, considerando o critério do cálculo. A segunda é churn, que representa os cancelamentos numa base definida. Não basta dizer que houve uma queda de faturamento; precisamos saber se a perda veio de cancelamentos, de mudanças para planos mais baratos ou de outros fatores.
 
-**Alexandre — fala:**
+Essa diferença entre receita e retenção é muito importante para a tomada de decisão. Uma empresa pode aumentar o preço de um plano e, mesmo assim, ganhar menos se uma parcela significativa dos clientes cancelar. O contrário também acontece: oferecer uma opção mais acessível pode reduzir o valor por contrato, mas ajudar a manter uma relação comercial que seria perdida. A simulação existe justamente para explorar essas possibilidades. Ela transforma uma discussão abstrata sobre crise econômica em cenários que podem ser comparados, deixando claro que o resultado continua dependendo do comportamento real dos clientes.
 
-“No desafio de compras, o fluxo começa com o fornecedor e o orçamento. A pessoa solicita uma compra, informa o valor e a descrição, e a aprovação verifica as permissões e o saldo disponível. Se a operação for válida, o sistema gera o pedido e desconta o valor do orçamento. Se houver uma falha, a transação precisa preservar o saldo anterior.
+Nós também preparamos um relatório acadêmico de seis meses, com possíveis motivos de cancelamento, como preço alto, baixa utilização e necessidade de um plano básico. Mas esse histórico é fictício, porque não recebemos uma base real de clientes nem respostas reais de pesquisa. Ele serve para mostrar como seria feita a análise e quais dados precisariam ser coletados numa situação empresarial verdadeira.
 
-Esse detalhe é importante porque uma aprovação não pode reduzir o orçamento sem registrar o pedido correspondente. A regra fica no serviço, não apenas no formulário. O DAO participa da mesma transação, e o banco usa InnoDB para dar suporte ao rollback.
+Para explicar essa lógica de maneira concreta, nós integramos um simulador à interface. Ele permite definir a quantidade de clientes, o preço do plano atual, do básico e do premium e marcar módulos adicionais, como CRM e Vendas Avançadas. O programa distribui o cenário em trinta por cento migrando para o plano básico, cinquenta por cento ficando e vinte por cento indo para o premium. Esse cálculo usa o serviço de assinaturas do projeto e não grava os clientes fictícios no banco.
 
-Também tratamos casos de erro: dados inválidos, orçamento insuficiente e uma solicitação que já foi aprovada. Não é só o caminho de sucesso que interessa; os testes precisam mostrar que o sistema sabe recusar operações incorretas.”
+Por exemplo, com cem assinaturas de cento e vinte reais, incluindo o módulo CRM, o MRR inicial seria doze mil reais. Considerando os preços fictícios do cenário, a distribuição resulta em doze mil e quatrocentos reais por mês. Isso significa uma diferença projetada de quatrocentos reais, não um ganho real da empresa. Se houver novos cancelamentos, o resultado muda; se houver custos e impostos maiores, a margem também muda. É por isso que simular ajuda a pensar, mas não substitui uma análise financeira completa.
 
-**Adryan — fala:**
+No exemplo dos cem contratos, a distribuição é fácil de acompanhar: trinta clientes mudam para o básico, cinquenta permanecem onde estavam e vinte passam ao premium. O módulo opcional entra no cálculo para mostrar que o valor mensal não depende somente do nome do plano. Essa conta também explica por que a equipe precisou alinhar o modelo de assinatura, os módulos e a classe de resultado do simulador. Se cada parte calculasse de um jeito, a interface poderia apresentar um total diferente do serviço. Os testes servem para evitar exatamente essa divergência.
 
-“A outra parte do D11 foi automatizar a verificação. Executamos testes de serviço e testes JDBC para conferir pedido, saldo, rollback e autorização. Eles passaram na integração final. O GitHub Actions também aprovou as rotinas de regressão configuradas.
+É importante destacar uma limitação da proposta. Nosso relatório fala de razões possíveis para cancelamento e apresenta respostas hipotéticas de pesquisa, porque nós não recebemos um histórico real de contratos e entrevistas. Se a empresa quisesse adotar a mudança de verdade, precisaria medir a quantidade de clientes ativos em cada período, o motivo dos cancelamentos, o custo dos módulos, os impostos e o retorno efetivo de cada plano. Só depois desses dados seria possível decidir qual proposta é financeiramente sustentável.
 
-A automação ajuda a repetir o mesmo cenário e identificar problemas mais cedo. Mas nós não fizemos uma medição comparável de tempo manual nem telemetria energética. Por isso não vamos afirmar uma redução percentual de energia ou produtividade que não foi medida. O resultado comprovado aqui é a automação e a capacidade de reproduzir a validação.”
+Os cálculos e a persistência foram verificados em testes. O simulador novo também ganhou testes para entradas inválidas e para a abertura do painel. Por último, o plano de comunicação escrito propõe explicar mudanças de preço com clareza, sem alterar um contrato de alguém apenas porque o exercício apontou um cenário mais rentável.
 
-**Demonstração (1 min):** mostrar a aprovação e o teste de rollback ou a saída já registrada.
+## 5. D13: contratos e rastreabilidade
 
-## Bloco 4 — 09:00–13:30 · André · D12 crise econômica e assinaturas (4 min 30 s)
+Agora o D13, que foi desenvolvido principalmente pelo Gabriel. Ele amplia o cadastro de fornecedores que nasceu no D11, adicionando contratos com datas, estados, valores e condições. Um contrato não pode ficar isolado numa planilha, sem relação com seu fornecedor. O sistema cria esse vínculo e permite acompanhar vencimento, alterações e critérios de elegibilidade para um pagamento que, neste projeto, é apenas simulado.
 
-**Na tela:** `AssinaturaService`, `AssinaturaDAO`, modelos e testes.
+Uma preocupação é o vencimento. Se a empresa não acompanha a data final de um contrato ou uma nota fiscal pendente, ela pode perder prazo ou autorizar uma operação inadequada. O serviço aplica regras que permitem identificar situações como contrato vencido, documento não validado ou pagamento ainda não elegível. Quando falamos em pagamento, é importante destacar que o sistema apenas simula a autorização e o registro; ele não transfere dinheiro para ninguém.
 
-**Fala:**
+A parte de inovação ficou com uma prova de conceito de integridade. Nós usamos um ledger, que é como um livro de registros, com hashes encadeados. Cada evento recebe um resumo criptográfico calculado com SHA-256 e fica ligado ao registro anterior. Quando alguém altera um registro antigo de forma indevida, o processo de verificação consegue detectar que a sequência perdeu a consistência esperada.
 
-“O desafio do cenário econômico foi pensar em como adaptar uma empresa a mudanças na capacidade de pagamento dos clientes. Para isso o ERP ganhou estrutura de planos, módulos opcionais, contratação, alteração e cancelamento de assinaturas.
+Pense, por exemplo, num contrato cuja situação mudou de ativo para encerrado. Essa mudança precisa ficar registrada com contexto, e o histórico não deveria aceitar alterações silenciosas. O ledger ajuda a demonstrar esse controle. Os testes D13LedgerIntegrityTest e D13JdbcIntegrationTest verificam o encadeamento e situações de persistência. A frente do Gabriel também incluiu uma API simulada para representar uma comunicação externa, com regras sobre quais informações podem ser trocadas.
 
-Duas medidas orientam a análise: o MRR, que é a receita mensal recorrente, e o churn, que representa a proporção de cancelamentos no período. O sistema guarda eventos das assinaturas e permite simular o efeito de mudar preços ou migrar de plano.
+Um hash, nesse contexto, funciona como uma impressão digital calculada a partir do conteúdo do registro. Ele não é uma fotografia do contrato nem substitui a assinatura de todas as partes. Seu papel no nosso protótipo é ajudar a verificar se os eventos registrados permanecem consistentes. Como cada registro considera o anterior, alterar um trecho antigo provoca uma diferença que pode ser percebida na verificação da cadeia. É uma forma de demonstrar rastreabilidade e auditoria de maneira didática. Isso não transforma automaticamente o sistema em uma rede blockchain, e por isso nós tratamos a solução como prova de conceito local.
 
-No cenário didático, trabalhamos com uma divisão de 30% migrando para planos mais baratos, 50% permanecendo e 20% migrando para planos mais caros. Os números usados são fictícios; servem para validar cálculos e discutir estratégia, não para representar uma carteira real da empresa.
+Não estamos chamando essa solução de blockchain pública. Ela não possui rede de nós independentes, consenso distribuído nem contratos inteligentes financeiros. É um piloto local para mostrar como técnicas de encadeamento criptográfico podem apoiar a rastreabilidade. Essa distinção é importante, porque o objetivo acadêmico é explicar a técnica e seus limites, não apresentar uma infraestrutura externa que não foi construída.
 
-Uma dificuldade de integração foi compatibilizar o resultado da simulação com a persistência das assinaturas, inclusive valores de módulos adicionais. Isso foi testado pelo `AssinaturaServiceTest` e pelo `AssinaturaDAOJdbcTest`, que passaram no banco de teste.
+## 6. D14: segurança, autenticação e proteção de dados
 
-A parte de comunicação é igualmente importante: um cliente precisa entender o motivo da mudança e as opções que possui. Nossa documentação descreve como apresentar essa transição sem prometer uma condição que o sistema não pode cumprir.”
+No D14, o João conduziu a parte de autenticação, tentativas de acesso e MFA, enquanto eu fiquei responsável pela integração com a proteção dos dados pessoais. O primeiro problema era o ataque por tentativas repetidas de senha. O fluxo desenvolvido registra falhas e bloqueia a conta depois de cinco tentativas incorretas numa janela de dez minutos. Isso dificulta a adivinhação de credenciais dentro do cenário implementado.
 
-**Demonstração (aprox. 2 min):** mostrar fórmulas e teste, não anunciar dados simulados como medição real.
+Também acrescentamos uma etapa de MFA demonstrativo. Depois que a senha é aceita, os perfis com acesso a informações críticas precisam concluir esse segundo passo antes de utilizar a sessão. Os testes cobrem desafios de autenticação, códigos incorretos, vencidos e reutilizados. O sistema ainda registra eventos de segurança para que a equipe possa investigar o que aconteceu, dentro do escopo da aplicação.
 
-## Bloco 5 — 13:30–17:30 · Gabriel · D13 contratos e rastreabilidade (4 min)
+O material do desafio traz também um cenário de ransomware. Isso não significa que o AutoBotz tenha sofrido um ataque de verdade. Nós elaboramos uma resposta simulada: identificar o incidente, isolar o ambiente afetado, preservar evidências, avaliar backups, comunicar os responsáveis e documentar o retorno seguro. A proposta é mostrar que segurança não se resume a um campo de senha; ela inclui prevenção, detecção e um procedimento de reação.
 
-**Na tela:** `ContratoService`, ledger, exemplos de hash e testes.
+Na parte que ficou sob minha responsabilidade no D14, eu trabalhei com a proteção dos dados pessoais dos clientes. Não basta impedir a visualização de uma tela: nome, CPF, telefone e e-mail também precisam ser protegidos quando são gravados. Para isso usamos AES-GCM, com uma chave mantida fora do repositório. Essa proteção está na persistência para não depender de cada usuário lembrar de cifrar manualmente.
 
-**Fala:**
+Existe uma dificuldade importante: o sistema precisa localizar um cliente pelo CPF mesmo depois de esse campo estar cifrado. Para isso criamos um índice HMAC, que permite comparar o CPF procurado sem precisar armazenar um índice legível com o número completo. É uma técnica diferente de usar hash puro ou de deixar o CPF exposto na tabela.
 
-“O desafio de contratos amplia o cadastro de fornecedores que veio do D11. Agora é possível acompanhar o ciclo de vida contratual, valor, vencimento, estado e validação da nota fiscal. As regras de aviso e elegibilidade para pagamento consideram essas condições, mas o pagamento é apenas simulado.
+Vale separar duas ferramentas que podem parecer iguais, mas têm funções diferentes. A criptografia AES-GCM protege o conteúdo do dado: ela é usada quando o sistema precisa guardar e, com a chave correta, recuperar a informação. O HMAC, por outro lado, é útil para comparar um valor de maneira determinística, sem publicar aquele valor como coluna de busca em texto puro. Assim conseguimos procurar o CPF sem depender de uma lista legível de números pessoais. Esse desenho também obriga a pensar em gestão de chaves: se a chave usada para cifrar os dados for perdida, não podemos simplesmente inventar outra e esperar recuperar o conteúdo antigo.
 
-Para manter uma trilha de integridade, usamos um ledger local encadeado. Cada registro contém seu conteúdo, um hash calculado a partir dele e a referência ao registro anterior. Se alguém altera um evento antigo, a cadeia deixa de conferir. O objetivo é permitir detectar adulterações no histórico.
+Os registros antigos também precisavam ser tratados com cuidado. A migração não é acionada automaticamente só por abrir o programa. Primeiro existe um modo de diagnóstico, depois a aplicação requer confirmação explícita do banco e uma chave válida. O objetivo é evitar que testes ou uma inicialização acidental façam alterações em dados que não deveriam ser tocados.
 
-É importante deixar claro que essa prova de conceito não é blockchain pública e não usa uma rede de nós independentes. Também existe uma API simulada para representar a troca de status. Ela não envia valores para bancos ou fornecedores de verdade.
+Esses mecanismos foram exercitados em testes de regressão, junto com as sessões usadas pelo portal. Um exemplo concreto aparece na API de métricas do D15: sem sessão, a resposta é 401; com sessão sem permissão, 403; com ADMIN autenticado após MFA, 200. O teste HTTP com MariaDB verificou esses casos. Ainda assim, nosso MFA é didático, e a atividade não é uma certificação de segurança ou um atestado jurídico de conformidade integral com a LGPD.
 
-Nos testes, exercitamos alertas de vencimento, mudanças de estado, recusa de pagamentos inválidos e uma alteração deliberada de registro, que precisa ser detectada. Tanto o teste de integridade quanto o JDBC passaram na versão integrada.”
+## 7. D15: treinamento, portal e acompanhamento de resultados
 
-**Demonstração (1–2 min):** mostrar o evento de ledger e a verificação de adulteração no teste.
+Chegando ao D15, o Mauro ficou com o portal de treinamento e eu participei do encaixe dessa solução no ERP. O problema aqui é muito prático: quando um sistema ganha novas telas, as pessoas precisam aprender a usá-las. Então foi criada uma central local com catálogo de conteúdos, orientações e perguntas frequentes. Ela pode ser acessada pelo atalho da aplicação principal ou diretamente no navegador.
 
-## Bloco 6 — 17:30–22:00 · João e Arthur · D14 segurança e dados pessoais (4 min 30 s)
+O portal foi implementado com um servidor HTTP em Java e uma interface simples. Ele não está hospedado publicamente na internet; roda na própria máquina, normalmente no endereço localhost e na porta 8085. Isso reduz dependências externas para uma demonstração e mantém o ambiente consistente com o restante do projeto.
 
-**Na tela:** autenticação, `CriptografiaDadosPessoais`, `D14SegurancaTest`, `CoreRegression`.
+Na integração, o backend deixou de depender de dados simulados como fonte principal e passou a usar o TreinamentoService ligado ao banco por um DataSource. Quando alguém abre o portal ou visualiza determinado material, o sistema consegue registrar um evento de uso. O servidor também valida o conteúdo que serve, para que o usuário não peça qualquer arquivo do computador por um endereço malformado.
 
-**João — fala:**
+Um ponto que vale explicar é que o portal não cria um sistema de login paralelo ao ERP. A consulta de métricas administrativas usa a sessão e as verificações de autorização da camada de segurança. Essa ligação entre D14 e D15 foi um dos contratos de integração mais importantes da rodada.
 
-“A autenticação agora registra falhas e bloqueia uma conta quando há cinco tentativas incorretas na janela de dez minutos. Para os perfis de acesso crítico existe um segundo passo, o MFA demonstrativo, antes da sessão ser autorizada.
+O Higor contribuiu com os materiais de treinamento e com a definição de métricas. O conteúdo inclui guia rápido, FAQ e roteiros escritos para tarefas frequentes. Por exemplo, alguém que esqueceu o procedimento de cadastro pode consultar uma orientação antes de abrir um chamado. Isso é uma proposta de capacitação, e não uma prova de que os usuários já passaram a ter menos dúvidas.
 
-Os testes verificam códigos inválidos, vencidos e reutilizados. Também acompanhamos eventos de segurança, e o sistema oferece migração do hash legado de senha para um formato com derivação e sal. O plano de resposta a ransomware que apresentamos é uma simulação: descreve identificação, contenção, recuperação, comunicação e o que aprenderíamos depois do incidente.”
+Nós também fizemos uma análise de tickets e pesquisa de satisfação como exercício acadêmico. O documento apresenta uma distribuição fictícia de chamados ao longo de três meses, em categorias como login, clientes, compras e relatórios. Também traz perguntas que poderiam ser aplicadas numa pesquisa real. Esses números são simulados. Nós não entrevistamos vinte usuários reais nem reunimos quarenta e cinco chamados verdadeiros.
 
-**Arthur — fala:**
+As métricas técnicas do portal são diferentes desses exemplos: elas vêm dos eventos registrados quando a aplicação está sendo usada no banco de teste. Isso pode mostrar quantos materiais foram abertos e como o conteúdo foi acessado, mas não prova, por si só, que as pessoas aprenderam mais ou que os chamados caíram. Para demonstrar redução de suporte, precisaríamos comparar períodos equivalentes com dados reais e considerar também a quantidade de usuários ativos.
 
-“Minha parte foi proteger os dados pessoais dos clientes sem quebrar o restante do ERP. Aplicamos AES-GCM nos campos pessoais e usamos um índice HMAC para a busca exata por CPF. Assim, o CPF não precisa ficar disponível em texto puro como índice.
+Nos documentos acadêmicos, construímos um conjunto ilustrativo de quarenta e cinco chamados distribuídos por três meses, com categorias como login, cadastro de clientes, compras e relatórios. Esses quarenta e cinco chamados não vieram de um sistema real de suporte. Servem para demonstrar como organizaríamos um diagnóstico: primeiro separaríamos os problemas por assunto, depois identificaríamos as dúvidas mais frequentes e, por fim, criaríamos material específico para cada uma. A mesma lógica vale para a pesquisa de satisfação fictícia. Uma resposta simulada pode ajudar a desenhar um questionário, mas nunca pode ser apresentada como a opinião de uma pessoa que realmente participou.
 
-A chave fica fora do repositório. A migração de dados antigos também não acontece silenciosamente; ela possui etapa de diagnóstico e confirmação. Isso evita que um procedimento de teste modifique registros reais por engano.
+Também existe diferença entre medir acesso ao conteúdo e medir resultado do treinamento. Saber que alguém abriu o guia é uma informação útil, mas não prova que aprendeu, nem que deixou de precisar do suporte. Para afirmar uma redução de chamados, precisaríamos comparar períodos equivalentes, ajustar pela quantidade de usuários ativos e considerar outros fatores que poderiam explicar a mudança. Por enquanto, o AutoBotz oferece os registros de acesso necessários para começar essa avaliação, e a documentação explica como ela poderia ser feita posteriormente.
 
-Executamos a regressão integrada e o teste JDBC de segurança. A validação HTTP do portal confirma que sem sessão a API de métricas responde 401, com perfil sem permissão responde 403 e com ADMIN autenticado após MFA responde 200.”
+Os testes D15PortalTest, D15PersistenciaTest e D15AuthHttpJdbcTest validaram respectivamente rotas, persistência e autorização. O guia e o FAQ estão disponíveis. Já o vídeo tutorial curto e o webinar não foram gravados, e o FAQ não deve ser confundido com um fórum interativo já existente.
 
-**Demonstração (1 min):** mostrar saída dos testes e a variável de configuração pelo nome, nunca seu valor.
+## 8. Integração final, GitHub e validações
 
-## Bloco 7 — 22:00–26:30 · Mauro e Higor · D15 treinamento (4 min 30 s)
+Na etapa final, eu coordenei a consolidação técnica e a revisão das contribuições na mesma base. As pessoas trabalharam em diferentes frentes, mas o resultado é um único repositório executável, com DAOs, serviços, interface, banco e testes. O histórico Git mantém os commits dos integrantes; os ajustes de integração não apagam a autoria de quem desenvolveu cada módulo.
 
-**Na tela:** Central de Treinamento em `http://127.0.0.1:8085`, catálogo, guias, FAQ, `TreinamentoService` e testes.
+No GitHub, a PR trinta e sete reuniu D11 até D15 e preservou o histórico de commits. Depois, a trinta e oito retirou arquivos compilados e uma cópia antiga do projeto que estavam no versionamento. A trinta e nove acrescentou o simulador de planos na interface e completou a documentação acadêmica. A branch principal terminou no commit fa580cde, e as PRs antigas foram reconciliadas. Isso mantém o trabalho rastreável.
 
-**Mauro — fala:**
+Na validação usamos Java 21. O ZIP final foi extraído, recompilado e passou em onze classes de teste sem banco. Antes disso, oito classes de teste JDBC haviam passado num banco MariaDB descartável, incluindo a regressão dos módulos anteriores e os desafios novos. O pipeline integrado do GitHub também concluiu com sucesso depois das últimas correções. Esses são resultados registrados, mas não significam que qualquer uso do sistema esteja livre de defeitos.
 
-“O D15 foi pensado para reduzir a dificuldade de aprender um sistema que foi crescendo de tamanho. O portal local organiza materiais publicados, separa itens ainda em preparação e oferece acesso por navegador. A entrada do portal foi integrada à aplicação principal.
+O resultado da validação precisa ser entendido por camadas. Os testes sem banco verificam cálculos, regras, conteúdo e partes do portal. Os testes JDBC exercitam operações com o MariaDB e ajudam a identificar problemas que não aparecem só compilando. Já o GitHub Actions repete uma regressão num ambiente de integração. E o pacote final foi testado após ser extraído, para evitar a situação de um projeto funcionar numa pasta de desenvolvimento, mas falhar quando outra pessoa tenta utilizá-lo. Esses níveis de verificação se complementam; nenhum deles é garantia de ausência absoluta de defeitos.
 
-Ele não depende de um serviço na nuvem. O backend registra eventos no MariaDB por meio do `TreinamentoService` e do `DataSource` compartilhado com a aplicação. O servidor também valida os dados recebidos e não deve servir arquivos fora da pasta pública.”
+## 9. Limitações, aprendizados e encerramento
 
-**Higor — fala:**
+Antes de encerrar, eu quero deixar bem claros os limites do trabalho. Os números de planos, churn e pesquisas são fictícios. Nós não medimos redução real de chamados, consumo de energia ou tempo manual em condições comparáveis. O D13 usa um ledger local, e o MFA é uma demonstração acadêmica. E o vídeo tutorial curto do D15 é um roteiro, não uma gravação que já esteja publicada.
 
-“Minha frente envolveu o conteúdo e as métricas. Preparamos guia rápido, FAQ, materiais e roteiro de tutorial. Também distinguimos abertura do portal, visualização de material e visualização de vídeo, para que esses eventos possam ser contabilizados.
+Com essas ressalvas, o resultado principal foi integrar compras, assinaturas, contratos, proteção de dados e capacitação à base que já existia. Conseguimos organizar o código, preservar a autoria dos integrantes, executar regressões e documentar como as partes se relacionam. Mais do que adicionar novas telas, nosso objetivo foi mostrar que decisões administrativas, persistência e segurança precisam funcionar em conjunto.
 
-Esses eventos são registros da execução do sistema, enquanto dados históricos de tickets e pesquisas foram simulados no trabalho. Portanto não podemos afirmar que houve redução real de chamados. O que existe é a estrutura para medir esse efeito futuramente.
-
-Os testes cobrem catálogo, persistência dos eventos e autorização HTTP. As métricas administrativas não são disponibilizadas a qualquer visitante; a sessão e o perfil são conferidos no servidor.”
-
-**Demonstração (1–2 min):** abrir catálogo e FAQ; mostrar a saída `D15PersistenciaTest` e `D15AuthHttpJdbcTest`.
-
-## Bloco 8 — 26:30–28:30 · Arthur · Integração e evidências (2 min)
-
-**Na tela:** GitHub, PR #37 mesclada, workflows e log de teste.
-
-**Fala:**
-
-“O principal resultado da integração foi reunir os cinco desafios na mesma base de código. O GitHub preservou os commits dos integrantes e a consolidação foi feita por uma PR específica, sem reescrever o trabalho original.
-
-Na máquina de validação, o projeto compilou com Java 21. Executamos dez testes offline e oito testes JDBC com MariaDB 13.0.2, todos aprovados. As seis migrations foram reaplicadas no banco descartável sem erro. O GitHub Actions também registrou sucesso na regressão integrada e na segurança D14.
-
-Esses testes não provam que uma aplicação está pronta para uso comercial. O que eles mostram é que os cenários definidos para a entrega têm execução reproduzível e que os módulos não ficaram somente documentados ou isolados em branches.”
-
-**Demonstração (40 s):** resultados do GitHub Actions e trecho final do log, sem credenciais.
-
-## Bloco 9 — 28:30–30:00 · Arthur · Limitações e conclusão (1 min 30 s)
-
-**Na tela:** checklist e título de encerramento.
-
-**Fala:**
-
-“Para concluir, quero destacar os limites do trabalho. Não medimos economia real de energia nem uma comparação manual de produtividade em condições controladas. Também não temos dados reais de redução de chamados por treinamento.
-
-O pagamento e a blockchain do D13 são simulados. O MFA do D14 é demonstrativo, e os dados de churn, tickets e pesquisa usados nas análises acadêmicas também são fictícios. Os roteiros de vídeos e webinars não devem ser confundidos com gravações já produzidas.
-
-Dentro desse escopo, conseguimos integrar os módulos, preparar o banco, validar os fluxos críticos e documentar os resultados. A segunda rodada mostrou, principalmente, como requisitos de negócio, segurança e testes precisam funcionar em conjunto. Obrigado.”
-
-## Referências para conferência antes da gravação
-
-- `RELATORIO_GERAL_RODADA2.md`, `CHECKLIST_FINAL.md` e `docs/AUDITORIA_LIMPEZA_FINAL.md`.
-- `docs/D11_QUALIDADE_SUSTENTABILIDADE.md`, `docs/D13_CONTRATOS_LEDGER.md`, `docs/D14_RELATORIO_INCIDENTE_SIMULADO.md`, `docs/D15_GUIA_RAPIDO.md`.
-- `tests/CoreRegression.java`, `tests/D14JdbcIntegrationTest.java`, `tests/D15AuthHttpJdbcTest.java`.
-- A gravação é responsabilidade da equipe. Antes de mostrar uma tela específica, ensaie esse fluxo manualmente no banco descartável e ajuste a fala se o comportamento divergir.
+Esse é o resultado da segunda rodada do AutoBotz Motors: uma base que recebeu novas funcionalidades e foi verificada com testes reais. Como responsável pela apresentação, eu agradeço ao professor pela atenção e também aos integrantes da Equipe B, que desenvolveram suas frentes. Fico à disposição para explicar qualquer decisão técnica, os testes e os limites de cada módulo.

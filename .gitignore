@@ -1,20 +1,28 @@
+# Compilação e artefatos locais
 /bin/
-*.jar
-.settings/
 /build/
-.env
 *.class
+*.jar
+!/lib/mariadb-java-client-4.0.0.jar
 
-# Segredos e chaves locais
-*.key
+# Arquivos locais de IDE
+.settings/
+.vscode/
+**/.classpath
+**/.project
+
+# Segredos, backups e dados locais
+.env
+.env.*
 *.pem
+*.key
 *.p12
-
-# Dados locais e cópias antigas do projeto
+*.log
+*.bak
+*.tmp
+*.orig
+*.rej
 /clientes.txt
 /veiculos.txt
 /vendas.txt
 /autobotz-motors-main/
-*.log
-*.bak
-.env.*

@@ -29,10 +29,17 @@ BUILD_DIR="$TEST_TMP_DIR/bin"
 mkdir -p "$BUILD_DIR"
 
 # Usar o driver local, se houver; caso contrário, baixá-lo apenas para a pasta temporária
-JDBC_DRIVER="lib/mariadb-java-client-3.5.10.jar"
+JDBC_DRIVER="${AUTOBOTZ_JDBC_JAR:-lib/mariadb-java-client-4.0.0.jar}"
+if [[ ! -f "$JDBC_DRIVER" ]]; then
+  if [[ -n "${AUTOBOTZ_JDBC_JAR:-}" ]]; then
+    echo "ERRO: AUTOBOTZ_JDBC_JAR aponta para arquivo inexistente." >&2
+    exit 1
+  fi
+  JDBC_DRIVER="$HOME/.m2/repository/org/mariadb/jdbc/mariadb-java-client/3.5.10/mariadb-java-client-3.5.10.jar"
+fi
 if [[ ! -f "$JDBC_DRIVER" ]]; then
   JDBC_DRIVER="$TEST_TMP_DIR/mariadb-java-client-3.5.10.jar"
-  echo "Driver MariaDB 3.5.10 nao encontrado. Descarregando driver JDBC..."
+  echo "Driver JDBC local ausente. Baixando Connector/J apenas para a pasta de teste..."
   curl -fsSL -o "$JDBC_DRIVER" https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.5.10/mariadb-java-client-3.5.10.jar
 fi
 

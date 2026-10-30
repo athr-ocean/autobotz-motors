@@ -23,11 +23,11 @@ somente em `localhost`.
 
 Depois abra `http://127.0.0.1:8085`. Para usar outra porta: `AUTOBOTZ_PORTAL_PORT=8090`.
 Para usar outra pasta do portal: `AUTOBOTZ_PORTAL_DIR=/caminho/portal-treinamento`.
-Para parar, `Ctrl+C`. O modo `portal` no `scripts/run.sh` ainda depende do trabalho de integração do Arthur.
+Para parar, `Ctrl+C`. O modo `portal` já está disponível em `bash scripts/run.sh portal`.
 
 O launcher padrão usa `TreinamentoPortalBackend` e `TreinamentoService` com o
 `ConexaoBanco.getDataSource()`: os eventos não devem ser considerados persistidos até a
-integração com o PR #22 e o teste de integração em banco isolado serem confirmados.
+persistência ser verificada no banco configurado. A integração foi validada com testes JDBC isolados `_test` em 29/10/2026.
 
 ## Testes das rotas
 
@@ -68,7 +68,7 @@ Os testes de rota não usam banco: criam uma pasta temporária com catálogo de 
 ## Estado atual e limitações
 
 - O launcher e o atalho do ERP foram alterados para usar o adaptador persistente. A ligação efetiva
-  depende de o PR #22 estar integrado na base usada para compilar e de a configuração JDBC funcionar.
+  usa o DataSource integrado à `main`, exigindo configuração JDBC válida.
   Validar a persistência real com `D15PersistenciaTest` em banco isolado `_test` antes de afirmar
   que o fluxo integrado foi aprovado.
 - As rotas `POST /api/login`, `POST /api/login/mfa` e `POST /api/logout` usam o serviço de sessão D14. O MFA é simulado e o código de demonstração é explicitamente rotulado.
@@ -88,7 +88,7 @@ Os testes de rota não usam banco: criam uma pasta temporária com catálogo de 
 - Eventos exigem `Content-Type: application/json` e só aceitam material publicado.
 - O cookie de sessão usa `HttpOnly`, `SameSite=Strict` e `Path=/`; em HTTPS deve incluir `Secure`. Nunca aceitar perfil enviado pelo navegador.
 - Nenhum dado pessoal ou IP é anexado aos eventos de treinamento. O token de sessão não é registado em logs.
-- A autorização de métricas é feita no servidor através do serviço de sessão D14; a integração ponta a ponta continua pendente de teste.
+- A autorização de métricas é feita no servidor com sessão D14; o teste HTTP/JDBC de 401/403/200 passou em banco isolado.
 
 ## Executar as suítes D15
 
