@@ -17,6 +17,40 @@
   <p id="status" role="status" aria-live="polite">Carregando materiais…</p>
   <ul id="lista"></ul>
   <article id="detalhe" hidden></article>
+<section id="acesso" aria-labelledby="acesso-titulo">
+  <h2 id="acesso-titulo">Acesso às métricas (ADMIN)</h2>
+  <p>As métricas reais deste ambiente exigem login e segundo fator de demonstração. Não use credenciais reais nesta instalação didática.</p>
+  <form id="login-form">
+    <label>Usuário <input id="usuario" name="usuario" autocomplete="username" required maxlength="50"></label>
+    <label>Senha <input id="senha" name="senha" type="password" autocomplete="current-password" required></label>
+    <button type="submit">Entrar</button>
+  </form>
+  <form id="mfa-form" hidden>
+    <p id="codigo-demo"></p>
+    <label>Código de segundo fator <input id="codigo-mfa" name="codigo" inputmode="numeric" autocomplete="one-time-code" required></label>
+    <button type="submit">Confirmar código</button>
+  </form>
+  <button id="sair" type="button" hidden>Sair da sessão</button>
+  <p id="auth-status" role="status" aria-live="polite"></p>
+</section>
+<section id="dashboard" aria-labelledby="dashboard-titulo" hidden>
+  <h2 id="dashboard-titulo">Dashboard de treinamento</h2>
+  <p>Contagens de eventos registrados no banco deste ambiente, não de clientes únicos ou de aprendizagem comprovada.</p>
+  <form id="metricas-form">
+    <label>De <input id="inicio" type="date" required></label>
+    <label>Até (inclusive) <input id="fim" type="date" required></label>
+    <button type="submit">Consultar métricas</button>
+  </form>
+  <p id="metricas-status" role="status" aria-live="polite"></p>
+  <table><caption>Eventos por tipo e material</caption>
+    <thead><tr><th>Evento</th><th>Material</th><th>Total</th></tr></thead>
+    <tbody id="metricas-linhas"></tbody>
+  </table>
+</section>
+<section id="planejamento" aria-labelledby="planejamento-titulo">
+  <h2 id="planejamento-titulo">Em preparação</h2>
+  <p>Vídeos gravados, webinars e fórum de discussão são propostas didáticas, não serviços publicados. Os roteiros existentes são materiais de leitura.</p>
+</section>
 </main>
 <script src="app.js"></script>
 </body>
