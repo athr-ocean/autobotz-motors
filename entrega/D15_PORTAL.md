@@ -73,7 +73,7 @@ Os testes de rota não usam banco: criam uma pasta temporária com catálogo de 
   que o fluxo integrado foi aprovado.
 - As rotas `POST /api/login`, `POST /api/login/mfa` e `POST /api/logout` usam o serviço de sessão D14. O MFA é simulado e o código de demonstração é explicitamente rotulado.
 - `GET /api/treinamentos/metricas` valida a sessão no servidor: 401 sem sessão, 403 sem permissão e 200 apenas com autorização. Se o serviço D14 não estiver disponível na base integrada, o acesso falha fechado com 401.
-- A rota de métricas requer `inicio` e `fim` em formato ISO local; a resposta identifica a origem dos dados. Não há painel de métricas completo.
+- A rota de métricas requer `inicio` e `fim` em formato ISO local; a resposta identifica a origem dos dados. A interface web possui formulário e tabela de métricas por período, protegidos por login/MFA e autorização ADMIN. A inspeção visual manual permanece não comprovada.
 - A interface renderiza Markdown básico com elementos DOM seguros: títulos, parágrafos, listas, negrito e código em linha. Links, tabelas, itálico e extensões Markdown ainda não são suportados.
 - O portal não está publicado na internet: funciona apenas em `localhost`.
 - Os textos em `content/` são cópias dos arquivos de `entrega/` do Higor; o teste de conteúdo deve
