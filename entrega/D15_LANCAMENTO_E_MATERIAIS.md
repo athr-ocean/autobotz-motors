@@ -8,7 +8,7 @@
 ## Situação dos materiais
 
 - **Guia rápido:** existe como texto Markdown. Precisa de revisão contra os nomes e fluxos reais da versão integrada.
-- **FAQ:** existe como texto Markdown. Deve continuar a separar recursos disponíveis de recursos planeados.
+- **FAQ:** existe como texto Markdown. Deve continuar a separar recursos disponíveis de recursos planejados.
 - **Roteiro de treinamento de 30 minutos:** texto previsto para demonstrar o ERP. Esse material é diferente da apresentação individual da disciplina, gravada separadamente.
 - **Vídeo do portal:** o treinamento do D15 ainda não foi gravado nem publicado no portal.
 - **Webinar:** não há evidência de sessão realizada ou gravação publicada. O roteiro não deve ser apresentado como webinar realizado.
@@ -23,16 +23,16 @@
 
 Olá, equipe,
 
-Estamos a preparar a disponibilização dos materiais de treinamento do AutoBotz Motors. O portal deverá reunir o guia rápido e as perguntas frequentes para apoiar a consulta dos procedimentos de clientes, veículos e vendas.
+Estamos preparando os materiais de treinamento do AutoBotz Motors. O portal reúne um guia rápido e perguntas frequentes sobre clientes, veículos e vendas.
 
 Antes de anunciar a abertura, a equipe confirmará a integração do portal com a versão aprovada do ERP, a gravação e revisão do vídeo de treinamento, a disponibilidade real dos conteúdos e os testes de acesso e persistência. Materiais em formato de roteiro serão identificados como roteiros, e exemplos ou pesquisas simuladas serão rotulados como simulação.
 
-Por enquanto, este texto é apenas um rascunho de comunicação. A data, o endereço de acesso, o público destinatário e o canal de suporte deverão ser preenchidos e aprovados após a validação final. Não utilize um endereço local como se fosse um portal público.
+O comunicado será enviado somente após a definição da data, do endereço de acesso público e do canal de suporte.
 
 Obrigado,
 Equipe AutoBotz Motors
 
-## Critérios de lançamento — estado após integração
+## Acompanhamento do lançamento
 
 - [x] DataSource e serviço de treinamento integrados à `main`.
 - [x] Portal, login/MFA e autorização 401/403/200 verificados no CI em banco descartável.
