@@ -1,7 +1,7 @@
 # AutoBotz Motors — Guia rápido de uso
 
 **D15 — Treinamento e Capacitação**
-**Versão:** 1.0 — material didático para revisão pela equipe
+**Versão:** 1.0 — guia de treinamento
 
 ## Objetivo
 

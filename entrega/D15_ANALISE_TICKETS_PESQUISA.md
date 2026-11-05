@@ -1,10 +1,10 @@
-# D15 — Análise didática de tickets e pesquisa de satisfação
+# D15 — Análise de chamados e pesquisa de satisfação
 
 **AutoBotz Motors — Equipe B · 29/10/2026.** Documento específico do Produto Final da segunda rodada.
 
 ## Origem e limites
 
-O desafio solicita a análise de tickets de três meses por categoria e funcionalidade, além de pesquisa **simulada**. O ERP desenvolvido não recebeu uma base histórica verificada de tickets de suporte. Portanto, todos os números abaixo são **DADOS FICTÍCIOS**, usados para demonstrar como a análise direcionaria os materiais de capacitação. Não foram coletados de clientes, nem criados por uso real do portal.
+Como não foi disponibilizado um histórico de chamados de suporte, a análise utiliza registros de exemplo distribuídos por três meses. Eles permitem organizar as dúvidas por categoria e planejar conteúdos de treinamento, mas não representam solicitações recebidas por usuários do ERP.
 
 ## Tickets por categoria — cenário SIMULADO
 
@@ -14,9 +14,9 @@ O desafio solicita a análise de tickets de três meses por categoria e funciona
 | Cadastro de clientes | 4 | 4 | 4 | 12 |
 | Compras e aprovações | 3 | 3 | 4 | 10 |
 | Consultas e relatórios | 3 | 3 | 3 | 9 |
-| **Total fictício** | **15** | **14** | **16** | **45** |
+| **Total (exemplo)** | **15** | **14** | **16** | **45** |
 
-Pela distribuição inventada, o primeiro material a priorizar seria um guia de acesso, perfis e MFA, seguido de cadastro de clientes e fluxo de compra. **Essa prioridade é uma hipótese pedagógica**, não uma necessidade diagnosticada em usuários reais. O guia existente `entrega/D15_GUIA_RAPIDO.md` explica clientes, veículos e vendas; a documentação `entrega/D14_LOGIN_MFA.md` cobre os detalhes de autenticação. O vídeo tutorial de três minutos está somente em formato de roteiro, em `entrega/D15_ROTEIRO_VIDEO.md`.
+Pela distribuição de exemplo, o primeiro material a priorizar seria um guia de acesso, perfis e MFA, seguido de cadastro de clientes e fluxo de compra. **Essa prioridade é uma hipótese pedagógica**, não uma necessidade diagnosticada em usuários reais. O guia existente `entrega/D15_GUIA_RAPIDO.md` explica clientes, veículos e vendas; a documentação `entrega/D14_LOGIN_MFA.md` cobre os detalhes de autenticação. O vídeo tutorial de três minutos está somente em formato de roteiro, em `entrega/D15_ROTEIRO_VIDEO.md`.
 
 ### Como distinguir o tipo de dificuldade
 
@@ -36,7 +36,7 @@ Perguntas previstas para uma eventual pesquisa autorizada:
 4. “Qual tarefa você gostaria de ver explicada passo a passo?”
 5. “Em qual módulo encontrou mais dúvidas no último mês?”
 
-**Exemplo de 20 respostas totalmente inventadas**, apenas para praticar interpretação:
+**Exemplo com 20 respostas simuladas**, apenas para praticar interpretação:
 
 | Pergunta | Respostas simuladas | Interpretação possível |
 |---|---|---|
@@ -44,7 +44,7 @@ Perguntas previstas para uma eventual pesquisa autorizada:
 | Documentação útil? | sim 7; parcialmente 8; não 5 | revisar clareza e cobertura |
 | Quer vídeos curtos? | sim 16; não 4 | vídeo de três minutos merece protótipo |
 
-O instrumento **não foi disparado**, e essas respostas **não são depoimentos de usuários reais**. Para uso real, seriam necessários consentimento, público, método de coleta e guarda adequada das respostas.
+A pesquisa ainda não foi aplicada. As respostas fazem parte de um exercício de análise; uma aplicação real exigiria público definido, consentimento, método de coleta e guarda adequada das informações.
 
 ## Conteúdo e portal implementados
 
@@ -66,7 +66,7 @@ Para comparar a taxa de tickets antes/depois de um lançamento real:
 2. Normalizar por número de usuários ativos ou clientes atendidos.
 3. Registrar as condições comparadas e eventuais mudanças simultâneas de produto/suporte.
 4. Calcular `taxa = tickets / usuários ativos` e `variação % = (taxa_depois / taxa_antes − 1) × 100`.
-5. Documentar sazonalidade e ausência de causalidade comprovada; não usar os 45 tickets fictícios como linha de base.
+5. Documentar sazonalidade e ausência de causalidade comprovada; os 45 chamados de exemplo não constituem uma linha de base real.
 
 **Conclusão:** o sistema tem infraestrutura técnica para acompanhar acesso ao treinamento, mas ainda não há série histórica real de tickets ou pesquisa que permita afirmar aumento de satisfação ou redução de suporte.
 

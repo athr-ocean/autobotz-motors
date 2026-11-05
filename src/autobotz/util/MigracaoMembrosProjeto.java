@@ -2,7 +2,7 @@ package autobotz.util;
 
 import java.sql.*;
 
-/** Migração opcional de D9. Não inventa o projeto de membros legados nem remove dados. */
+/** Migração opcional dos vínculos de membros do D9, preservando os registros antigos. */
 public final class MigracaoMembrosProjeto {
     public static void main(String[] args) throws SQLException {
         boolean aplicar = args.length == 1 && "--apply".equals(args[0]);

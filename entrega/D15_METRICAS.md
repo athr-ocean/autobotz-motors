@@ -32,7 +32,7 @@ Exemplo **SIMULADO**, apenas para ilustrar como um relatório pode ser descrito 
 | `MATERIAL_VIEW` | `guia-rapido` | 12 |
 | `VIDEO_VIEW` | `video-cadastro` | 8 |
 
-Esses valores são exemplos inventados para demonstração de formato. Não devem ser misturados às métricas obtidas durante a execução real.
+Os números do quadro são dados de exemplo, usados para mostrar o formato do relatório. As métricas de uso devem vir de eventos registrados pelo portal.
 
 ## 5. Testes de aceitação sugeridos
 

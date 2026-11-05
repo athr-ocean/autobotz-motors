@@ -23,7 +23,7 @@ Em 29/10/2026, o responsável executou Java 21 + MariaDB 13.0.2 e reportou **10/
 
 **Não foi realizada cronometragem manual reproduzível de ponta a ponta no mesmo cenário de compra**, nem medição de potência elétrica. Portanto, não há percentual observado que comprove redução do tempo ou da energia. Os tempos divulgados em versões anteriores (20–30 minutos de teste manual, 3–5 segundos de teste automatizado e 15–30 segundos de CI) eram **estimativas não comparáveis** e não devem ser apresentados como resultados medidos.
 
-O professor fornece um exemplo **hipotético**: manual 2 horas versus automatizado 5 minutos. Nesse exemplo, a diferença seria 115 minutos, mas esse valor **não foi observado no AutoBotz**.
+Para ilustrar a comparação, foi adotado o cenário do exercício: duas horas para uma execução manual e cinco minutos para a automatizada. A diferença de 115 minutos decorre dessas premissas; não houve cronometragem equivalente no AutoBotz.
 
 ### Protocolo para medição real
 
@@ -39,7 +39,7 @@ Fórmulas: `tempo_economizado = T_manual − T_automatizado`; `redução_% = 100
 
 A automação oferece feedback repetível, reduz risco de regressão e tende a evitar retrabalho. Em matéria de sustentabilidade, **o benefício potencial depende de medição**; executar testes sem tela não prova menor gasto energético total porque runners, banco e tempo de processamento também consomem recursos.
 
-Recomenda-se manter testes rápidos a cada PR, organizar a bateria JDBC em banco descartável, armazenar logs sem segredos e revisar testes que se tornem instáveis. A qualidade da entrega está sustentada pelos testes aprovados e pela possibilidade de repetição, **não por porcentagens inventadas de produtividade ou energia**.
+Recomenda-se manter testes rápidos a cada PR, organizar a bateria JDBC em banco descartável, armazenar logs sem segredos e revisar testes que se tornem instáveis. A qualidade da entrega está sustentada pelos testes aprovados e pela possibilidade de repetição, **sem atribuir ganhos percentuais que não foram medidos**.
 
 ## 5. Comparação didática de eficiência — valores simulados
 

@@ -3,7 +3,7 @@
 **Tema:** Cadastrar cliente e veículo e registrar uma venda no AutoBotz Motors
 **Público:** pessoas que estão começando a utilizar o ERP
 **Duração-alvo:** 3 minutos
-**Importante:** gravar somente depois de conferir os nomes reais das telas e os passos na versão integrada. Usar dados fictícios.
+**Antes de gravar:** conferir os nomes das telas e executar o procedimento na versão integrada, com dados de treinamento.
 
 ## 0:00–0:20 — Abertura
 
@@ -19,7 +19,7 @@
 
 “Primeiro, acessamos o módulo de Clientes pela navegação da aplicação. Abrimos a opção de cadastro e preenchemos os campos solicitados. Antes de salvar, vale conferir se os dados estão corretos, porque informações inconsistentes podem dificultar as próximas operações. Depois de salvar, verificamos na consulta de clientes se o registro foi criado.”
 
-**Na tela:** demonstrar o cadastro com dados fictícios e a confirmação real que a aplicação apresentar. Não inventar mensagens de sucesso durante a edição do vídeo.
+**Na tela:** demonstrar o cadastro com dados fictícios e a confirmação real que a aplicação apresentar. Na edição, utilizar somente as mensagens apresentadas durante a execução.
 
 ## 1:00–1:40 — Cadastro de veículo
 

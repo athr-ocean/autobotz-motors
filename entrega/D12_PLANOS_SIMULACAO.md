@@ -1,16 +1,16 @@
 # D12 — Crise econômica: planos, churn e simulação financeira
 
-**AutoBotz Motors — Equipe B · 29/10/2026.** Relatório e proposta didáticos da segunda rodada.
+**AutoBotz Motors — Equipe B · 29/10/2026.**
 
 ## Análise do problema
 
-O enunciado pede uma avaliação de cancelamentos e receita recorrente perdida nos seis meses anteriores, com motivos, segmentos e funcionalidades utilizadas. **Não foi fornecida uma carteira real de clientes assinantes nem um histórico verificado de cancelamentos.** Assim, não há base para afirmar que determinado segmento teve maior churn. O diagnóstico abaixo é um exercício hipotético, não uma consulta ao banco ou uma pesquisa real.
+O desafio pede uma avaliação dos cancelamentos e da receita recorrente perdida em seis meses. Como não há histórico real de assinaturas e cancelamentos disponível, usamos uma carteira de exemplo para demonstrar os cálculos. Os resultados não representam o comportamento de clientes do ERP.
 
-### Cenário de cancelamentos — exclusivamente SIMULADO
+### Cenário de cancelamentos (dados de exemplo)
 
 Para demonstrar a estrutura do relatório, suponha 120 clientes ativos no início do semestre e 12 cancelamentos ao longo de seis meses, distribuídos assim:
 
-| Mês didático | Cancelamentos fictícios | Principal motivo ilustrativo |
+| Mês de referência | Cancelamentos de exemplo | Motivo considerado |
 |---|---:|---|
 | Abril/2026 | 2 | custo mensal elevado |
 | Maio/2026 | 1 | funcionalidades pouco utilizadas |
@@ -18,7 +18,7 @@ Para demonstrar a estrutura do relatório, suponha 120 clientes ativos no iníci
 | Julho/2026 | 2 | necessidade de versão básica |
 | Agosto/2026 | 2 | custo mensal elevado |
 | Setembro/2026 | 2 | funcionalidades pouco utilizadas |
-| **Total** | **12** | **registros inventados para análise** |
+| **Total** | **12** | **dados de exemplo** |
 
 Se todos os contratos de exemplo custassem R$ 100/mês, a perda de receita mensal recorrente associada aos 12 cancelamentos seria **R$ 1.200** após os cancelamentos; 12/120 = **10% de churn acumulado hipotético**. Isto não equivale a churn real da empresa nem demonstra a distribuição de segmentos. Para medir de verdade, seriam necessárias datas de início e cancelamento, preço contratado, porte/segmento e módulos de cada assinatura.
 
@@ -55,7 +55,7 @@ A simulação demonstra coerência aritmética, **não comprova viabilidade fina
 
 ## Pesquisa simulada e atendimento
 
-**Roteiro de feedback hipotético (não enviado):**
+**Possíveis respostas em uma pesquisa futura (exemplos):**
 
 - “O preço fixo está alto para meu uso atual.”
 - “Pago por funções que minha empresa não utiliza.”

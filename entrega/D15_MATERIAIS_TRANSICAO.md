@@ -12,7 +12,7 @@ Ajudar os usuários a adotar os materiais de treinamento do AutoBotz Motors e co
 2. Substituir nomes genéricos de telas pelos rótulos reais, se necessário.
 3. Validar o fluxo completo com dados fictícios.
 4. Confirmar links e disponibilidade dos materiais na interface de treinamento.
-5. Identificar webinars futuros, fóruns simulados e dados de exemplo como planejados/simulados.
+5. Registrar webinars e fóruns como recursos planejados, ainda indisponíveis no portal.
 
 ### No lançamento
 
@@ -51,9 +51,9 @@ Equipe AutoBotz Motors
 - Atualizar o material somente depois de confirmar o comportamento real do sistema.
 - Anotar a data e versão do material revisado.
 
-## 5. Limites das afirmações
+## 5. Disponibilidade e indicadores
 
-- Não afirmar que o portal está disponível publicamente sem hospedagem e URL verificadas.
-- Não afirmar redução de chamados ou aumento de satisfação sem dados pré/pós comparáveis.
-- Todo conjunto de dados didáticos precisa estar marcado como **SIMULADO**.
-- Uma visualização de material é evidência de acesso, não prova automática de aprendizado ou conclusão do treinamento.
+- O portal funciona em endereço local; a disponibilização pública depende de hospedagem.
+- Não há histórico de chamados e satisfação suficiente para uma comparação antes e depois do treinamento.
+- Os dados de exemplo dos relatórios são simulações acadêmicas.
+- A abertura de um material indica acesso, mas não confirma aprendizagem ou conclusão do treinamento.
