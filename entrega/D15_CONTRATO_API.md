@@ -93,7 +93,7 @@ Requisição `application/json` proposta:
 
 Resposta proposta: `201 Created` com identificador simples do evento; nunca devolver credenciais ou dados internos desnecessários.
 
-Validações: somente os três tipos de evento reconhecidos; slug com formato permitido e publicado quando obrigatório; tamanho de campos limitado; timestamp gerado no servidor. Não coletar CPF, senha, token, IP inventado ou texto livre desnecessário.
+Validações: somente os três tipos de evento reconhecidos; slug com formato permitido e publicado quando obrigatório; tamanho de campos limitado; timestamp gerado no servidor. Os eventos não devem incluir CPF, senha, token, endereço IP ou campos de texto livre sem necessidade.
 
 ### 3.4 `GET /api/treinamentos/metricas?inicio=2026-10-01T00:00:00&fim=2026-11-01T00:00:00`
 
