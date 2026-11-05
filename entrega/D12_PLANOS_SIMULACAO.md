@@ -18,7 +18,7 @@ Para demonstrar a estrutura do relatório, suponha 120 clientes ativos no iníci
 | Julho/2026 | 2 | necessidade de versão básica |
 | Agosto/2026 | 2 | custo mensal elevado |
 | Setembro/2026 | 2 | funcionalidades pouco utilizadas |
-| **Total** | **12** | **registros inventados para análise** |
+| **Total** | **12** | **dados de exemplo** |
 
 Se todos os contratos de exemplo custassem R$ 100/mês, a perda de receita mensal recorrente associada aos 12 cancelamentos seria **R$ 1.200** após os cancelamentos; 12/120 = **10% de churn acumulado hipotético**. Isto não equivale a churn real da empresa nem demonstra a distribuição de segmentos. Para medir de verdade, seriam necessárias datas de início e cancelamento, preço contratado, porte/segmento e módulos de cada assinatura.
 
