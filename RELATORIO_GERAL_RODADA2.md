@@ -2,7 +2,7 @@
 
 **Disciplina:** Administração para Computação 2026.2 · **Equipe B — Liga do Mal** · **Data de consolidação:** 29/10/2026.
 
-## 1. Síntese dos requisitos acadêmicos em dez pontos
+## 1. Escopo e requisitos da segunda rodada
 
 1. O Grupo de Desafios 3 compreende D11 a D15.
 2. D11 abrange sustentabilidade, compras, qualidade, testes e análise da eficiência.
@@ -13,9 +13,9 @@
 7. O material acadêmico deve explicar o sistema, metodologia, resultados e limitações.
 8. As simulações devem ser distinguidas de dados de clientes e operações reais.
 9. O cronograma fornecido prevê vídeo de aproximadamente 30 minutos em 30/10/2026.
-10. O cronograma também prevê artigo final e outro marco em 11/12/2026. Nos PDFs acadêmicos anteriormente analisados não foi identificada regra específica de proibição de IA; eventuais instruções adicionais do professor prevalecem.
+10. O cronograma também prevê a entrega do artigo final em 11/12/2026.
 
-**Fontes acadêmicas anteriormente fornecidas:** cronograma da disciplina; PDF da segunda rodada de desafios; PDF de divisão da Equipe B. A divisão nominal abaixo foi reunida da documentação interna do projeto e deve ser conferida com a equipe.
+**Referências:** cronograma da disciplina, enunciado da segunda rodada, divisão da Equipe B e documentação interna do AutoBotz Motors.
 
 ## 2. Projeto e autoria
 
@@ -71,11 +71,11 @@ As verificações acima não equivalem à certificação de produção. A interf
 
 ## 6. Limitações e entrega
 
-- Não confundir mock, valores de exemplo, cronograma futuro ou métricas simuladas com resultados medidos.
-- Não afirmar que foram enviados avisos reais, efetuados pagamentos ou gravados webinars/tutoriais não produzidos.
-- O vídeo individual será gravado por Arthur; o roteiro em `ROTEIRO_VIDEO.md` serve como guia.
+- As métricas financeiras, de suporte e de consumo energético usadas como exemplos não representam medições reais da operação.
+- Comunicados externos, pagamentos, webinars e tutoriais curtos do portal não foram realizados nesta rodada; os materiais correspondentes são propostas ou roteiros.
+- A apresentação individual foi gravada fora do repositório. O arquivo `ROTEIRO_VIDEO.md` conserva o texto de apoio; o envio ao professor depende de confirmação externa.
 - A inspeção visual manual do Swing, medição temporal manual, telemetria energética e comparação real de chamados continuam sem evidência.
-- O pacote de entrega deve ser montado a partir do commit final da `main`, sem `.git`, arquivos de chaves, segredos e resíduos de build. O arquivo de entrega foi gerado por `git archive` a partir da `main`, sem histórico Git ou segredos locais.
+- O pacote de entrega deve ser montado a partir do commit final da `main`, sem `.git`, arquivos de chaves, segredos e resíduos de build. O código-fonte também pode ser obtido pelo ZIP oficial do commit da `main` no GitHub, sem incluir o histórico local do Git.
 
 ## 7. Complemento de aceite documental e de interface (29/10/2026)
 
@@ -88,3 +88,7 @@ Foram adicionados:
 - revisão do relatório D11 com protocolo de medição, sem alegar redução observada de energia ou tempo.
 
 A compilação com Java 21 e as **11 classes de teste offline** (10 anteriores + `D12SimuladorUITest`) passaram no ambiente isolado após as mudanças. A suíte JDBC **8/8** foi executada pelo responsável na revisão anterior (commit `718fe28`), não após a inclusão do painel. A PR #39 foi aprovada no GitHub Actions e mesclada na `main` no commit `fa580cde`. O ZIP final deste commit foi extraído, recompilado e passou em 11/11 suítes offline no CachyOS. Os testes JDBC completos locais de 8/8 suítes foram realizados na revisão anterior. A demonstração visual Swing em tela real continua sem ensaio documentado.
+
+## 8. Fechamento da versão integrada (30/10/2026)
+
+A revisão final foi registrada no commit `dce1f9d` da `main`, após a integração das PRs #43, #44 e #45. Os workflows `Integrated ERP Regression`, `D12 regression` e `D14 security regression` concluíram com sucesso nessa revisão. A execução automatizada cobre compilação e cenários funcionais; a inspeção visual manual completa da interface continua fora dessas evidências.
