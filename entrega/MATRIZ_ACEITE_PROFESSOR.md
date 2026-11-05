@@ -18,21 +18,21 @@ Critério: **IMPLEMENTADO** é recurso ou documento que existe; **SIMULAÇÃO** 
 | D13 | Apresentação da prova de conceito | `entrega/D13_ROTEIRO_POC.md`, `ApiBlockchainSimulada` | SIMULAÇÃO demonstrável; gravação real NÃO COMPROVADA |
 | D13 | Plano de testes e integridade | `D13LedgerIntegrityTest`, `D13BlockchainApiTest`, `D13JdbcIntegrationTest` | IMPLEMENTADO/testes anteriores passaram |
 | D13 | Plano de treinamento dos usuários | `entrega/D13_GUIA_PRIMEIROS_PASSOS.md` | IMPLEMENTADO |
-| D14 | Relatório forense do incidente simulado | `entrega/D14_RELATORIO_INCIDENTE_SIMULADO.md` | SIMULAÇÃO; IPs reais não disponíveis, não inventados |
+| D14 | Relatório forense do incidente simulado | `entrega/D14_RELATORIO_INCIDENTE_SIMULADO.md` | SIMULAÇÃO; sem registros de IPs de um incidente real |
 | D14 | Plano e configuração de segurança | `entrega/D14_LOGIN_MFA.md`, `entrega/D14_CIFRAGEM_DADOS_PESSOAIS.md`; `014`/`016` | IMPLEMENTADO; MFA é didático, chave externa |
 | D14 | Plano de resposta a incidentes | `entrega/D14_RELATORIO_INCIDENTE_SIMULADO.md` | IMPLEMENTADO como plano |
 | D14 | Comunicação de crise | comunicado-modelo em `entrega/D14_RELATORIO_INCIDENTE_SIMULADO.md` | Documento simulado; não enviado |
-| D15 | Relatório de tickets e pesquisa | `entrega/D15_ANALISE_TICKETS_PESQUISA.md` | SIMULAÇÃO, dados explicitamente inventados |
+| D15 | Relatório de tickets e pesquisa | `entrega/D15_ANALISE_TICKETS_PESQUISA.md` | SIMULAÇÃO; conjunto de exemplo sem coleta real |
 | D15 | Portal, guias e conteúdo | `portal-treinamento/`, `entrega/D15_GUIA_RAPIDO.md`, FAQ e roteiro tutorial | IMPLEMENTADO como serviço local; vídeo de 3 min não gravado |
 | D15 | Campanha de lançamento | `entrega/D15_LANCAMENTO_E_MATERIAIS.md`, aviso pop-up no Swing | Documento e aviso implementados; e-mail real não enviado |
 | D15 | Dashboard e monitoramento | painel do portal e `GET /api/treinamentos/metricas`, autenticação ADMIN | IMPLEMENTADO; análise de redução real de chamados depende de base real |
 | Integração | Construção contínua dos desafios | `main`, migrations 011–016, testes, CI, README | IMPLEMENTADO; regressão integrada, D12 e D14 aprovadas na PR #44 |
-| Apresentação | Vídeo de 30 minutos da trajetória | `ROTEIRO_VIDEO.md` | EXTERNO: Arthur precisa gravar, conferir duração e submeter hoje |
-| Submissão | Documentos e código conforme orientação professor | `RELATORIO_GERAL_RODADA2.md`, `CHECKLIST_FINAL.md`, ZIP gerado por `git archive` | EXTERNO: gerar ZIP do **último commit**, anexar e obter comprovante |
+| Apresentação | Vídeo de 30 minutos da trajetória | `ROTEIRO_VIDEO.md` | GRAVADO FORA DO REPOSITÓRIO; entrega externa sem comprovante neste registro |
+| Submissão | Documentos e código conforme orientação professor | `RELATORIO_GERAL_RODADA2.md`, `CHECKLIST_FINAL.md`, ZIP gerado por `git archive` | EXTERNO: baixar o ZIP oficial da revisão final e guardar comprovante de envio |
 | Marco futuro | Artigo final previsto para 11/12/2026 | documentação atual pode servir de base | NÃO EXIGÍVEL no marco de 30/10/2026; etapa futura |
 
 ## Conclusão de aceite
 
-O escopo **implementável em código e documentação** está organizado e vinculado às suas evidências. Ainda **não há como declarar todos os requisitos concluídos**: o vídeo de 30 minutos e o envio dependem de Arthur; uma comparação medida de tempo/energia e uma redução real de tickets requerem observações que não foram fornecidas. O enunciado autoriza modelos simulados para energia, crise, incidente e pesquisa. Apresentá-los como reais seria inadequado.
+O código e a documentação estão organizados por requisito. A apresentação individual foi gravada fora do repositório, mas seu envio ainda precisa de confirmação. A comparação de tempo e energia, assim como a redução de chamados, depende de medições que não constam desta entrega. O enunciado autoriza modelos simulados para energia, crise, incidente e pesquisa. Os valores apresentados permanecem identificados como cenários acadêmicos.
 
 O aceite final deve registrar o hash do commit, a conclusão do CI, a inspeção visual local do Swing/portal e o comprovante da entrega à plataforma acadêmica.
