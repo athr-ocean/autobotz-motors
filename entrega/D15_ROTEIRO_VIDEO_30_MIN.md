@@ -50,7 +50,7 @@ Ao final da sessão, a pessoa participante deverá conseguir localizar os módul
 
 **Ponto de verificação:** confirmar o registro na consulta do módulo. Se a interface integrada tiver campos ou nomes diferentes dos descritos, pausar a gravação e atualizar o roteiro.
 
-## 14:00–20:00 — Registar uma venda
+## 14:00–20:00 — Registrar uma venda
 
 **Apresentador:**<br>
 “Para registrar uma venda, siga a sequência apresentada pela versão instalada. Selecione os registros de cliente e veículo corretos, confira os valores e revise os dados antes de confirmar. Depois de salvar, verifique a consulta de vendas antes de tentar novamente.”
