@@ -39,7 +39,7 @@ Fórmulas: `tempo_economizado = T_manual − T_automatizado`; `redução_% = 100
 
 A automação oferece feedback repetível, reduz risco de regressão e tende a evitar retrabalho. Em matéria de sustentabilidade, **o benefício potencial depende de medição**; executar testes sem tela não prova menor gasto energético total porque runners, banco e tempo de processamento também consomem recursos.
 
-Recomenda-se manter testes rápidos a cada PR, organizar a bateria JDBC em banco descartável, armazenar logs sem segredos e revisar testes que se tornem instáveis. A qualidade da entrega está sustentada pelos testes aprovados e pela possibilidade de repetição, **não por porcentagens inventadas de produtividade ou energia**.
+Recomenda-se manter testes rápidos a cada PR, organizar a bateria JDBC em banco descartável, armazenar logs sem segredos e revisar testes que se tornem instáveis. A qualidade da entrega está sustentada pelos testes aprovados e pela possibilidade de repetição, **sem atribuir ganhos percentuais que não foram medidos**.
 
 ## 5. Comparação didática de eficiência — valores simulados
 
