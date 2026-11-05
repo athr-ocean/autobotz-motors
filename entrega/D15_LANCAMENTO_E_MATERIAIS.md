@@ -3,34 +3,34 @@
 **Atualizado:** 30/10/2026
 
 
-**Estado geral:** protótipo local de treinamento integrado e validado por testes HTTP/JDBC; campanha e liberação pública não realizadas. A gravação de vídeo e qualquer webinar/fórum operacional permanecem ausentes.
+**Estado geral:** o portal local passou nos testes HTTP/JDBC. Ainda não ocorreram lançamento público, gravação do tutorial de treinamento nem realização de webinar ou fórum.
 
-## Inventário honesto
+## Situação dos materiais
 
 - **Guia rápido:** existe como texto Markdown. Precisa de revisão contra os nomes e fluxos reais da versão integrada.
 - **FAQ:** existe como texto Markdown. Deve continuar a separar recursos disponíveis de recursos planeados.
-- **Roteiro de vídeo de 30 minutos:** existe como texto. A gravação, edição, ensaio cronometrado e validação da reprodução continuam pendentes.
-- **Vídeo gravado:** não há evidência de arquivo de vídeo final nesta entrega.
+- **Roteiro de treinamento de 30 minutos:** texto previsto para demonstrar o ERP. Esse material é diferente da apresentação individual da disciplina, gravada separadamente.
+- **Vídeo do portal:** o treinamento do D15 ainda não foi gravado nem publicado no portal.
 - **Webinar:** não há evidência de sessão realizada ou gravação publicada. O roteiro não deve ser apresentado como webinar realizado.
 - **Fórum:** não há evidência de uma funcionalidade de fórum implementada. O FAQ é o canal de consulta disponível neste momento; não anunciar fórum ativo.
-- **Pesquisa de satisfação e análise de tickets:** só podem ser apresentadas como simuladas se não existirem dados reais autorizados. Não afirmar redução de chamados, aumento de satisfação ou eficácia sem comparação válida.
+- **Pesquisa de satisfação e análise de tickets:** os exemplos publicados não provêm de coleta real; ainda não há comparativo de satisfação ou redução de chamados.
 - **Métricas do portal:** devem vir dos eventos persistidos e de um intervalo explícito. O endpoint administrativo depende de sessão web validada no servidor.
-- **Publicação:** o portal é local (127.0.0.1) nesta etapa. Não afirmar que está disponível na internet.
+- **Publicação:** o portal está disponível somente no ambiente local (`127.0.0.1`).
 
-## Rascunho de e-mail de lançamento — NÃO ENVIAR ANTES DA APROVAÇÃO
+## Modelo de comunicado — ainda não enviado
 
 **Assunto:** AutoBotz Motors — materiais de treinamento disponíveis
 
-Olá, equipa,
+Olá, equipe,
 
 Estamos a preparar a disponibilização dos materiais de treinamento do AutoBotz Motors. O portal deverá reunir o guia rápido e as perguntas frequentes para apoiar a consulta dos procedimentos de clientes, veículos e vendas.
 
-Antes de anunciar a abertura, a equipa confirmará a integração do portal com a versão aprovada do ERP, a gravação e revisão do vídeo de treinamento, a disponibilidade real dos conteúdos e os testes de acesso e persistência. Materiais em formato de roteiro serão identificados como roteiros, e exemplos ou pesquisas simuladas serão rotulados como simulação.
+Antes de anunciar a abertura, a equipe confirmará a integração do portal com a versão aprovada do ERP, a gravação e revisão do vídeo de treinamento, a disponibilidade real dos conteúdos e os testes de acesso e persistência. Materiais em formato de roteiro serão identificados como roteiros, e exemplos ou pesquisas simuladas serão rotulados como simulação.
 
 Por enquanto, este texto é apenas um rascunho de comunicação. A data, o endereço de acesso, o público destinatário e o canal de suporte deverão ser preenchidos e aprovados após a validação final. Não utilize um endereço local como se fosse um portal público.
 
-Obrigado,<br>
-Equipa AutoBotz Motors
+Obrigado,
+Equipe AutoBotz Motors
 
 ## Critérios de lançamento — estado após integração
 
