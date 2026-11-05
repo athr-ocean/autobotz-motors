@@ -28,7 +28,7 @@
 | PRs antigas | FEITO | zero abertas após reconciliação (fechamentos registram motivo) |
 | Execução visual do Swing | NÃO COMPROVADO | código compila; demonstração manual necessária |
 | Apresentação individual de 30 minutos | GRAVADA, FORA DO REPOSITÓRIO | arquivo MP4 produzido separadamente; envio ao professor não verificado pelo GitHub |
-| ZIP do código-fonte | DISPONÍVEL NO GITHUB | download da revisão `dce1f9d`; não utilizar pacotes anteriores à organização da pasta `entrega/` |
+| ZIP do código-fonte | DISPONÍVEL NO GITHUB | download do commit atual da branch `main`; evitar pacotes anteriores à organização da pasta `entrega/` |
 
 | D15: pop-up e dashboard de métricas | FEITO — CI APROVADO | interface HTML/JS e aviso Swing integrados; inspeção visual completa não documentada |
 | D15: lançamento externo / webinar / fórum | NÃO REALIZADO | campanha preparada, mas sem envio real ou canais externos publicados; cenários didáticos indicados |
