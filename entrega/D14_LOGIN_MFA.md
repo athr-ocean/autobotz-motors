@@ -1,6 +1,6 @@
 # D14 — Login seguro, tentativas e MFA (João)
 
-Branch sugerida: `feature/d14-auth-mfa` · Migração: `db/migrations/014_d14_security.sql`
+Implementação integrada à `main` · Migração: `db/migrations/014_d14_security.sql`
 Portal HTTP: ver `entrega/D14_SESSAO_WEB.md`.
 
 ## O que existe
@@ -27,17 +27,15 @@ Portal HTTP: ver `entrega/D14_SESSAO_WEB.md`.
 `AuthService.autenticar(nome, senha)` foi mantido (usado por `CoreRegression`), mas é **somente o primeiro fator**:
 aplica bloqueio, trilha e migração de hash, porém **não** aplica MFA. Telas e servidores devem usar `iniciarLogin`.
 
-## Decisões a confirmar (Arthur / equipe)
+## Política de acesso integrada
 
 - **Política de MFA:** `AuthService.PERFIS_COM_MFA = {ADMIN, VENDEDOR}`. Todo perfil atual precisa concluir o segundo fator antes de obter sessão; em especial, VENDEDOR não pode listar/cadastrar clientes nem acessar CRM antes do MFA.
 - **Permissões novas:** `CONSULTAR_EVENTOS_SEGURANCA` e `CONSULTAR_METRICAS_TREINAMENTO` no enum de `AutorizacaoService` (ADMIN recebe via `allOf`; VENDEDOR não).
 - **Migração 014:** contém só a parte de João. As colunas de cifra/índice HMAC de `clientes` são do Arthur.
 
-## Atenção: `schema.sql` (instalação limpa)
+## Compatibilidade com `schema.sql`
 
-`usuarios.senha_hash` precisa ser `VARCHAR(255)`. Com `CHAR(64)` o hash PBKDF2 (~100 caracteres) não cabe e `cadastrar()` falha.
-A migração `014` já faz `ALTER TABLE usuarios MODIFY senha_hash VARCHAR(255) NOT NULL`; a instalação limpa precisa da mesma mudança
-na definição de `usuarios` do `schema.sql` (linha a ser ajustada por Arthur, dono do schema).
+A instalação nova já utiliza `usuarios.senha_hash VARCHAR(255)`. Para bancos antigos, a migration `014` ajusta o campo antes da atualização dos hashes.
 
 ## Como testar
 
@@ -59,10 +57,10 @@ java -cp build/classes:build/tests:<driver-mariadb>.jar:src D14JdbcIntegrationTe
 
 Os `.properties` do projeto estão em ISO-8859-1; os testes leem como o `ResourceBundle` do JDK (UTF-8 e, se inválido, ISO-8859-1).
 
-## Limitações declaradas
+## Limitações
 
 - MFA é **simulado**: não há envio real de SMS/e-mail. O código aparece na tela como demonstração.
-- `D14JdbcIntegrationTest` foi compilado, mas **não foi executado** (sem MariaDB onde foi escrito). O resultado real precisa ser registrado por quem rodar.
-- Não há função "antirransomware"; o plano de resposta a incidentes (identificação, contenção, recuperação, comunicação, pós-incidente) é documento à parte.
-- Não existe painel Swing de eventos de segurança; `SegurancaService` está pronto para o Arthur ligar a um `JPanel`.
+- `D14JdbcIntegrationTest` foi executado em banco de teste durante a integração D11–D15 e participa da regressão automatizada.
+- O módulo contempla autenticação e proteção de dados. A resposta a incidentes está documentada em relatório próprio.
+- O serviço de consulta de eventos está implementado, mas não há painel Swing dedicado à listagem.
 - Hash PBKDF2 com menos iterações que o padrão é reforçado no próximo login.
