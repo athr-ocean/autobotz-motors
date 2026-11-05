@@ -16,7 +16,7 @@ Como não foi disponibilizado um histórico de chamados de suporte, a análise u
 | Consultas e relatórios | 3 | 3 | 3 | 9 |
 | **Total (exemplo)** | **15** | **14** | **16** | **45** |
 
-Pela distribuição inventada, o primeiro material a priorizar seria um guia de acesso, perfis e MFA, seguido de cadastro de clientes e fluxo de compra. **Essa prioridade é uma hipótese pedagógica**, não uma necessidade diagnosticada em usuários reais. O guia existente `entrega/D15_GUIA_RAPIDO.md` explica clientes, veículos e vendas; a documentação `entrega/D14_LOGIN_MFA.md` cobre os detalhes de autenticação. O vídeo tutorial de três minutos está somente em formato de roteiro, em `entrega/D15_ROTEIRO_VIDEO.md`.
+Pela distribuição de exemplo, o primeiro material a priorizar seria um guia de acesso, perfis e MFA, seguido de cadastro de clientes e fluxo de compra. **Essa prioridade é uma hipótese pedagógica**, não uma necessidade diagnosticada em usuários reais. O guia existente `entrega/D15_GUIA_RAPIDO.md` explica clientes, veículos e vendas; a documentação `entrega/D14_LOGIN_MFA.md` cobre os detalhes de autenticação. O vídeo tutorial de três minutos está somente em formato de roteiro, em `entrega/D15_ROTEIRO_VIDEO.md`.
 
 ### Como distinguir o tipo de dificuldade
 
@@ -36,7 +36,7 @@ Perguntas previstas para uma eventual pesquisa autorizada:
 4. “Qual tarefa você gostaria de ver explicada passo a passo?”
 5. “Em qual módulo encontrou mais dúvidas no último mês?”
 
-**Exemplo de 20 respostas totalmente inventadas**, apenas para praticar interpretação:
+**Exemplo com 20 respostas simuladas**, apenas para praticar interpretação:
 
 | Pergunta | Respostas simuladas | Interpretação possível |
 |---|---|---|
