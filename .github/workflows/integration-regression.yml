@@ -111,6 +111,15 @@ jobs:
           cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
           java -cp "$cp" D5RecuperacaoJdbcTest
 
+      - name: Check D5 MariaDB backup and restore
+        env:
+          AUTOBOTZ_DB_URL: jdbc:mariadb://127.0.0.1:3306/autobotz_d5_test?sslMode=disable
+          AUTOBOTZ_DB_USER: root
+          AUTOBOTZ_DB_PASSWORD: test-only
+          AUTOBOTZ_D5_ALLOW_EPHEMERAL_RESTORE: '1'
+        run: |
+          bash scripts/test-d5-backup-ci.sh
+
       - name: Run D15 persistence and authenticated HTTP flow
         env:
           AUTOBOTZ_TEST_DB_URL: jdbc:mariadb://127.0.0.1:3306/autobotz_d15_test?sslMode=disable
