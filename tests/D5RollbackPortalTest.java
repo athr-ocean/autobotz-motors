@@ -111,7 +111,7 @@ public final class D5RollbackPortalTest {
             var paginaEstavel = requisitar(portal.porta(), "/");
             conferir(paginaEstavel.statusCode() == 200
                     && paginaEstavel.body().contains("id=\"login-form\""),
-                    "PORTAL_ESTAVEL_ABRE_NORMAlMENTE");
+                    "PORTAL_ESTAVEL_ABRE_NORMALMENTE");
             conferir(requisitar(portal.porta(), "/app.js").statusCode() == 200,
                     "JAVASCRIPT_DA_VERSAO_ESTAVEL");
             conferir(requisitar(portal.porta(), "/api/treinamentos/materiais").statusCode() == 200,
