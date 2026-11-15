@@ -66,6 +66,8 @@ O teste verifica as duas cópias, adulteração, log ausente, restauração, blo
 
 O segundo teste usa apenas `autobotz_d5_test` em `localhost:3306`. Ele registra dois eventos de auditoria, simula uma operação SQL inválida e confere o rollback, verifica a resposta a uma conexão indisponível, exporta os dois logs com SHA-256, apaga um dos registros de teste e o recupera da cópia íntegra.
 
+O workflow também executa `scripts/test-d5-backup-ci.sh`: faz um dump SQL completo da base descartável, confere o SHA-256 do arquivo, altera dados de teste de uma tabela e restaura a cópia em outra base (`autobotz_d5_restore_test`). Ao final, remove a tabela e a base auxiliares. Esse ensaio não utiliza nem modifica bancos de clientes e recusa execução fora do GitHub Actions.
+
 Para reproduzir localmente, crie **uma base descartável** `autobotz_d5_test`, importe `schema.sql` e aplique as migrações 011–016 conforme `db/migrations/README.md`. Nunca faça isso em um banco com dados reais. Depois, no terminal com Java e MariaDB configurados:
 
 ```bash
@@ -106,10 +108,11 @@ Uma cópia local em duas pastas não é redundância geográfica. A execução e
 | Conexão indisponível | Falha de conexão em porta fechada e novo acesso à base | Incluído no teste JDBC; não interrompe o servidor |
 | Operação SQL com erro | Rollback e preservação do log de auditoria | Incluído no teste JDBC; não equivale a rollback de versão do ERP |
 | Recuperação do log no MariaDB | Apagar e restaurar um registro de teste da cópia verificada | Incluído no teste JDBC, somente banco descartável |
+| Backup e restauração SQL | Gerar dump, alterar tabela de teste e restaurar em outra base | Incluído no workflow, somente MariaDB descartável |
 | Falha de região e troca de infraestrutura | Continuidade do serviço e RPO/RTO | Pendente de ambiente em nuvem |
 | Restauração de binlogs | Reconstrução de transações sem divergências | Pendente de infraestrutura de backup |
 
-Os testes automatizados validam falha de conexão, rollback de transação e recuperação de registros de auditoria no ambiente descartável. Um teste de atualização real, a interrupção física do MariaDB e a comutação entre regiões ainda precisam de infraestrutura própria. As metas de RTO e RPO não foram medidas.
+Os testes automatizados cobrem falha de conexão, rollback de transação, recuperação de registros de auditoria e restauração de backup SQL no ambiente descartável. Uma atualização real do ERP, a interrupção física do MariaDB e a comutação entre regiões ainda precisam de infraestrutura própria. As metas de RTO e RPO não foram medidas.
 
 ## 6. Modelo de comunicado técnico ao cliente
 
