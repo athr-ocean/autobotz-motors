@@ -60,7 +60,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for db in autobotz_d11_test autobotz_d12_test autobotz_d13_test autobotz_d14_test autobotz_d15_test; do
+          for db in autobotz_d11_test autobotz_d12_test autobotz_d13_test autobotz_d14_test autobotz_d15_test autobotz_d5_test; do
             [[ "$db" == *_test ]]
             mysql -h 127.0.0.1 -uroot -ptest-only -e "CREATE DATABASE \`$db\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
             mysql -h 127.0.0.1 -uroot -ptest-only "$db" < schema.sql
@@ -79,7 +79,7 @@ jobs:
         run: |
           cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
           AUTOBOTZ_DB_URL=jdbc:autobotz-test:isolated AUTOBOTZ_DB_PASSWORD=dummy java -cp "$cp" ConexaoBancoDataSourceTest
-          for test in AssinaturaServiceTest D12SimuladorUITest D13BlockchainApiTest D13LedgerIntegrityTest D14SegurancaTest D14SessaoWebTest D15PortalTest D15ConteudoTest D15AtalhoTest; do
+          for test in AssinaturaServiceTest D12SimuladorUITest D13BlockchainApiTest D13LedgerIntegrityTest D14SegurancaTest D14SessaoWebTest D15PortalTest D15ConteudoTest D15AtalhoTest D5IntegridadeTest; do
             java -cp "$cp" "$test"
           done
 
@@ -101,6 +101,24 @@ jobs:
           cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
           AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d13_test?sslMode=disable java -cp "$cp" D13JdbcIntegrationTest
           AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d14_test?sslMode=disable java -cp "$cp" D14JdbcIntegrationTest
+
+      - name: Run D5 failure and database log recovery
+        env:
+          AUTOBOTZ_DB_URL: jdbc:mariadb://127.0.0.1:3306/autobotz_d5_test?sslMode=disable
+          AUTOBOTZ_DB_USER: root
+          AUTOBOTZ_DB_PASSWORD: test-only
+        run: |
+          cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
+          java -cp "$cp" D5RecuperacaoJdbcTest
+
+      - name: Check D5 MariaDB backup and restore
+        env:
+          AUTOBOTZ_DB_URL: jdbc:mariadb://127.0.0.1:3306/autobotz_d5_test?sslMode=disable
+          AUTOBOTZ_DB_USER: root
+          AUTOBOTZ_DB_PASSWORD: test-only
+          AUTOBOTZ_D5_ALLOW_EPHEMERAL_RESTORE: '1'
+        run: |
+          bash scripts/test-d5-backup-ci.sh
 
       - name: Run D15 persistence and authenticated HTTP flow
         env:
