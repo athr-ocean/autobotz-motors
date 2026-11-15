@@ -89,7 +89,9 @@ Ao retornar, o teste confere novamente a interface, a API e as cópias dos logs 
 java -cp "build/classes:build/d5-tests:src:lib/*" D5RollbackPortalTest
 ```
 
-Se o teste ainda não estiver compilado, use o procedimento padrão de compilação dos testes do projeto ou acompanhe a execução no GitHub Actions. Esse ensaio cobre o rollback dos **arquivos publicados do portal**, não uma reversão de binários Java, nem a troca de servidores entre regiões reais.
+Antes do comando acima, execute `bash scripts/run.sh build` e `javac -encoding UTF-8 -cp "build/classes:src:lib/*" -d build/d5-tests tests/D5RollbackPortalTest.java`, criando a pasta `build/d5-tests` com `mkdir -p build/d5-tests`. O teste deve ser iniciado na raiz do repositório.
+
+Esse ensaio cobre o rollback dos **arquivos publicados do portal**, não uma reversão de binários Java, nem a troca de servidores entre regiões reais.
 
 ## 4. Plano de recuperação para uma implantação real
 
