@@ -79,6 +79,20 @@ bash scripts/test-d5-recuperacao.sh
 
 O script recusa nomes de banco diferentes de `autobotz_d5_test`. O teste cria apenas os próprios registros e os remove ao terminar; não derruba o serviço de banco. No GitHub Actions, essa base é criada automaticamente e descartada após a execução.
 
+### Simulação de atualização defeituosa do portal
+
+O teste `D5RollbackPortalTest` usa o servidor HTTP já existente no AutoBotz. Ele guarda os arquivos atuais do portal em uma pasta temporária, inicia a versão estável e confere a página inicial, o JavaScript e a API do catálogo. Depois, publica uma cópia de teste sem `index.html`, verifica o erro HTTP 404 e volta aos arquivos da versão estável.
+
+Ao retornar, o teste confere novamente a interface, a API e as cópias dos logs com SHA-256. Os arquivos reais do projeto não são modificados. Para executar após compilar o ERP e os testes, use:
+
+```bash
+java -cp "build/classes:build/d5-tests:src:lib/*" D5RollbackPortalTest
+```
+
+Antes do comando acima, execute `bash scripts/run.sh build` e `javac -encoding UTF-8 -cp "build/classes:src:lib/*" -d build/d5-tests tests/D5RollbackPortalTest.java`, criando a pasta `build/d5-tests` com `mkdir -p build/d5-tests`. O teste deve ser iniciado na raiz do repositório.
+
+Esse ensaio cobre o rollback dos **arquivos publicados do portal**, não uma reversão de binários Java, nem a troca de servidores entre regiões reais.
+
 ## 4. Plano de recuperação para uma implantação real
 
 A proposta é manter a aplicação em uma região principal e uma instalação de espera em outra região. O banco precisaria de replicação própria, com acompanhamento do atraso entre as regiões. Backups completos e logs de transação do banco (binlogs) teriam de ser guardados em armazenamento separado, com retenção, controle de acesso e proteção contra alterações.
@@ -109,10 +123,11 @@ Uma cópia local em duas pastas não é redundância geográfica. A execução e
 | Operação SQL com erro | Rollback e preservação do log de auditoria | Incluído no teste JDBC; não equivale a rollback de versão do ERP |
 | Recuperação do log no MariaDB | Apagar e restaurar um registro de teste da cópia verificada | Incluído no teste JDBC, somente banco descartável |
 | Backup e restauração SQL | Gerar dump, alterar tabela de teste e restaurar em outra base | Incluído no workflow, somente MariaDB descartável |
+| Atualização defeituosa do portal | Detectar falha HTTP, reverter os arquivos e conferir a interface e os logs | Teste automatizado com servidor HTTP local e pastas temporárias |
 | Falha de região e troca de infraestrutura | Continuidade do serviço e RPO/RTO | Pendente de ambiente em nuvem |
 | Restauração de binlogs | Reconstrução de transações sem divergências | Pendente de infraestrutura de backup |
 
-Os testes automatizados cobrem falha de conexão, rollback de transação, recuperação de registros de auditoria e restauração de backup SQL no ambiente descartável. Uma atualização real do ERP, a interrupção física do MariaDB e a comutação entre regiões ainda precisam de infraestrutura própria. As metas de RTO e RPO não foram medidas.
+Os testes automatizados cobrem falha de conexão, rollback de transação, recuperação de registros de auditoria, restauração de backup SQL e retorno da versão dos arquivos do portal depois de uma publicação defeituosa. Não houve reversão de um executável Java em produção, interrupção física do MariaDB ou comutação entre regiões. As metas de RTO e RPO não foram medidas.
 
 ## 6. Modelo de comunicado técnico ao cliente
 
@@ -132,6 +147,6 @@ Este texto é um modelo para o exercício. Não representa um incidente ocorrido
 
 Arthur: manter o teste JDBC na regressão e avaliar como operacionalizar exportações periódicas de logs em um ambiente de teste. A recuperação de banco completo exige uma estratégia específica de backup.
 
-Adryan: revisar os cenários automatizados, registrar os resultados de execução e ajudar no ensaio manual de retorno do ERP após falha de atualização.
+Adryan: revisar os cenários automatizados, registrar os resultados e conferir o comportamento da interface durante uma demonstração manual. Não foram realizados testes de failover em nuvem.
 
 A equipe deve apresentar o que efetivamente executou no ambiente didático, sem afirmar que possui duas regiões de nuvem em operação.
