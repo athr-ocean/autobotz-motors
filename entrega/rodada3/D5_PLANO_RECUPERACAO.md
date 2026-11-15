@@ -22,7 +22,7 @@ A classe MonitorIntegridadeD5 trabalha sobre uma pasta com arquivos .log previam
 
 As cópias são gravadas primeiro em diretórios temporários e depois movidas para os destinos. A ferramenta recusa caminhos de saída dentro da origem, destinos existentes e links simbólicos nos arquivos analisados.
 
-Esta rotina não faz backup do MariaDB. Ela também não recupera automaticamente transações do banco ou instâncias da aplicação. O manifesto SHA-256 detecta alterações acidentais em relação à captura, mas, sozinho, não protege contra alguém que consiga modificar os arquivos e o manifesto ao mesmo tempo.
+A ferramenta de arquivos não substitui um backup completo do MariaDB. O teste JDBC descrito adiante exporta e recupera registros específicos de auditoria num banco descartável; ele não faz restauração física do banco nem reinicia instâncias da aplicação. O manifesto SHA-256 detecta alterações em relação à captura, mas, sozinho, não protege contra alguém que consiga modificar os arquivos e o manifesto ao mesmo tempo.
 
 ## 3. Como testar
 
@@ -62,6 +62,21 @@ Teste automatizado:
 
 O teste verifica as duas cópias, adulteração, log ausente, restauração, bloqueio de sobrescrita, captura vazia, caminhos inseguros e links simbólicos. O workflow de integração também executa essa classe.
 
+### Teste com MariaDB
+
+O segundo teste usa apenas `autobotz_d5_test` em `localhost:3306`. Ele registra dois eventos de auditoria, simula uma operação SQL inválida e confere o rollback, verifica a resposta a uma conexão indisponível, exporta os dois logs com SHA-256, apaga um dos registros de teste e o recupera da cópia íntegra.
+
+Para reproduzir localmente, crie **uma base descartável** `autobotz_d5_test`, importe `schema.sql` e aplique as migrações 011–016 conforme `db/migrations/README.md`. Nunca faça isso em um banco com dados reais. Depois, no terminal com Java e MariaDB configurados:
+
+```bash
+export AUTOBOTZ_DB_URL='jdbc:mariadb://127.0.0.1:3306/autobotz_d5_test?sslMode=disable'
+export AUTOBOTZ_DB_USER='SEU_USUARIO_DE_TESTE'
+# Defina AUTOBOTZ_DB_PASSWORD no terminal sem gravá-la no repositório.
+bash scripts/test-d5-recuperacao.sh
+```
+
+O script recusa nomes de banco diferentes de `autobotz_d5_test`. O teste cria apenas os próprios registros e os remove ao terminar; não derruba o serviço de banco. No GitHub Actions, essa base é criada automaticamente e descartada após a execução.
+
 ## 4. Plano de recuperação para uma implantação real
 
 A proposta é manter a aplicação em uma região principal e uma instalação de espera em outra região. O banco precisaria de replicação própria, com acompanhamento do atraso entre as regiões. Backups completos e logs de transação do banco (binlogs) teriam de ser guardados em armazenamento separado, com retenção, controle de acesso e proteção contra alterações.
@@ -88,12 +103,13 @@ Uma cópia local em duas pastas não é redundância geográfica. A execução e
 | Arquivo alterado | Falha de hash e alerta | Coberto pelo teste D5 |
 | Arquivo ausente | Falha de integridade | Coberto pelo teste D5 |
 | Recuperação local | Cópia íntegra recuperada em novo caminho | Coberto pelo teste D5 |
-| Interrupção do MariaDB | Disponibilidade e consistência após retorno | Pendente |
-| Erro de atualização e rollback | Tempo de recuperação e retorno ao release anterior | Pendente |
+| Conexão indisponível | Falha de conexão em porta fechada e novo acesso à base | Incluído no teste JDBC; não interrompe o servidor |
+| Operação SQL com erro | Rollback e preservação do log de auditoria | Incluído no teste JDBC; não equivale a rollback de versão do ERP |
+| Recuperação do log no MariaDB | Apagar e restaurar um registro de teste da cópia verificada | Incluído no teste JDBC, somente banco descartável |
 | Falha de região e troca de infraestrutura | Continuidade do serviço e RPO/RTO | Pendente de ambiente em nuvem |
 | Restauração de binlogs | Reconstrução de transações sem divergências | Pendente de infraestrutura de backup |
 
-As medições de tempo, a execução controlada de falhas e os registros de teste deverão ser feitos por Arthur e Adryan antes de declarar que a recuperação foi validada.
+Os testes automatizados validam falha de conexão, rollback de transação e recuperação de registros de auditoria no ambiente descartável. Um teste de atualização real, a interrupção física do MariaDB e a comutação entre regiões ainda precisam de infraestrutura própria. As metas de RTO e RPO não foram medidas.
 
 ## 6. Modelo de comunicado técnico ao cliente
 
@@ -111,8 +127,8 @@ Este texto é um modelo para o exercício. Não representa um incidente ocorrido
 
 ## 7. Próximos passos
 
-Arthur: integrar a ferramenta ao fluxo de exportação dos registros, documentar a versão utilizada e revisar o retorno do sistema depois da falha.
+Arthur: manter o teste JDBC na regressão e avaliar como operacionalizar exportações periódicas de logs em um ambiente de teste. A recuperação de banco completo exige uma estratégia específica de backup.
 
-Adryan: ampliar os testes de indisponibilidade e recuperação, guardar as saídas de execução e conferir se a regressão anterior permanece estável.
+Adryan: revisar os cenários automatizados, registrar os resultados de execução e ajudar no ensaio manual de retorno do ERP após falha de atualização.
 
 A equipe deve apresentar o que efetivamente executou no ambiente didático, sem afirmar que possui duas regiões de nuvem em operação.
