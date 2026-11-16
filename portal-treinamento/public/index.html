@@ -12,11 +12,22 @@
   <h1>Central de Treinamento</h1>
   <p>Guias, tutoriais e respostas para usar o AutoBotz Motors.</p>
 </header>
-<nav aria-label="Tipos de material" id="filtros"></nav>
-<main id="conteudo">
-  <p id="status" role="status" aria-live="polite">Carregando materiais…</p>
-  <ul id="lista"></ul>
-  <article id="detalhe" hidden></article>
+<main id="conteudo" tabindex="-1">
+  <div class="materiais" id="materiais">
+    <section id="catalogo" aria-labelledby="catalogo-titulo">
+      <h2 id="catalogo-titulo" tabindex="-1">Materiais</h2>
+      <label class="busca" for="busca">Buscar por título</label>
+      <input id="busca" type="search">
+      <nav aria-label="Tipos de material" id="filtros"></nav>
+      <p id="status" role="status">Carregando materiais…</p>
+      <ul id="lista"></ul>
+    </section>
+    <section id="leitura" aria-label="Leitura do material" hidden>
+      <button id="voltar" type="button">Voltar aos materiais</button>
+      <p id="leitura-status" role="status"></p>
+      <article id="detalhe"></article>
+    </section>
+  </div>
 <section id="acesso" aria-labelledby="acesso-titulo">
   <h2 id="acesso-titulo">Acesso às métricas (ADMIN)</h2>
   <p>As métricas reais deste ambiente exigem login e segundo fator de demonstração. Não use credenciais reais nesta instalação didática.</p>
