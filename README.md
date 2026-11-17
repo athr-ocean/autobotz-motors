@@ -18,6 +18,14 @@ O código-fonte da entrega está na branch `main`. O sistema é um **protótipo 
 
 O simulador D12 utiliza dados fictícios e não modifica contratos reais. O ledger de D13 não é uma blockchain distribuída; o MFA é didático. Não foram comprovadas economias reais de energia nem redução de chamados.
 
+## Terceira rodada (D1–D5)
+
+A terceira rodada reúne desafios sobre responsabilidade em decisões automatizadas (D1), integração governamental simulada (D2), concorrência (D3), usabilidade do portal (D4) e recuperação de falhas (D5). Cada frente tem seu próprio desenvolvimento; um trabalho em pull request ainda não faz parte da `main`.
+
+No D5, foram implementadas a conferência de logs com SHA-256, a recuperação de registros em MariaDB de teste e a simulação de uma atualização defeituosa do portal com retorno aos arquivos estáveis. O código entrou na `main` pelos [PRs #47](https://github.com/athr-ocean/autobotz-motors/pull/47) e [#48](https://github.com/athr-ocean/autobotz-motors/pull/48). O [plano de recuperação](entrega/rodada3/D5_PLANO_RECUPERACAO.md) descreve os testes e o procedimento proposto para incidentes. As duas cópias de logs usadas na demonstração são locais: não há replicação entre regiões nem failover em nuvem implementado.
+
+Em 17/11/2026, a melhoria de navegação do D4 permanecia no [PR #49](https://github.com/athr-ocean/autobotz-motors/pull/49), em rascunho, e a documentação de integração do D2 estava no [PR #50](https://github.com/athr-ocean/autobotz-motors/pull/50), ainda aberto. A situação desses trabalhos pode mudar conforme as revisões da equipe.
+
 ## Estrutura do repositório
 
 ```text
@@ -36,7 +44,7 @@ entrega/                  Guias técnicos, relatórios e documentação dos desa
 
 - **Java JDK 21** ou superior (inclui `javac` e `java`);
 - **MariaDB** com banco e usuário de acesso configurados;
-- Bash (Linux);
+- Bash (Linux ou Git Bash no Windows);
 - Driver MariaDB Connector/J: o launcher usa `AUTOBOTZ_JDBC_JAR`, se definido; caso contrário, utiliza o JAR incluído em `lib/` e, como alternativa, a dependência local Maven.
 
 Não é necessário Maven, Gradle, Eclipse ou VS Code para compilar pelo launcher. Arquivos gerados de IDE e bytecode não fazem parte da árvore versionada.
@@ -85,9 +93,9 @@ bash scripts/run.sh build
 bash scripts/test-d15.sh
 ```
 
-A regressão integrada de D6–D15 está em [`.github/workflows/integration-regression.yml`](.github/workflows/integration-regression.yml), com banco MariaDB descartável. Os testes JDBC locais precisam de uma URL que aponte **exclusivamente para banco de teste**; confira os pré-requisitos de cada script antes de executá-lo. Nunca rode suítes destrutivas sobre `autobotz_db` ou dados reais.
+A regressão integrada está em [`.github/workflows/integration-regression.yml`](.github/workflows/integration-regression.yml), com MariaDB descartável. Ela também inclui testes de recuperação JDBC e de backup/restauração do D5. Para repetir esses testes localmente, consulte os pré-requisitos do [plano do D5](entrega/rodada3/D5_PLANO_RECUPERACAO.md): as rotinas de banco só devem ser usadas em bases descartáveis. Não execute testes destrutivos sobre `autobotz_db` ou dados reais.
 
-**Verificação final:** em 30/10/2026, os três workflows da `main` (`Integrated ERP Regression`, `D12 regression` e `D14 security regression`) concluíram com sucesso no commit `dce1f9d`. A compilação local e as 11 suítes sem banco também haviam passado na revisão anterior `fa580cde`, em 29/10/2026. Para a entrega, utilize o ZIP do commit final. A interface ainda requer inspeção visual manual; os testes não constituem certificação de segurança.
+Em 17/11/2026, os três workflows da `main` passaram no commit `4a43ce3`: [regressão integrada](https://github.com/athr-ocean/autobotz-motors/actions/runs/44132470846), [regressão D12](https://github.com/athr-ocean/autobotz-motors/actions/runs/44132471033) e [regressão de segurança D14](https://github.com/athr-ocean/autobotz-motors/actions/runs/44132473377). Os resultados de cada alteração posterior podem ser conferidos na aba *Actions*. Os testes automatizados não substituem a inspeção visual do portal nem certificam o sistema para produção.
 
 ## Documentos essenciais
 
@@ -101,6 +109,7 @@ A regressão integrada de D6–D15 está em [`.github/workflows/integration-regr
 - [D14 — autenticação, MFA e proteção de dados](entrega/D14_LOGIN_MFA.md)
 - [D15 — portal de treinamento](entrega/D15_PORTAL.md)
 - [D15 — tickets e pesquisa simulada](entrega/D15_ANALISE_TICKETS_PESQUISA.md)
+- [D5 (3ª rodada) — integridade dos logs e recuperação após falhas](entrega/rodada3/D5_PLANO_RECUPERACAO.md)
 
 ## Equipe e histórico
 
