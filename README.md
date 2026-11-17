@@ -20,7 +20,7 @@ O simulador D12 utiliza dados fictícios e não modifica contratos reais. O ledg
 
 ## Terceira rodada (D1–D5)
 
-A terceira rodada reúne desafios sobre responsabilidade em decisões automatizadas (D1), integração governamental simulada (D2), concorrência (D3), usabilidade do portal (D4) e recuperação de falhas (D5). Cada frente tem seu próprio desenvolvimento; um trabalho em pull request ainda não faz parte da `main`.
+A terceira rodada reúne desafios sobre responsabilidade em decisões automatizadas (D1), integração governamental simulada (D2), concorrência (D3), usabilidade do portal (D4) e recuperação de falhas (D5). O material do D1 está documentado em [análise de responsabilidade algorítmica](entrega/rodada3/D1_RESPONSABILIDADE_ALGORITMICA.md) e [política de explicabilidade](entrega/rodada3/D1_POLITICA_EXPLICABILIDADE.md). Cada frente tem seu próprio desenvolvimento; um trabalho em pull request ainda não faz parte da `main`.
 
 No D5, foram implementadas a conferência de logs com SHA-256, a recuperação de registros em MariaDB de teste e a simulação de uma atualização defeituosa do portal com retorno aos arquivos estáveis. O código entrou na `main` pelos [PRs #47](https://github.com/athr-ocean/autobotz-motors/pull/47) e [#48](https://github.com/athr-ocean/autobotz-motors/pull/48). O [plano de recuperação](entrega/rodada3/D5_PLANO_RECUPERACAO.md) descreve os testes e o procedimento proposto para incidentes. As duas cópias de logs usadas na demonstração são locais: não há replicação entre regiões nem failover em nuvem implementado.
 
@@ -109,6 +109,8 @@ Em 17/11/2026, os três workflows da `main` passaram no commit `4a43ce3`: [regre
 - [D14 — autenticação, MFA e proteção de dados](entrega/D14_LOGIN_MFA.md)
 - [D15 — portal de treinamento](entrega/D15_PORTAL.md)
 - [D15 — tickets e pesquisa simulada](entrega/D15_ANALISE_TICKETS_PESQUISA.md)
+- [D1 (3ª rodada) — responsabilidade algorítmica e auditoria](entrega/rodada3/D1_RESPONSABILIDADE_ALGORITMICA.md)
+- [D1 (3ª rodada) — política de explicabilidade](entrega/rodada3/D1_POLITICA_EXPLICABILIDADE.md)
 - [D5 (3ª rodada) — integridade dos logs e recuperação após falhas](entrega/rodada3/D5_PLANO_RECUPERACAO.md)
 
 ## Equipe e histórico
