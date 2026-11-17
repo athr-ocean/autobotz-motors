@@ -31,7 +31,7 @@ O desafio descreve uma atualização defeituosa que afeta instâncias do ERP e a
 - **Regressão D12 — sucesso:** https://github.com/athr-ocean/autobotz-motors/actions/runs/43727273743
 - **Regressão de segurança D14 — sucesso:** https://github.com/athr-ocean/autobotz-motors/actions/runs/43727273806
 
-Os workflows acima validam o **commit indicado**, não substituem uma nova execução caso código compartilhado seja alterado posteriormente. A implementação também foi validada localmente no Windows em 15/11: 132 fontes compiladas, 17 suítes selecionadas sem banco local, zero falhas. Essa seleção local **não** inclui os ensaios JDBC com MariaDB; estes foram realizados no CI.
+Os workflows acima validam o **commit indicado**, não substituem uma nova execução caso código compartilhado seja alterado posteriormente. Em uma **contingência isolada**, diferente da `main`, a validação local no Windows em 15/11 compilou 132 fontes e aprovou 17 suítes selecionadas sem banco local. Esse número inclui código adicional da contingência e **não** deve ser atribuído à versão publicada na `main`. Os ensaios JDBC e de backup/restauração do D5 integrado foram aprovados no CI do commit de referência.
 
 ## 4. Demonstração curta e reproduzível (sem acessar banco)
 
