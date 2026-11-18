@@ -23,7 +23,7 @@ public class RelatorioService {
                 + "GROUP BY DATE_FORMAT(data_venda, '%Y-%m') "
                 + "HAVING SUM(valor_final) > 0 ORDER BY periodo";
         List<String> linhas = new ArrayList<>();
-        try (Connection conexao = ConexaoBanco.getConexao();
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
                 PreparedStatement stmt = conexao.prepareStatement(sql)) {
             stmt.setDate(1, Date.valueOf(inicio));
             stmt.setDate(2, Date.valueOf(fim));
@@ -52,7 +52,7 @@ public class RelatorioService {
         String sql = "SELECT status, COUNT(*) AS quantidade, SUM(preco) AS valor_total "
                 + "FROM veiculos GROUP BY status HAVING COUNT(*) > 0 ORDER BY quantidade DESC";
         List<String> linhas = new ArrayList<>();
-        try (Connection conexao = ConexaoBanco.getConexao();
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
                 PreparedStatement stmt = conexao.prepareStatement(sql);
                 ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
@@ -84,7 +84,7 @@ public class RelatorioService {
                 + "GROUP BY ve.marca, ve.modelo HAVING COUNT(v.id_venda) > 0 "
                 + "ORDER BY vendas DESC, faturamento DESC";
         List<String> linhas = new ArrayList<>();
-        try (Connection conexao = ConexaoBanco.getConexao();
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
                 PreparedStatement stmt = conexao.prepareStatement(sql);
                 ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {

@@ -320,7 +320,7 @@ public class ContratoService {
     }
 
     private static <T> T emTransacao(Operacao<T> operacao) throws SQLException, ContratoException {
-        try (Connection c = ConexaoBanco.getConexao()) {
+        try (Connection c = ConexaoBanco.getDataSource().getConnection()) {
             boolean autoCommitAnterior = c.getAutoCommit();
             c.setAutoCommit(false);
             try {

@@ -1,5 +1,6 @@
 package autobotz.dao;
 
+import java.sql.Connection;
 import autobotz.model.DesafioMfa;
 import autobotz.model.EventoSeguranca;
 import autobotz.util.ConexaoBanco;
@@ -20,7 +21,8 @@ public class SegurancaDAO implements SegurancaRepositorio {
         String sql = "INSERT INTO eventos_seguranca "
                 + "(data_hora, nome_usuario, tipo, sucesso, causa, origem) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setTimestamp(1, Timestamp.from(e.dataHora()));
             stmt.setString(2, e.nomeUsuario());
             stmt.setString(3, e.tipo());
@@ -42,7 +44,8 @@ public class SegurancaDAO implements SegurancaRepositorio {
                 + "ORDER BY data_hora ASC";
         Timestamp inicio = Timestamp.from(janelaInicio);
         List<Instant> falhas = new ArrayList<>();
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setString(1, nomeUsuario);
             stmt.setTimestamp(2, inicio);
             stmt.setString(3, nomeUsuario);
@@ -61,7 +64,8 @@ public class SegurancaDAO implements SegurancaRepositorio {
         String sql = "SELECT id_evento, data_hora, nome_usuario, tipo, sucesso, causa, origem "
                 + "FROM eventos_seguranca ORDER BY data_hora DESC, id_evento DESC LIMIT ?";
         List<EventoSeguranca> lista = new ArrayList<>();
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setInt(1, Math.max(1, limite));
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -85,8 +89,8 @@ public class SegurancaDAO implements SegurancaRepositorio {
         String sql = "INSERT INTO mfa_desafios "
                 + "(id_usuario, codigo_hash, criado_em, expira_em, max_tentativas) "
                 + "VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao()
-                .prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, idUsuario);
             stmt.setString(2, codigoHash);
             stmt.setTimestamp(3, Timestamp.from(criadoEm));
@@ -106,7 +110,8 @@ public class SegurancaDAO implements SegurancaRepositorio {
     public void invalidarDesafiosPendentes(int idUsuario) throws SQLException {
         String sql = "UPDATE mfa_desafios SET consumido = TRUE "
                 + "WHERE id_usuario = ? AND consumido = FALSE";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setInt(1, idUsuario);
             stmt.executeUpdate();
         }
@@ -116,7 +121,8 @@ public class SegurancaDAO implements SegurancaRepositorio {
     public DesafioMfa buscarDesafioMfa(long idDesafio) throws SQLException {
         String sql = "SELECT id_desafio, id_usuario, codigo_hash, expira_em, tentativas, "
                 + "max_tentativas, consumido FROM mfa_desafios WHERE id_desafio = ?";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setLong(1, idDesafio);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -138,7 +144,8 @@ public class SegurancaDAO implements SegurancaRepositorio {
     public boolean incrementarTentativaMfa(long idDesafio) throws SQLException {
         String sql = "UPDATE mfa_desafios SET tentativas = tentativas + 1 "
                 + "WHERE id_desafio = ? AND consumido = FALSE AND tentativas < max_tentativas";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setLong(1, idDesafio);
             return stmt.executeUpdate() == 1;
         }
@@ -148,7 +155,8 @@ public class SegurancaDAO implements SegurancaRepositorio {
     public boolean consumirDesafioMfa(long idDesafio, Instant agora) throws SQLException {
         String sql = "UPDATE mfa_desafios SET consumido = TRUE "
                 + "WHERE id_desafio = ? AND consumido = FALSE AND expira_em > ?";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setLong(1, idDesafio);
             stmt.setTimestamp(2, Timestamp.from(agora));
             return stmt.executeUpdate() == 1;
@@ -158,7 +166,8 @@ public class SegurancaDAO implements SegurancaRepositorio {
     @Override
     public void invalidarDesafio(long idDesafio) throws SQLException {
         String sql = "UPDATE mfa_desafios SET consumido = TRUE WHERE id_desafio = ?";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setLong(1, idDesafio);
             stmt.executeUpdate();
         }

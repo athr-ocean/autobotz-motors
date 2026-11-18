@@ -22,7 +22,7 @@ public class AuditoriaDAO {
             + "VALUES (?, ?, ?, ?, ?, ?)";
 
     public long registrar(LogAuditoria log) throws SQLException {
-        try (Connection conexao = ConexaoBanco.getConexao();
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
                 PreparedStatement stmt = conexao.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
             if (log.getUsuarioId() == null) stmt.setNull(1, java.sql.Types.INTEGER);
             else stmt.setInt(1, log.getUsuarioId());
@@ -61,7 +61,7 @@ public class AuditoriaDAO {
         String sql = "SELECT id_log, id_usuario, nome_usuario, acao, entidade, entidade_id, detalhes, data_hora "
                 + "FROM logs_auditoria ORDER BY data_hora DESC, id_log DESC LIMIT ?";
         List<LogAuditoria> logs = new ArrayList<>();
-        try (Connection conexao = ConexaoBanco.getConexao();
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
                 PreparedStatement stmt = conexao.prepareStatement(sql)) {
             stmt.setInt(1, limite);
             try (ResultSet rs = stmt.executeQuery()) {

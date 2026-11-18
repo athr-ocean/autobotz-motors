@@ -7,7 +7,7 @@ public final class MigracaoMembrosProjeto {
     public static void main(String[] args) throws SQLException {
         boolean aplicar = args.length == 1 && "--apply".equals(args[0]);
         if (args.length > 0 && !aplicar) throw new IllegalArgumentException("Use sem argumentos para verificar ou --apply para migrar.");
-        try (Connection c = ConexaoBanco.getConexao()) {
+        try (Connection c = ConexaoBanco.getDataSource().getConnection()) {
             boolean coluna;
             try (var r = c.getMetaData().getColumns(c.getCatalog(), null, "membros_projeto", "id_projeto")) {
                 coluna = r.next();
