@@ -188,8 +188,9 @@ public class GovConnectIntegracaoTest {
             return;
         }
         System.out.println("Referência ERP       : " + pedido.referenciaERP());
-        System.out.println("Fornecedor           : " + pedido.fornecedorNome()
-                + " (ID " + pedido.fornecedorId() + ")");
+        System.out.println("Fornecedor           : " + pedido.fornecedorNome());
+        System.out.println("CNPJ                 : " + (pedido.fornecedorCnpj() == null
+                ? "não informado" : pedido.fornecedorCnpj()));
         System.out.println("Valor                : R$ " + pedido.valor().toPlainString());
         System.out.println("Descrição            : " + pedido.descricao());
         System.out.println("Protocolo externo    : " + resposta.protocolo());
