@@ -1,5 +1,7 @@
 import autobotz.AuthService;
 import autobotz.PerfilUsuario;
+import autobotz.SessaoUsuario;
+import autobotz.Usuario;
 import autobotz.UsuarioDAO;
 import autobotz.dao.SegurancaDAO;
 import autobotz.portal.PortalLauncher;
@@ -39,8 +41,13 @@ public final class D15AuthHttpJdbcTest {
         var cadastro = new AuthService(new UsuarioDAO(), new SegurancaDAO(), Clock.systemUTC(), AuthService.PERFIS_COM_MFA);
         PortalServer servidor = null;
         try {
-            check(cadastro.cadastrar(admin, "DummyAdmin-123", PerfilUsuario.ADMIN), "cadastro ADMIN de teste");
-            check(cadastro.cadastrar(vendedor, "DummyVendor-123", PerfilUsuario.VENDEDOR), "cadastro VENDEDOR de teste");
+            SessaoUsuario.getInstancia().setUsuario(new Usuario("fixture_admin", "-", PerfilUsuario.ADMIN));
+            try {
+                check(cadastro.cadastrar(admin, "DummyAdmin-123", PerfilUsuario.ADMIN), "cadastro ADMIN de teste");
+                check(cadastro.cadastrar(vendedor, "DummyVendor-123", PerfilUsuario.VENDEDOR), "cadastro VENDEDOR de teste");
+            } finally {
+                SessaoUsuario.getInstancia().encerrarSessao();
+            }
 
             servidor = PortalLauncher.criarServidor(0, Path.of("portal-treinamento"));
             servidor.iniciar();

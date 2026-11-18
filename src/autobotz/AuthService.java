@@ -54,6 +54,10 @@ public class AuthService {
     }
 
     public boolean cadastrar(String nomeUsuario, String senha, PerfilUsuario perfil) throws SQLException {
+        Usuario operador = SessaoUsuario.getInstancia().getUsuario();
+        if (operador == null || operador.getPerfil() != PerfilUsuario.ADMIN) {
+            throw new SecurityException("Somente administradores podem cadastrar usuários.");
+        }
         if (usuarioDAO.buscarPorNome(nomeUsuario) != null) {
             return false;
         }
