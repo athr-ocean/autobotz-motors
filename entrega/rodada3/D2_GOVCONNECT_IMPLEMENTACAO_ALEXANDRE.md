@@ -45,7 +45,7 @@ O script compila somente as classes de domínio necessárias e a integração D2
 O teste unitário mostra cada verificação com `[PASS]` ou `[FAIL]`, apresenta um resumo do pedido fictício e termina com algo como:
 
 ```text
-RESULTADO: 11/11 verificações aprovadas
+RESULTADO: 12/12 verificações aprovadas
 STATUS: SUCESSO
 ATENÇÃO: o resultado comprova somente o protótipo com mocks locais;
          não comprova comunicação com o GovConnect governamental real.
