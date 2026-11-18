@@ -101,7 +101,7 @@ Nesta entrega foi estruturado o plano de análise, os fluxos prioritários, a li
 - nenhum problema listado em U01–U08 está confirmado apenas por este documento;
 - nenhuma taxa de conclusão, tempo, erro ou satisfação foi medida;
 - não é possível afirmar que a interface já foi corrigida ou que os ajustes melhoraram a experiência;
-- os resultados reais deverão ser adicionados após a execução do roteiro em `tests/D4_PLANO_TESTES_USABILIDADE.md`.
+- os resultados reais deverão ser adicionados após a execução do roteiro em `docs/D4_PLANO_TESTES_USABILIDADE.md`.
 
 ## 9. Conclusão
 

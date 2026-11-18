@@ -32,6 +32,9 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      - name: Validate documentation links
+        run: python3 scripts/check-doc-links.py
+
       - name: Validate launchers and bundled JDBC driver
         run: |
           bash -n scripts/*.sh

@@ -28,7 +28,7 @@ Critério: **IMPLEMENTADO** é recurso ou documento que existe; **SIMULAÇÃO** 
 | D15 | Dashboard e monitoramento | painel do portal e `GET /api/treinamentos/metricas`, autenticação ADMIN | IMPLEMENTADO; análise de redução real de chamados depende de base real |
 | Integração | Construção contínua dos desafios | `main`, migrations 011–016, testes, CI, README | IMPLEMENTADO; regressão integrada, D12 e D14 aprovadas na PR #44 |
 | Apresentação | Vídeo de 30 minutos da trajetória | Arquivo de vídeo mantido fora do repositório | GRAVADO FORA DO REPOSITÓRIO; entrega externa sem comprovante neste registro |
-| Submissão | Documentos e código conforme orientação professor | `RELATORIO_GERAL_RODADA2.md`, `CHECKLIST_FINAL.md`, ZIP gerado por `git archive` | EXTERNO: baixar o ZIP oficial da revisão final e guardar comprovante de envio |
+| Submissão | Documentos e código conforme orientação professor | `entrega/RELATORIO_GERAL_RODADA2.md`, `entrega/CHECKLIST_FINAL.md`, ZIP gerado por `git archive` | EXTERNO: baixar o ZIP oficial da revisão final e guardar comprovante de envio |
 | Marco futuro | Artigo final previsto para 11/12/2026 | documentação atual pode servir de base | NÃO EXIGÍVEL no marco de 30/10/2026; etapa futura |
 
 ## Conclusão de aceite
