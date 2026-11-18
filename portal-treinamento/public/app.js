@@ -79,17 +79,27 @@ function renderizarMarkdown(markdown) {
   return fragmento;
 }
 
-function mostrar(tipo) {
-  const itens = tipo ? materiais.filter((m) => m.tipo === tipo) : materiais;
+let tipoAtivo = "";
+let ultimaLeitura = 0;
+
+function normalizar(texto) {
+  return texto.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("pt-BR").trim();
+}
+
+function mostrar() {
+  const busca = normalizar($("busca").value);
+  const itens = materiais.filter((m) =>
+    (!tipoAtivo || m.tipo === tipoAtivo) && normalizar(m.titulo).includes(busca));
   $("lista").replaceChildren();
-  $("status").textContent = itens.length ? "" : "Ainda não há materiais publicados nesta categoria.";
+  $("status").textContent = itens.length
+    ? `${itens.length} ${itens.length === 1 ? "material encontrado" : "materiais encontrados"}.`
+    : "Nenhum material encontrado.";
   for (const m of itens) {
     const li = document.createElement("li");
-    const b = document.createElement("button");
-    b.type = "button";
-    b.textContent = m.titulo;
-    b.onclick = () => abrir(m.slug);
-    li.append(b);
+    const link = document.createElement("a");
+    link.href = "#/material/" + encodeURIComponent(m.slug);
+    link.textContent = m.titulo;
+    li.append(link);
     $("lista").append(li);
   }
 }
@@ -100,41 +110,99 @@ function montarFiltros() {
     const b = document.createElement("button");
     b.type = "button";
     b.textContent = rotulo;
-    b.onclick = () => { $("detalhe").hidden = true; mostrar(valor); };
+    b.setAttribute("aria-pressed", String(valor === tipoAtivo));
+    b.onclick = () => {
+      tipoAtivo = valor;
+      for (const filtro of $("filtros").children) {
+        filtro.setAttribute("aria-pressed", String(filtro === b));
+      }
+      mostrar();
+    };
     $("filtros").append(b);
   }
 }
 
-async function abrir(slug) {
+async function navegar(focar = false) {
+  const leitura = ++ultimaLeitura;
+  const prefixo = "#/material/";
+  const hash = location.hash;
+  const aberto = hash.startsWith(prefixo);
+  $("materiais").classList.toggle("material-aberto", aberto);
+  $("leitura").hidden = !aberto;
+  $("detalhe").replaceChildren();
+  if (!aberto) {
+    if (focar) $("catalogo-titulo").focus();
+    return;
+  }
+
+  $("leitura-status").textContent = "Carregando material…";
   try {
+    const slug = decodeURIComponent(hash.slice(prefixo.length));
     const m = await api(BASE + "/materiais/" + encodeURIComponent(slug));
+    if (leitura !== ultimaLeitura || location.hash !== hash) return;
     const h = document.createElement("h2");
     h.textContent = m.titulo;
     h.tabIndex = -1;
     const t = document.createElement("div");
     t.className = "texto";
     t.append(renderizarMarkdown(m.conteudo));
-    $("detalhe").replaceChildren(h, t);
-    $("detalhe").hidden = false;
-    h.focus();
-    registrar({ tipoEvento: m.tipo === "VIDEO" ? "VIDEO_VIEW" : "MATERIAL_VIEW", materialSlug: m.slug });
+    $("detalhe").append(h, t);
+    $("leitura-status").textContent = "";
+    if (focar) h.focus();
+    // O histórico conserva a marca ao recarregar ou revisitar esta entrada.
+    if (history.state?.materialRegistrado !== slug) {
+      history.replaceState({ ...history.state, materialRegistrado: slug }, "");
+      registrar({ tipoEvento: m.tipo === "VIDEO" ? "VIDEO_VIEW" : "MATERIAL_VIEW", materialSlug: m.slug });
+    }
   } catch (e) {
-    $("status").textContent = "Não foi possível abrir o material. " + e.message;
+    if (leitura !== ultimaLeitura || location.hash !== hash) return;
+    $("leitura-status").textContent = "Não foi possível abrir o material. " + e.message;
+    if (focar) $("voltar").focus();
   }
 }
 
 async function iniciar() {
   registrar({ tipoEvento: "PORTAL_OPEN" });
+  window.addEventListener("hashchange", () => navegar(true));
+  $("lista").addEventListener("click", (evento) => {
+    const link = evento.target.closest("a");
+    if (!link || evento.button !== 0 || evento.ctrlKey || evento.metaKey ||
+        evento.shiftKey || evento.altKey) return;
+    evento.preventDefault();
+    if (link.hash === location.hash) {
+      $("detalhe").querySelector("h2")?.focus();
+      return;
+    }
+    if (location.hash.startsWith("#/material/")) {
+      history.replaceState({ daLista: history.state?.daLista }, "", link.hash);
+    } else {
+      history.pushState({ daLista: true }, "", link.hash);
+    }
+    navegar(true);
+  });
+  $("voltar").onclick = () => {
+    if (history.state?.daLista) {
+      history.back();
+    } else {
+      history.replaceState(null, "", location.pathname + location.search);
+      navegar(true);
+    }
+  };
+  document.querySelector(".pular").onclick = (evento) => {
+    evento.preventDefault();
+    $("conteudo").focus();
+    $("conteudo").scrollIntoView();
+  };
+  navegar(Boolean(location.hash.startsWith("#/material/")));
   try {
     materiais = (await api(BASE + "/materiais")).materiais;
     montarFiltros();
-    mostrar("");
+    $("busca").addEventListener("input", mostrar);
+    mostrar();
   } catch (e) {
     $("status").textContent = "Não foi possível carregar os materiais. Confira se o servidor do portal está ligado e tente de novo.";
   }
 }
-
-
 
 // A sessão web do D14 usa cookie HttpOnly. O browser não lê ou armazena o token.
 const auth = { desafioId: null };
