@@ -2,6 +2,8 @@ package autobotz.integracao.govconnect;
 
 import autobotz.model.Fornecedor;
 import autobotz.model.PedidoCompra;
+import autobotz.model.SolicitacaoCompra;
+import autobotz.model.StatusSolicitacao;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
@@ -33,27 +35,41 @@ public final class GovConnectIntegracao {
 
     private GovConnectIntegracao() { }
 
-    public record PedidoRequest(String referenciaERP, int fornecedorId, String fornecedorNome,
+    /**
+     * DTO provisório. O ID numérico interno do fornecedor não é enviado ao sistema externo:
+     * usa-se o CNPJ cadastral quando disponível, pois o ID local não identifica a contraparte externa.
+     * BRL é uma hipótese de demonstração; a moeda definitiva depende do contrato oficial.
+     */
+    public record PedidoRequest(String referenciaERP, String fornecedorNome, String fornecedorCnpj,
                                 BigDecimal valor, String moeda, String descricao) {
         public PedidoRequest {
             if (referenciaERP == null || !referenciaERP.matches("[A-Za-z0-9._-]{1,64}"))
                 throw new IllegalArgumentException("referenciaERP inválida");
-            if (fornecedorId <= 0) throw new IllegalArgumentException("fornecedorId deve ser positivo");
             fornecedorNome = validarTexto(fornecedorNome, "fornecedorNome", 120);
+            if (fornecedorCnpj != null && !fornecedorCnpj.matches("[0-9]{14}"))
+                throw new IllegalArgumentException("fornecedorCnpj deve conter 14 dígitos");
             if (valor == null || valor.signum() <= 0 || valor.scale() > 2)
                 throw new IllegalArgumentException("valor deve ser positivo e ter até 2 casas decimais");
             if (!"BRL".equals(moeda)) throw new IllegalArgumentException("moeda deve ser BRL neste protótipo");
             descricao = validarTexto(descricao, "descricao", 200);
         }
 
-        public static PedidoRequest de(PedidoCompra pedido, Fornecedor fornecedor, String descricao) {
+        public static PedidoRequest de(PedidoCompra pedido, SolicitacaoCompra solicitacao,
+                                       Fornecedor fornecedor) {
             Objects.requireNonNull(pedido, "pedido");
+            Objects.requireNonNull(solicitacao, "solicitacao");
             Objects.requireNonNull(fornecedor, "fornecedor");
-            if (pedido.getId() <= 0) throw new IllegalArgumentException("Pedido precisa estar persistido/aprovado");
-            if (pedido.getFornecedorId() != fornecedor.getId())
-                throw new IllegalArgumentException("Fornecedor não corresponde ao pedido");
-            return new PedidoRequest("AUTOBOTZ-PEDIDO-" + pedido.getId(), fornecedor.getId(),
-                    fornecedor.getNome(), pedido.getValor(), "BRL", descricao);
+            if (pedido.getId() <= 0) throw new IllegalArgumentException("Pedido precisa estar persistido");
+            if (solicitacao.getStatus() != StatusSolicitacao.PEDIDO_GERADO)
+                throw new IllegalArgumentException("Somente pedidos com solicitação PEDIDO_GERADO podem ser enviados");
+            if (pedido.getSolicitacaoId() != solicitacao.getId()
+                    || pedido.getFornecedorId() != solicitacao.getFornecedorId()
+                    || solicitacao.getFornecedorId() != fornecedor.getId())
+                throw new IllegalArgumentException("Pedido, solicitação e fornecedor não correspondem");
+            if (pedido.getValor().compareTo(solicitacao.getValor()) != 0)
+                throw new IllegalArgumentException("Valor do pedido diverge da solicitação aprovada");
+            return new PedidoRequest("AUTOBOTZ-PEDIDO-" + pedido.getId(), fornecedor.getNome(),
+                    fornecedor.getCnpj(), pedido.getValor(), "BRL", solicitacao.getDescricao());
         }
     }
 
@@ -254,17 +270,19 @@ public final class GovConnectIntegracao {
     }
 
     private static PedidoRequest lerPedido(String json) {
+        String cnpj = campo(json, "fornecedorCnpj");
+        if ("null".equals(cnpj)) cnpj = null;
         return new PedidoRequest(campo(json, "referenciaERP"),
-                Integer.parseInt(campo(json, "fornecedorId")),
-                campo(json, "fornecedorNome"),
+                campo(json, "fornecedorNome"), cnpj,
                 new BigDecimal(campo(json, "valor")),
                 campo(json, "moeda"), campo(json, "descricao"));
     }
 
     private static String serializar(PedidoRequest pedido) {
         return "{\"referenciaERP\":" + quote(pedido.referenciaERP())
-                + ",\"fornecedorId\":" + pedido.fornecedorId()
                 + ",\"fornecedorNome\":" + quote(pedido.fornecedorNome())
+                + ",\"fornecedorCnpj\":" + (pedido.fornecedorCnpj() == null
+                    ? "null" : quote(pedido.fornecedorCnpj()))
                 + ",\"valor\":" + pedido.valor().toPlainString()
                 + ",\"moeda\":" + quote(pedido.moeda())
                 + ",\"descricao\":" + quote(pedido.descricao()) + "}";
