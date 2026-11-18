@@ -113,7 +113,6 @@ Em 17/11/2026, os três workflows da `main` passaram no commit `4a43ce3`: [regre
 - [Relatório geral da segunda rodada](RELATORIO_GERAL_RODADA2.md)
 - [Matriz de aceite do professor: requisitos e evidências D11–D15](entrega/MATRIZ_ACEITE_PROFESSOR.md)
 - [Checklist de entregas e limites](CHECKLIST_FINAL.md)
-- [Roteiro de apresentação individual](ROTEIRO_VIDEO.md)
 - [D11 — compras e qualidade](entrega/D11_COMPRAS_RELATORIO.md)
 - [D12 — assinaturas e simulação](entrega/D12_PLANOS_SIMULACAO.md)
 - [D13 — contratos e integridade](entrega/D13_CONTRATOS_LEDGER.md)

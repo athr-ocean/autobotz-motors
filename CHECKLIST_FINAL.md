@@ -40,4 +40,4 @@ As PRs #41, #43 e #44 foram mescladas à `main`, incluindo o teste completo do f
 
 **Fora dos testes do GitHub:** a apresentação foi gravada separadamente. O comprovante de envio do vídeo, do PDF e do código-fonte deve ser arquivado pelo responsável. As métricas reais de tempo/energia, os chamados reais, o webinar e o fórum operacional não foram produzidos. Os modelos permitidos pelo desafio foram identificados como `SIMULADO`. O artigo final consta para 11/12/2026, não para o marco de hoje.
 
-**Escopo dos indicadores:** os exemplos de clientes, pagamentos, pesquisas e métricas financeiras não foram coletados em uma operação real. **Arquivos finais:** `RELATORIO_GERAL_RODADA2.md`, `ROTEIRO_VIDEO.md`, `CHECKLIST_FINAL.md`, relatórios D12/D15 e ZIP do projeto.
+**Escopo dos indicadores:** os exemplos de clientes, pagamentos, pesquisas e métricas financeiras não foram coletados em uma operação real. **Arquivos finais:** `RELATORIO_GERAL_RODADA2.md`, `CHECKLIST_FINAL.md`, relatórios D12/D15 e ZIP do projeto.

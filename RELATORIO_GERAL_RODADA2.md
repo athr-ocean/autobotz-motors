@@ -73,7 +73,7 @@ As verificações acima não equivalem à certificação de produção. A interf
 
 - As métricas financeiras, de suporte e de consumo energético usadas como exemplos não representam medições reais da operação.
 - Comunicados externos, pagamentos, webinars e tutoriais curtos do portal não foram realizados nesta rodada; os materiais correspondentes são propostas ou roteiros.
-- A apresentação individual foi gravada fora do repositório. O arquivo `ROTEIRO_VIDEO.md` conserva o texto de apoio; o envio ao professor depende de confirmação externa.
+- A apresentação individual foi gravada fora do repositório; o envio ao professor depende de confirmação externa.
 - A inspeção visual manual do Swing, medição temporal manual, telemetria energética e comparação real de chamados continuam sem evidência.
 - O pacote de entrega deve ser montado a partir do commit final da `main`, sem `.git`, arquivos de chaves, segredos e resíduos de build. O código-fonte também pode ser obtido pelo ZIP oficial do commit da `main` no GitHub, sem incluir o histórico local do Git.
 
