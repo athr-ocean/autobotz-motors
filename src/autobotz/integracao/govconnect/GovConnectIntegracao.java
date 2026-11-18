@@ -77,6 +77,7 @@ public final class GovConnectIntegracao {
                                  String recebidoEm, boolean simulado) { }
 
     public static final class GovConnectException extends IOException {
+        private static final long serialVersionUID = 1L;
         private final int statusHttp;
         private final String codigo;
 
