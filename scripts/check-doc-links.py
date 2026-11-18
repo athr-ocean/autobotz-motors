@@ -7,7 +7,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
-LINK = re.compile(r"!?(?:\\[[^\\]]*\\])\\(([^)]+)\\)")
+LINK = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
 IGNORAR = {".git", "build", "bin", "out", ".venv", "node_modules"}
 
 
