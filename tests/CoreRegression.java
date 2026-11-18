@@ -139,8 +139,14 @@ public class CoreRegression {
     System.out.println("CURRENCY_EN=" +
                        I18nUtils.formatCurrency(1234.56, Locale.US));
     var auth = new AuthService(new UsuarioDAO());
-    check(auth.cadastrar("audit_admin", "audit-only", PerfilUsuario.ADMIN),
-          "CADASTRO");
+    SessaoUsuario.getInstancia().setUsuario(
+        new Usuario("fixture_admin", "-", PerfilUsuario.ADMIN));
+    try {
+      check(auth.cadastrar("audit_admin", "audit-only", PerfilUsuario.ADMIN),
+            "CADASTRO");
+    } finally {
+      SessaoUsuario.getInstancia().encerrarSessao();
+    }
     var admin = auth.autenticar("audit_admin", "audit-only");
     check(admin != null && auth.autenticar("audit_admin", "wrong") == null,
           "AUTH_VALID_INVALID");

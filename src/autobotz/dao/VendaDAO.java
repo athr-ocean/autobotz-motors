@@ -21,7 +21,7 @@ public class VendaDAO {
         String inserirVenda = "INSERT INTO vendas (id_cliente, id_veiculo, valor_final, data_venda) "
                 + "VALUES (?, ?, ?, ?)";
 
-        try (Connection conexao = ConexaoBanco.getConexao()) {
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection()) {
             conexao.setAutoCommit(false);
             try (PreparedStatement clienteStmt = conexao.prepareStatement(verificarCliente);
                     PreparedStatement veiculoStmt = conexao.prepareStatement(bloquearVeiculo);
@@ -68,7 +68,7 @@ public class VendaDAO {
         List<Venda> vendas = new ArrayList<>();
         String sql = "SELECT id_venda, id_veiculo, id_cliente, valor_final, data_venda "
                 + "FROM vendas ORDER BY id_venda";
-        try (Connection conexao = ConexaoBanco.getConexao();
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
                 Statement stmt = conexao.createStatement();
                 ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
@@ -96,7 +96,7 @@ public class VendaDAO {
                 + "LIMIT 1";
 
         try (Connection conexao =
-                     ConexaoBanco.getConexao();
+                     ConexaoBanco.getDataSource().getConnection();
              PreparedStatement stmt =
                      conexao.prepareStatement(sql)) {
 
@@ -128,7 +128,7 @@ public class VendaDAO {
         String sql = "SELECT id_venda, id_veiculo, id_cliente, valor_final, data_venda "
                    + "FROM vendas WHERE id_cliente = ? ORDER BY data_venda";
 
-        try (Connection conexao = ConexaoBanco.getConexao();
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
              PreparedStatement stmt = conexao.prepareStatement(sql)) {
 
             stmt.setInt(1, idCliente);

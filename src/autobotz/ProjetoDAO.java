@@ -16,7 +16,8 @@ public class ProjetoDAO {
         String sql = "SELECT p.nome_projeto, p.responsavel, p.equipe, p.status, "
                 + "(SELECT m.lista_membros FROM membros_projeto m WHERE m.id_projeto = p.id_projeto "
                 + "ORDER BY m.id DESC LIMIT 1) AS membros FROM projetos p ORDER BY p.nome_projeto";
-        try (var stmt = ConexaoBanco.getConexao().prepareStatement(sql); var rs = stmt.executeQuery()) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             var stmt = dbConnection.prepareStatement(sql); var rs = stmt.executeQuery()) {
             while (rs.next()) projetos.add(new Resumo(rs.getString(1), rs.getString(2), rs.getString(3),
                     rs.getString(4), rs.getString(5)));
         }
@@ -40,7 +41,7 @@ public class ProjetoDAO {
                 VALUES (?, ?, ?, ?)
                 """;
 
-        try (Connection conexao = ConexaoBanco.getConexao();
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
              PreparedStatement stmt = conexao.prepareStatement(sql)) {
 
             stmt.setString(1, nomeProjeto);
@@ -68,7 +69,7 @@ public class ProjetoDAO {
                 WHERE nome_projeto = ?
                 """;
 
-        try (Connection conexao = ConexaoBanco.getConexao();
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
              PreparedStatement stmt = conexao.prepareStatement(sql)) {
 
             stmt.setString(1, responsavel);
@@ -94,7 +95,7 @@ public class ProjetoDAO {
                 ORDER BY nome_projeto
                 """;
 
-        try (Connection conexao = ConexaoBanco.getConexao();
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
              PreparedStatement stmt = conexao.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -118,7 +119,7 @@ public class ProjetoDAO {
             WHERE nome_projeto = ?
             """;
 
-            try (Connection conexao = ConexaoBanco.getConexao();
+            try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
              PreparedStatement stmt = conexao.prepareStatement(sql)) {
 
             stmt.setString(1, nomeProjeto);
@@ -150,7 +151,7 @@ public class ProjetoDAO {
                 WHERE id_projeto = ?
                 """;
 
-        try (Connection conexao = ConexaoBanco.getConexao();
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
              PreparedStatement stmt = conexao.prepareStatement(sql)) {
 
             stmt.setString(1, listaMembros);
@@ -196,7 +197,7 @@ public class ProjetoDAO {
                 LIMIT 1
                 """;
 
-        try (Connection conexao = ConexaoBanco.getConexao();
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
              PreparedStatement stmt = conexao.prepareStatement(sql)) {
 
             stmt.setInt(1, idProjeto);
@@ -224,7 +225,7 @@ public class ProjetoDAO {
                 WHERE nome_projeto = ?
                 """;
 
-        try (Connection conexao = ConexaoBanco.getConexao();
+        try (Connection conexao = ConexaoBanco.getDataSource().getConnection();
              PreparedStatement stmt = conexao.prepareStatement(sql)) {
 
             stmt.setString(1, nomeProjeto);

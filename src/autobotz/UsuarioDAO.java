@@ -1,5 +1,6 @@
 package autobotz;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,9 +17,8 @@ public class UsuarioDAO {
                 "(nome_usuario, senha_hash, perfil) " +
                 "VALUES (?, ?, ?)";
 
-        try (PreparedStatement stmt =
-                     ConexaoBanco.getConexao()
-                             .prepareStatement(
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(
                                      sql,
                                      Statement.RETURN_GENERATED_KEYS)) {
 
@@ -44,9 +44,8 @@ public class UsuarioDAO {
                 "SELECT id_usuario, nome_usuario, senha_hash, perfil " +
                 "FROM usuarios WHERE nome_usuario = ?";
 
-        try (PreparedStatement stmt =
-                     ConexaoBanco.getConexao()
-                             .prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
 
             stmt.setString(1, nomeUsuario);
 
@@ -75,9 +74,8 @@ public class UsuarioDAO {
                 "SELECT id_usuario, nome_usuario, senha_hash, perfil " +
                 "FROM usuarios WHERE id_usuario = ?";
 
-        try (PreparedStatement stmt =
-                     ConexaoBanco.getConexao()
-                             .prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
 
             stmt.setInt(1, idUsuario);
 
@@ -111,9 +109,8 @@ public class UsuarioDAO {
                 "UPDATE usuarios SET senha_hash = ? " +
                 "WHERE id_usuario = ? AND senha_hash = ?";
 
-        try (PreparedStatement stmt =
-                     ConexaoBanco.getConexao()
-                             .prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
 
             stmt.setString(1, novoHash);
             stmt.setInt(2, idUsuario);

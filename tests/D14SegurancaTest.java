@@ -423,9 +423,30 @@ public class D14SegurancaTest {
           "LEGADO_MIGRACAO_NA_TRILHA");
     }
     {
-      Ctx c = new Ctx(); // cadastrar usa formato novo
-      check(c.auth.cadastrar("novo", "Senha-nova-1", PerfilUsuario.VENDEDOR)
-          && !c.auth.cadastrar("novo", "outra", PerfilUsuario.VENDEDOR), "CADASTRAR_E_DUPLICADO");
+      Ctx c = new Ctx();
+      SessaoUsuario.getInstancia().encerrarSessao();
+      boolean recusado = false;
+      try {
+        c.auth.cadastrar("intruso", "Senha-nova-1", PerfilUsuario.ADMIN);
+      } catch (SecurityException esperado) {
+        recusado = true;
+      }
+      check(recusado, "CADASTRO_SEM_SESSAO_RECUSADO");
+      SessaoUsuario.getInstancia().setUsuario(c.dao.buscarPorNome("vendedor"));
+      recusado = false;
+      try {
+        c.auth.cadastrar("intruso", "Senha-nova-1", PerfilUsuario.ADMIN);
+      } catch (SecurityException esperado) {
+        recusado = true;
+      }
+      check(recusado, "VENDEDOR_NAO_CADASTRA_ADMIN");
+      SessaoUsuario.getInstancia().setUsuario(c.dao.buscarPorNome("admin"));
+      try {
+        check(c.auth.cadastrar("novo", "Senha-nova-1", PerfilUsuario.VENDEDOR)
+            && !c.auth.cadastrar("novo", "outra", PerfilUsuario.VENDEDOR), "CADASTRAR_E_DUPLICADO");
+      } finally {
+        SessaoUsuario.getInstancia().encerrarSessao();
+      }
       check(c.dao.buscarPorNome("novo").getSenhaHash().startsWith("pbkdf2_sha256$")
           && c.entra("novo", "Senha-nova-1"), "CADASTRAR_GRAVA_PBKDF2");
       check(c.auth.autenticar("vendedor", SENHA_VEND) != null && c.auth.autenticar("vendedor", "x") == null

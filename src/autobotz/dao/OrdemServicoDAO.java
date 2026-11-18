@@ -1,5 +1,6 @@
 package autobotz.dao;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,7 +17,8 @@ import autobotz.util.I18nUtils;
 public class OrdemServicoDAO {
     public List<OrdemServico> listar() throws SQLException {
         List<OrdemServico> ordens = new ArrayList<>();
-        try (var stmt = ConexaoBanco.getConexao().prepareStatement(
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             var stmt = dbConnection.prepareStatement(
                 "SELECT id_ordem, id_cliente, id_veiculo, data_abertura, status FROM ordens_servico ORDER BY id_ordem DESC");
              var rs = stmt.executeQuery()) {
             while (rs.next()) ordens.add(new OrdemServico(rs.getInt(1), rs.getInt(2), rs.getInt(3),
@@ -28,8 +30,8 @@ public class OrdemServicoDAO {
     public void inserirOrdem(OrdemServico ordem) throws SQLException {
         String sql = "INSERT INTO ordens_servico "
                 + "(id_cliente, id_veiculo, data_abertura, status) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao()
-                .prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, ordem.getClienteId());
             stmt.setInt(2, ordem.getVeiculoId());
             stmt.setDate(3, java.sql.Date.valueOf(ordem.getDataAbertura()));
@@ -52,8 +54,8 @@ public class OrdemServicoDAO {
         }
         String sql = "INSERT INTO itens_os "
                 + "(id_ordem, id_servico, quantidade, preco) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao()
-                .prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, item.getOrdemServicoId());
             stmt.setInt(2, item.getServicoId());
             stmt.setInt(3, item.getQuantidade());
@@ -77,7 +79,8 @@ public class OrdemServicoDAO {
                 + "INNER JOIN servicos s ON ios.id_servico = s.id_servico "
                 + "WHERE os.id_ordem = ?";
         List<String> itens = new ArrayList<>();
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setInt(1, ordemServicoId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -113,7 +116,8 @@ public class OrdemServicoDAO {
     public double calcularTotal(int ordemServicoId) throws SQLException {
         String sql = "SELECT COALESCE(SUM(quantidade * preco), 0) AS total "
                 + "FROM itens_os WHERE id_ordem = ?";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setInt(1, ordemServicoId);
             try (ResultSet rs = stmt.executeQuery()) {
                 rs.next();
@@ -126,7 +130,8 @@ public class OrdemServicoDAO {
                 + "FROM ordens_servico "
                 + "WHERE id_ordem = ?";
 
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
 
             stmt.setInt(1, id);
 
@@ -153,7 +158,8 @@ public class OrdemServicoDAO {
 
         List<ItemOS> itens = new ArrayList<>();
 
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
 
             stmt.setInt(1, idOrdem);
 

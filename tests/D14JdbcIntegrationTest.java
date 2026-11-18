@@ -1,5 +1,6 @@
 import autobotz.AuthService;
 import autobotz.PerfilUsuario;
+import autobotz.SessaoUsuario;
 import autobotz.Usuario;
 import autobotz.UsuarioDAO;
 import autobotz.dao.SegurancaDAO;
@@ -70,8 +71,13 @@ public class D14JdbcIntegrationTest {
 
     try {
       // cadastro grava PBKDF2 (prova que a coluna comporta) e busca por id/nome funcionam
-      check(auth.cadastrar(nVend, "Senha-it-1", PerfilUsuario.VENDEDOR)
-          && auth.cadastrar(nAdm, "Senha-it-2", PerfilUsuario.ADMIN), "CADASTRAR_GRAVA_HASH_LONGO");
+      SessaoUsuario.getInstancia().setUsuario(new Usuario("fixture_admin", "-", PerfilUsuario.ADMIN));
+      try {
+        check(auth.cadastrar(nVend, "Senha-it-1", PerfilUsuario.VENDEDOR)
+            && auth.cadastrar(nAdm, "Senha-it-2", PerfilUsuario.ADMIN), "CADASTRAR_GRAVA_HASH_LONGO");
+      } finally {
+        SessaoUsuario.getInstancia().encerrarSessao();
+      }
       Usuario vend = usuarios.buscarPorNome(nVend), adm = usuarios.buscarPorNome(nAdm);
       idsCriados.add(vend.getId());
       idsCriados.add(adm.getId());

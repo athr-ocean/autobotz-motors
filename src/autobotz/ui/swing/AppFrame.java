@@ -135,6 +135,9 @@ final class AppFrame extends JFrame {
       addNav(menu, "plans", "gui.plans");
       addActionNav(menu, "gui.training_center", this::openTrainingCenter);
     }
+    if (currentUser.getPerfil() == PerfilUsuario.ADMIN) {
+      addActionNav(menu, "gui.create_account", () -> LoginFrame.register(this));
+    }
     side.add(menu, BorderLayout.CENTER);
     JPanel bottom = new JPanel();
     bottom.setOpaque(false);

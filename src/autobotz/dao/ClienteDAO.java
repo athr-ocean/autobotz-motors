@@ -1,5 +1,6 @@
 package autobotz.dao;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,7 +31,8 @@ public class ClienteDAO {
                 + "(nome, cpf, cpf_hash, telefone, email, ativo) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
         String cpfHash = CriptografiaDadosPessoais.fingerprintCpf(cliente.getCpf());
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setString(1, CriptografiaDadosPessoais.proteger(cliente.getNome(), "nome"));
             stmt.setString(2, CriptografiaDadosPessoais.proteger(cliente.getCpf(), "cpf"));
             stmt.setString(3, cpfHash);
@@ -44,7 +46,8 @@ public class ClienteDAO {
     public List<Cliente> listar() throws SQLException {
         List<Cliente> lista = new ArrayList<>();
         String sql = CAMPOS_CLIENTE + "ORDER BY id_cliente";
-        try (Statement stmt = ConexaoBanco.getConexao().createStatement();
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             Statement stmt = dbConnection.createStatement();
                 ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 lista.add(mapear(rs));
@@ -55,7 +58,8 @@ public class ClienteDAO {
 
     public Cliente buscarPorId(int id) throws SQLException {
         String sql = CAMPOS_CLIENTE + "WHERE id_cliente = ?";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -74,7 +78,8 @@ public class ClienteDAO {
         String hash = CriptografiaDadosPessoais.fingerprintCpf(cpf);
         String sqlProtegido = CAMPOS_CLIENTE
                 + "WHERE cpf_hash = ? ORDER BY id_cliente LIMIT 1";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sqlProtegido)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sqlProtegido)) {
             stmt.setString(1, hash);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -88,7 +93,8 @@ public class ClienteDAO {
         String sqlLegado = CAMPOS_CLIENTE
                 + "WHERE cpf = ? AND (cpf_hash IS NULL OR cpf_hash = '') "
                 + "ORDER BY id_cliente LIMIT 1";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sqlLegado)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sqlLegado)) {
             stmt.setString(1, cpf);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -119,7 +125,8 @@ public class ClienteDAO {
         String sql = "UPDATE clientes SET nome = ?, cpf = ?, cpf_hash = ?, "
                 + "telefone = ?, email = ?, ativo = ? WHERE id_cliente = ?";
         String cpfHash = CriptografiaDadosPessoais.fingerprintCpf(cliente.getCpf());
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setString(1, CriptografiaDadosPessoais.proteger(cliente.getNome(), "nome"));
             stmt.setString(2, CriptografiaDadosPessoais.proteger(cliente.getCpf(), "cpf"));
             stmt.setString(3, cpfHash);
@@ -135,7 +142,8 @@ public class ClienteDAO {
         String cpfMascarado = "000.000.000-00";
         String sql = "UPDATE clientes SET nome = ?, cpf = ?, cpf_hash = ?, "
                 + "telefone = NULL, email = NULL, ativo = ? WHERE id_cliente = ?";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setString(1, CriptografiaDadosPessoais.proteger("ANÔNIMO", "nome"));
             stmt.setString(2, CriptografiaDadosPessoais.proteger(cpfMascarado, "cpf"));
             stmt.setString(3, CriptografiaDadosPessoais.fingerprintCpf(cpfMascarado));

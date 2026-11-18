@@ -67,8 +67,7 @@ public class ComprasService {
      * Deve apontar para a mesma classe usada em FornecedorDAO.abrirConexao().
      */
     private static Connection abrirConexao() throws SQLException {
-        return autobotz.util.ConexaoBanco.getConexao();          // OFICIAL
-        // return autobotz.util.FabricaConexao.getConexao();     // TESTES (banco1): use esta linha no lugar da de cima
+        return autobotz.util.ConexaoBanco.getDataSource().getConnection();
     }
 
     /** Nome do banco em que o serviço grava. Existe para o teste recusar bancos não liberados. */

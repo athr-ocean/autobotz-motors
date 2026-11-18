@@ -1,5 +1,6 @@
 package autobotz.dao;
 
+import java.sql.Connection;
 import autobotz.model.Veiculo;
 import autobotz.util.ConexaoBanco;
 import java.sql.PreparedStatement;
@@ -13,7 +14,8 @@ public class VeiculoDAO {
 
     public void cadastrar(Veiculo veiculo) throws SQLException {
         String sql = "INSERT INTO veiculos (placa, modelo, marca, ano, preco, status) VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, veiculo.getPlaca());
             stmt.setString(2, veiculo.getModelo());
             stmt.setString(3, veiculo.getMarca());
@@ -40,7 +42,8 @@ public class VeiculoDAO {
     public List<Veiculo> listarTodos() throws SQLException {
         List<Veiculo> veiculos = new ArrayList<>();
         String sql = "SELECT id, placa, modelo, marca, ano, preco, status FROM veiculos ORDER BY id";
-        try (Statement stmt = ConexaoBanco.getConexao().createStatement();
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             Statement stmt = dbConnection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 veiculos.add(mapear(rs));
@@ -51,7 +54,8 @@ public class VeiculoDAO {
 
     public Veiculo buscarPorId(int id) throws SQLException {
         String sql = "SELECT id, placa, modelo, marca, ano, preco, status FROM veiculos WHERE id = ?";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -64,7 +68,8 @@ public class VeiculoDAO {
 
     public void atualizar(int id, String marca, String modelo, int ano, double preco) throws SQLException {
         String sql = "UPDATE veiculos SET marca = ?, modelo = ?, ano = ?, preco = ? WHERE id = ?";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setString(1, marca);
             stmt.setString(2, modelo);
             stmt.setInt(3, ano);
@@ -76,7 +81,8 @@ public class VeiculoDAO {
 
     public void atualizar(Veiculo veiculo) throws SQLException {
         String sql = "UPDATE veiculos SET placa = ?, modelo = ?, marca = ?, ano = ?, preco = ?, status = ? WHERE id = ?";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setString(1, veiculo.getPlaca());
             stmt.setString(2, veiculo.getModelo());
             stmt.setString(3, veiculo.getMarca());
@@ -90,7 +96,8 @@ public class VeiculoDAO {
 
     public boolean deletar(int id) throws SQLException {
         String sql = "DELETE FROM veiculos WHERE id = ?";
-        try (PreparedStatement stmt = ConexaoBanco.getConexao().prepareStatement(sql)) {
+        try (Connection dbConnection = ConexaoBanco.getDataSource().getConnection();
+             PreparedStatement stmt = dbConnection.prepareStatement(sql)) {
             stmt.setInt(1, id);
             return stmt.executeUpdate() > 0;
         }

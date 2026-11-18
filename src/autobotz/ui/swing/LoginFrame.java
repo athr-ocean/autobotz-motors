@@ -19,11 +19,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -78,34 +75,11 @@ final class LoginFrame extends JFrame {
     g.gridy = 8;
     g.insets = new Insets(4, 36, 10, 36);
     card.add(login, g);
-    JButton register = new JButton(SwingSupport.text("gui.create_account"));
-    register.setBorderPainted(false);
-    register.setContentAreaFilled(false);
-    register.setForeground(AppTheme.PRIMARY);
-    register.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-    register.setFont(AppTheme.BODY_BOLD);
-    register.setFocusPainted(false);
-    register.setMargin(new Insets(6, 10, 6, 10));
-    register.setRolloverEnabled(true);
-    register.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseEntered(MouseEvent event) {
-        register.setForeground(AppTheme.PRIMARY_HOVER);
-      }
-      @Override
-      public void mouseExited(MouseEvent event) {
-        register.setForeground(AppTheme.PRIMARY);
-      }
-    });
-    g.gridy = 9;
-    g.insets = new Insets(0, 36, 20, 36);
-    card.add(register, g);
     root.add(card);
     setContentPane(root);
     getRootPane().setDefaultButton(login);
     javax.swing.SwingUtilities.invokeLater(user::requestFocusInWindow);
     login.addActionListener(e -> login());
-    register.addActionListener(e -> register());
     password.addActionListener(e -> login());
   }
   private void login() {
@@ -165,7 +139,7 @@ final class LoginFrame extends JFrame {
     }
   }
 
-  private void register() {
+  static void register(JFrame parent) {
     AppTextField name = new AppTextField();
     AppPasswordField pass = new AppPasswordField();
     AppComboBox<PerfilUsuario> role = new AppComboBox<>(PerfilUsuario.values());
@@ -193,28 +167,28 @@ final class LoginFrame extends JFrame {
     p.add(pass);
     p.add(fieldLabel("gui.profile"));
     p.add(role);
-    if (!AppDialog.form(this, SwingSupport.text("gui.create_account_submit"),
+    if (!AppDialog.form(parent, SwingSupport.text("gui.create_account_submit"),
             SwingSupport.text("gui.register_help"), p,
             SwingSupport.text("gui.create_account_submit")))
       return;
     if (name.getText().isBlank() || pass.getPassword().length == 0) {
-      SwingSupport.error(this, SwingSupport.text("gui.required_fields"));
+      SwingSupport.error(parent, SwingSupport.text("gui.required_fields"));
       return;
     }
     try {
       if (!new AuthService(new UsuarioDAO())
               .cadastrar(name.getText().trim(), new String(pass.getPassword()),
                   (PerfilUsuario) role.getSelectedItem())) {
-        SwingSupport.error(this, SwingSupport.text("gui.user_exists"));
+        SwingSupport.error(parent, SwingSupport.text("gui.user_exists"));
         return;
       }
-      SwingSupport.success(this, SwingSupport.text("gui.account_created"));
+      SwingSupport.success(parent, SwingSupport.text("gui.account_created"));
     } catch (SQLException e) {
-      SwingSupport.error(this, SwingSupport.text("gui.database_error"));
+      SwingSupport.error(parent, SwingSupport.text("gui.database_error"));
     }
   }
 
-  private JLabel fieldLabel(String key) {
+  private static JLabel fieldLabel(String key) {
     JLabel label = new JLabel(SwingSupport.text(key));
     label.setFont(AppTheme.BODY_BOLD);
     label.setForeground(AppTheme.TEXT);
