@@ -12,11 +12,11 @@ async function api(url, opcoes) {
 
 // Falha ao registrar evento nunca deve atrapalhar a navegação.
 function registrar(corpo) {
-  api(BASE + "/eventos", {
+  return api(BASE + "/eventos", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(corpo),
-  }).catch(() => {});
+  }).then(() => true, () => false);
 }
 
 // Renderização Markdown mínima e segura: cria elementos DOM e nunca interpreta HTML do material.
@@ -149,10 +149,14 @@ async function navegar(focar = false) {
     $("detalhe").append(h, t);
     $("leitura-status").textContent = "";
     if (focar) h.focus();
-    // O histórico conserva a marca ao recarregar ou revisitar esta entrada.
     if (history.state?.materialRegistrado !== slug) {
-      history.replaceState({ ...history.state, materialRegistrado: slug }, "");
-      registrar({ tipoEvento: m.tipo === "VIDEO" ? "VIDEO_VIEW" : "MATERIAL_VIEW", materialSlug: m.slug });
+      const salvo = await registrar({
+        tipoEvento: m.tipo === "VIDEO" ? "VIDEO_VIEW" : "MATERIAL_VIEW",
+        materialSlug: m.slug
+      });
+      if (salvo && leitura === ultimaLeitura && location.hash === hash) {
+        history.replaceState({ ...history.state, materialRegistrado: slug }, "");
+      }
     }
   } catch (e) {
     if (leitura !== ultimaLeitura || location.hash !== hash) return;
@@ -257,13 +261,16 @@ async function confirmarMfa(evento) {
   } catch (erro) { statusAuth(erro.message); }
 }
 async function sair() {
-  try { await api("/api/logout", {method: "POST"}); }
-  catch (_) { /* A sessão local é descartada mesmo se a rede falhar. */ }
-  auth.desafioId = null;
-  $("usuario").value = "";
-  $("senha").value = "";
-  atualizarAutenticacao(false);
-  statusAuth("Sessão encerrada. Faça login para consultar novamente.");
+  try {
+    await api("/api/logout", {method: "POST"});
+    auth.desafioId = null;
+    $("usuario").value = "";
+    $("senha").value = "";
+    atualizarAutenticacao(false);
+    statusAuth("Sessão encerrada. Faça login para consultar novamente.");
+  } catch (_) {
+    statusAuth("Não foi possível confirmar o encerramento da sessão. Tente novamente.");
+  }
 }
 function diaSeguinte(iso) {
   const data = new Date(iso + "T00:00:00Z");

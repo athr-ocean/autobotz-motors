@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-project_dir="$(cd -- "$(dirname -- "\${BASH_SOURCE[0]}")/.." && pwd)"
+project_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_dir"
 
 for command_name in java javac; do
@@ -11,7 +11,7 @@ for command_name in java javac; do
   fi
 done
 
-classes_dir="$(mktemp -d "\${TMPDIR:-/tmp}/autobotz-d2-govconnect.XXXXXX")"
+classes_dir="$(mktemp -d "${TMPDIR:-/tmp}/autobotz-d2-govconnect.XXXXXX")"
 trap 'rm -rf "$classes_dir"' EXIT
 
 printf '%s\n' 'Compilando o teste D2 (JDK 21+, sem banco de dados)...'

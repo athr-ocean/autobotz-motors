@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '26'
+          java-version: '21'
 
       - name: Validate launchers and bundled JDBC driver
         run: |
@@ -79,7 +79,7 @@ jobs:
         run: |
           cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
           AUTOBOTZ_DB_URL=jdbc:autobotz-test:isolated AUTOBOTZ_DB_PASSWORD=dummy java -cp "$cp" ConexaoBancoDataSourceTest
-          for test in AssinaturaServiceTest D12SimuladorUITest D13BlockchainApiTest D13LedgerIntegrityTest D14SegurancaTest D14SessaoWebTest D15PortalTest D15ConteudoTest D15AtalhoTest D5IntegridadeTest D5RollbackPortalTest; do
+          for test in AssinaturaServiceTest D11ComprasPermissaoTest D12SimuladorUITest D13BlockchainApiTest D13LedgerIntegrityTest D14SegurancaTest D14SessaoWebTest D15PortalTest D15ConteudoTest D15AtalhoTest D5IntegridadeTest D5RollbackPortalTest; do
             java -cp "$cp" "$test"
           done
 
@@ -90,8 +90,13 @@ jobs:
         run: |
           cp="$RUNNER_TEMP/autobotz-classes:$RUNNER_TEMP/autobotz-tests:src:lib/*"
           AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d11_test?sslMode=disable java -cp "$cp" D11ComprasTest
+          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d11_test?sslMode=disable java -cp "$cp" D11ComprasJdbcTest
+          AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d11_test?sslMode=disable AUTOBOTZ_PII_KEY="$(openssl rand -base64 32)" java -cp "$cp" CoreRegression
           AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d11_test?sslMode=disable java -Djava.awt.headless=true -cp "$cp" autobotz.ui.swing.D11ComprasSwingTest
           AUTOBOTZ_DB_URL=jdbc:mariadb://127.0.0.1:3306/autobotz_d12_test?sslMode=disable java -cp "$cp" AssinaturaDAOJdbcTest
+
+      - name: Run D2 GovConnect integration tests
+        run: bash scripts/test-d2-govconnect.sh
 
       - name: Run D13 and D14 JDBC suites
         env:

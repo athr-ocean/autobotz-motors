@@ -24,7 +24,7 @@ A terceira rodada reúne desafios sobre responsabilidade em decisões automatiza
 
 No D5, foram implementadas a conferência de logs com SHA-256, a recuperação de registros em MariaDB de teste e a simulação de uma atualização defeituosa do portal com retorno aos arquivos estáveis. O código entrou na `main` pelos [PRs #47](https://github.com/athr-ocean/autobotz-motors/pull/47) e [#48](https://github.com/athr-ocean/autobotz-motors/pull/48). O [plano de recuperação](entrega/rodada3/D5_PLANO_RECUPERACAO.md) descreve os testes e o procedimento proposto para incidentes. As duas cópias de logs usadas na demonstração são locais: não há replicação entre regiões nem failover em nuvem implementado.
 
-Em 17/11/2026, a melhoria de navegação do D4 permanecia no [PR #49](https://github.com/athr-ocean/autobotz-motors/pull/49), em rascunho, e a documentação de integração do D2 estava no [PR #50](https://github.com/athr-ocean/autobotz-motors/pull/50), ainda aberto. A situação desses trabalhos pode mudar conforme as revisões da equipe.
+O cliente GovConnect demonstrativo do D2 foi integrado pelo [PR #53](https://github.com/athr-ocean/autobotz-motors/pull/53). A navegação responsiva do D4 entrou pelo [PR #49](https://github.com/athr-ocean/autobotz-motors/pull/49). A documentação complementar do D2 segue no [PR #50](https://github.com/athr-ocean/autobotz-motors/pull/50), aguardando alinhamento. O plano de usabilidade do D4 ainda depende da execução e do registro de testes com participantes.
 
 ## Estrutura do repositório
 
@@ -72,6 +72,17 @@ Configure as seguintes variáveis na sessão de execução, sem publicar valores
 | `AUTOBOTZ_JDBC_JAR` | Opcional, para usar outro MariaDB Connector/J |
 
 Para configurar a chave PII, consulte [criptografia e migração](entrega/D14_CIFRAGEM_DADOS_PESSOAIS.md). Nunca versionar senhas, chaves, backups ou bancos com informações pessoais.
+
+## Primeiro administrador
+
+O cadastro de usuários exige uma sessão de administrador. Em um banco novo e vazio, crie a primeira conta em um terminal interativo, depois de configurar as variáveis JDBC:
+
+```bash
+bash scripts/run.sh build
+AUTOBOTZ_ADMIN_SETUP=1 java -cp "build/classes:src:lib/*" autobotz.BootstrapAdmin admin
+```
+
+O comando solicita a senha sem exibi-la e recusa bancos que já possuam usuários. Após entrar no aplicativo, o administrador pode cadastrar outras contas pelo menu lateral. Não mantenha `AUTOBOTZ_ADMIN_SETUP` habilitado durante a execução normal.
 
 ## Executar
 
