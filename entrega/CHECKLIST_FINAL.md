@@ -36,7 +36,7 @@
 
 ## Estado do aceite em 30/10/2026
 
-As PRs #41, #43 e #44 foram mescladas à `main`, incluindo o teste completo do formulário D11 e a transferência dos relatórios para `entrega/`. Os três workflows da PR #44 passaram. O workflow `Integrated ERP Regression` terminou com sucesso para a versão da PR, incluindo validação do portal HTML/JS, compilação, testes determinísticos, teste funcional Swing do D11 e as suítes de integração JDBC D11–D15. A [matriz de aceite do professor](entrega/MATRIZ_ACEITE_PROFESSOR.md) apresenta cada produto final exigido e a localização da evidência.
+As PRs #41, #43 e #44 foram mescladas à `main`, incluindo o teste completo do formulário D11 e a transferência dos relatórios para `entrega/`. Os três workflows da PR #44 passaram. O workflow `Integrated ERP Regression` terminou com sucesso para a versão da PR, incluindo validação do portal HTML/JS, compilação, testes determinísticos, teste funcional Swing do D11 e as suítes de integração JDBC D11–D15. A [matriz de aceite do professor](MATRIZ_ACEITE_PROFESSOR.md) apresenta cada produto final exigido e a localização da evidência.
 
 **Fora dos testes do GitHub:** a apresentação foi gravada separadamente. O comprovante de envio do vídeo, do PDF e do código-fonte deve ser arquivado pelo responsável. As métricas reais de tempo/energia, os chamados reais, o webinar e o fórum operacional não foram produzidos. Os modelos permitidos pelo desafio foram identificados como `SIMULADO`. O artigo final consta para 11/12/2026, não para o marco de hoje.
 

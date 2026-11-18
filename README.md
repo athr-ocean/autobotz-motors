@@ -29,15 +29,16 @@ O cliente GovConnect demonstrativo do D2 foi integrado pelo [PR #53](https://git
 ## Estrutura do repositório
 
 ```text
-src/autobotz/          Código Java: modelos, DAOs, serviços, Swing, console e portal
-src/messages_*.properties   Recursos de internacionalização
-portal-treinamento/    Página web e materiais publicados
-db/migrations/         Migrações SQL 011 a 016
-schema.sql             Esquema SQL para instalação nova
-scripts/               Execução e testes
-tests/                 Suítes de regressão e integração
-lib/                   Driver MariaDB Connector/J versionado
-entrega/                  Guias técnicos, relatórios e documentação dos desafios
+.github/               Workflows e modelo de pull request
+src/                   Código Java e arquivos de idioma
+tests/                 Testes automatizados
+scripts/               Compilação, execução e verificações
+db/migrations/         Migrações de banco de dados
+schema.sql             Esquema para instalação nova
+portal-treinamento/    Interface web e materiais publicados
+lib/                   Driver JDBC incluído no projeto
+docs/                  Planos, orientações e evidências técnicas
+entrega/               Relatórios e documentos da disciplina
 ```
 
 ## Requisitos
@@ -102,17 +103,20 @@ O portal é servido somente em **http://127.0.0.1:8085** por padrão. É possív
 ```bash
 bash scripts/run.sh build
 bash scripts/test-d15.sh
+python3 scripts/check-doc-links.py
 ```
 
 A regressão integrada está em [`.github/workflows/integration-regression.yml`](.github/workflows/integration-regression.yml), com MariaDB descartável. Ela também inclui testes de recuperação JDBC e de backup/restauração do D5. Para repetir esses testes localmente, consulte os pré-requisitos do [plano do D5](entrega/rodada3/D5_PLANO_RECUPERACAO.md): as rotinas de banco só devem ser usadas em bases descartáveis. Não execute testes destrutivos sobre `autobotz_db` ou dados reais.
 
-Em 17/11/2026, os três workflows da `main` passaram no commit `4a43ce3`: [regressão integrada](https://github.com/athr-ocean/autobotz-motors/actions/runs/44132470846), [regressão D12](https://github.com/athr-ocean/autobotz-motors/actions/runs/44132471033) e [regressão de segurança D14](https://github.com/athr-ocean/autobotz-motors/actions/runs/44132473377). Os resultados de cada alteração posterior podem ser conferidos na aba *Actions*. Os testes automatizados não substituem a inspeção visual do portal nem certificam o sistema para produção.
+Os resultados atuais da regressão integrada, D12 e D14 estão na aba [Actions](https://github.com/athr-ocean/autobotz-motors/actions). Os testes automatizados não substituem a inspeção visual do portal nem certificam o sistema para produção.
 
 ## Documentos essenciais
 
-- [Relatório geral da segunda rodada](RELATORIO_GERAL_RODADA2.md)
+- [Índice dos documentos de entrega](entrega/README.md)
+- [Documentação técnica e evidências](docs/README.md)
+- [Relatório geral da segunda rodada](entrega/RELATORIO_GERAL_RODADA2.md)
 - [Matriz de aceite do professor: requisitos e evidências D11–D15](entrega/MATRIZ_ACEITE_PROFESSOR.md)
-- [Checklist de entregas e limites](CHECKLIST_FINAL.md)
+- [Checklist de entregas e limites](entrega/CHECKLIST_FINAL.md)
 - [D11 — compras e qualidade](entrega/D11_COMPRAS_RELATORIO.md)
 - [D12 — assinaturas e simulação](entrega/D12_PLANOS_SIMULACAO.md)
 - [D13 — contratos e integridade](entrega/D13_CONTRATOS_LEDGER.md)

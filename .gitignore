@@ -5,6 +5,14 @@
 *.jar
 !/lib/mariadb-java-client-4.0.0.jar
 
+# IDEs e arquivos temporários
+.idea/
+*.iml
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
 # Arquivos locais de IDE
 .settings/
 .vscode/
@@ -26,3 +34,10 @@
 /veiculos.txt
 /vendas.txt
 /autobotz-motors-main/
+
+# Bancos exportados e pacotes gerados
+*.sql.gz
+*.dump
+*.sqlite
+*.sqlite3
+/out/
