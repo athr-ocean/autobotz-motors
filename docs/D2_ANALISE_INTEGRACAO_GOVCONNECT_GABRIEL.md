@@ -2,111 +2,115 @@
 ## Responsabilidade de Gabriel — Equipe B
 
 **Tipo de entrega:** análise e proposta técnica.  
-**Base:** atribuição da equipe recebida em 09/11/2026 e versão de main consultada em 16/11/2026.
+**Atualizado:** 18/11/2026, após comparar as informações de Alexandre com o código integrado em main.
 
-> Limite importante: não recebemos a documentação oficial do serviço GovConnect (endpoints, contrato, sandbox, autenticação, escopos ou regras de negócio). O mapeamento abaixo é uma proposta para discussão com Alexandre, não uma especificação confirmada. Não foi feita chamada ou integração real.
+> **Limite confirmado:** o projeto não recebeu documentação oficial, endereço de homologação, issuer, token endpoint ou contrato do GovConnect governamental. O serviço, provedor de token e dados usados nos testes são simulados em loopback (127.0.0.1). A implementação demonstra um possível fluxo e não comprova comunicação com o serviço real.
 
 ## 1. Escopo
 
-A atribuição de Gabriel no D2 — Demanda do Cliente é comparar REST, GraphQL e SOAP, propor autenticação federada, mapear os dados de compras do AutoBotz para o sistema externo e documentar a segurança da integração. A implementação do protótipo GovConnect é responsabilidade de Alexandre.
+A responsabilidade de Gabriel no D2 — Demanda do Cliente é comparar REST, GraphQL e SOAP, propor autenticação federada, mapear dados de compras do AutoBotz e documentar a segurança da integração. Alexandre implementou o protótipo. Esta análise agora distingue o que seu código realmente faz das opções que continuam dependendo do contrato oficial.
 
-## 2. Situação do ERP
+## 2. Situação do ERP e do protótipo integrado
 
-Na versão de main consultada, D11 já possui:
+O modelo de compras existente possui fornecedores, orçamentos, solicitações e pedidos. O pedido se relaciona a fornecedor, orçamento e solicitação. FornecedorDAO permite buscar fornecedor por ID; ComprasService mantém aprovação, baixa do orçamento e geração de pedido na transação local.
 
-- fornecedores: id, nome e CNPJ;
-- orcamentos_compra: id, nome, saldo inicial e saldo atual;
-- solicitacoes_compra: orçamento, fornecedor, descrição, valor, status, solicitante, aprovador, motivo de rejeição e datas;
-- pedidos_compra: solicitação, orçamento, fornecedor, valor e data de criação.
+O protótipo integrado em main oferece:
 
-FornecedorDAO oferece busca por ID; ComprasService mantém aprovação, baixa de orçamento e geração do pedido na transação local. Esse é o modelo interno verificado. Não se presume que GovConnect use os mesmos campos.
+- REST com JSON: POST /api/v1/pedidos e GET /api/v1/pedidos/{protocolo};
+- autenticação OAuth 2.0 Client Credentials e Bearer token;
+- cache de token com renovação antecipada;
+- Idempotency-Key no envio do pedido e X-Correlation-ID para correlação;
+- timeout de conexão de 3 segundos e de requisição de 8 segundos;
+- HTTPS exigido para serviços externos; HTTP somente para endereços de loopback em testes;
+- nenhuma repetição automática nesta versão.
 
-## 3. Comparação de protocolos
+**Esclarecimento sobre as mensagens de Alexandre:** a descrição mais recente, confirmada pela implementação da main, substitui a referência anterior a X-API-Key. O código atual usa OAuth 2.0 Client Credentials; não implementa X-API-Key.
+
+O OAuth 2.0 Client Credentials é autenticação/autorização entre sistemas, sem usuário humano presente. Portanto, demonstra uma credencial de serviço, mas não comprova SSO ou federação de identidade de um usuário do ERP. Se o enunciado exigir login federado de pessoas, OpenID Connect deve ser avaliado como fluxo separado.
+
+## 3. REST, GraphQL e SOAP
 
 | Aspecto | REST | GraphQL | SOAP |
 |---|---|---|---|
-| Modelo | Recursos e semântica HTTP; JSON é comum, não obrigatório. | Consultas e mutações definidas por schema tipado; cliente escolhe os campos. | Envelope XML e regras de processamento; pode ser descrito por WSDL/XSD. |
-| Compras | Adequado a recursos e operações explícitas de pedido. | Útil para consultas compostas; pode ser excessivo para poucas operações transacionais. | Adequado quando o provedor já exige contrato formal ou WS-*. |
-| Contrato | Pode ser documentado por OpenAPI. | Schema GraphQL define tipos e operações. | WSDL/XSD descrevem operações e mensagens. |
-| Atenções | Semântica HTTP, idempotência, versões, limites, timeout. | Autorização por campo, custo e profundidade da consulta, erros parciais. | Tamanho/complexidade XML, compatibilidade do contrato e políticas do serviço. |
-| Recomendação | Preferência provisória para o protótipo se o provedor suportar. | Não é primeira escolha para comandos de compra simples, salvo se for a interface oficial. | Usar se for o contrato oficial de GovConnect. |
+| Modelo | Recursos e semântica HTTP; JSON é comum, não obrigatório. | Consultas e mutações contra schema tipado; cliente escolhe os campos. | Mensagens XML segundo envelope e regras de processamento; pode usar WSDL/XSD. |
+| Adequação a pedidos | Bom para operações explícitas de envio e consulta. | Útil em consultas compostas; pode ser excessivo para poucas operações transacionais. | Adequado se o provedor oferecer contrato formal ou exigir WS-*. |
+| Contrato | Pode ser documentado em OpenAPI. | Schema GraphQL define tipos e operações. | WSDL/XSD define operações e mensagens. |
+| Atenções | Semântica HTTP, idempotência, versões, limites e timeout. | Autorização por campo, custo/profundidade de consulta e erros parciais. | Compatibilidade do contrato e políticas do serviço. |
+| Decisão atual | REST/JSON é a proposta provisória usada no protótipo local. | Não selecionado. | Não selecionado; usar se o contrato real assim exigir. |
 
-A escolha final depende da documentação real do provedor. REST não significa apenas enviar JSON por HTTP; o cliente deve seguir métodos, status e contrato publicados. Não se devem inventar rotas e apresentá-las como reais.
+A escolha final depende da especificação oficial. REST não significa apenas transmitir JSON por HTTP; devem ser respeitados o contrato, métodos, respostas e códigos HTTP publicados. Não há evidência de que o GovConnect real aceite REST.
 
-## 4. Arquitetura proposta
+## 4. Mapeamento de dados
 
-Fluxo: ComprasService → interface GovConnectPort → adaptador GovConnectAdapter → transporte definido pelo contrato real.
+O código integrado mapeia o pedido para um DTO com referência ERP, ID e nome do fornecedor, valor, moeda BRL e descrição. A referência é derivada do ID persistido do pedido. O cliente verifica que pedido e fornecedor correspondem e valida referência, ID positivo, nome, valor positivo com até duas casas decimais, moeda BRL e descrição.
 
-O adaptador traduz entre DTOs externos e o domínio local. Não deve passar JSON/XML diretamente aos DAOs. ComprasService permanece responsável pelas regras de negócio e autorização.
-
-A transação local não deve ficar aberta durante uma chamada de rede. Após confirmar o pedido local, registrar estado de integração e enviar a solicitação. Usar correlação e idempotência para evitar pedidos duplicados. Se o escopo do protótipo não incluir uma outbox, documentar a janela de inconsistência e não fazer retentativas cegas.
-
-## 5. Mapeamento conceitual
-
-Os nomes do lado GovConnect são semânticos e precisam ser substituídos pelos nomes do contrato oficial.
-
-| AutoBotz | Uso externo proposto | Regras |
+| Dado interno | Situação no DTO atual | Decisão proposta para integração real |
 |---|---|---|
-| pedidos_compra.id | referência local/idempotency key | Estável; nunca reutilizar em outro pedido. |
-| pedidos_compra.solicitacao_id | referência da solicitação | Para correlação quando necessária. |
-| pedidos_compra.fornecedor_id | referência da contraparte | Resolver por vínculo entre ID interno e ID externo; não assumir que são iguais. |
-| fornecedores.nome | nome da contraparte | Enviar somente se requerido. |
-| fornecedores.cnpj | identificador cadastral | Transmitir apenas se obrigatório, por canal protegido; não é credencial. |
-| pedidos_compra.valor | valor do pedido | Decimal exato; moeda deve ser acordada, pois não há campo de moeda no modelo atual. |
-| solicitacoes_compra.descricao | descrição/justificativa | Revisar para remover dados pessoais ou segredos desnecessários. |
-| solicitacoes_compra.status | elegibilidade local | Enviar só após aprovação local; mapear estados explicitamente. |
-| solicitante/aprovador e timestamps | auditoria mínima | Evitar nomes de usuários; enviar apenas se o contrato exigir. |
-| orcamentos_compra.saldo_atual | controle financeiro interno | Não enviar salvo requisito expresso do provedor. |
-| motivo_rejeicao | diagnóstico interno | Não transmitir por padrão. |
+| ID do pedido | Enviado como referência ERP, por exemplo AUTOBOTZ-PEDIDO-42 | Confirmar formato aceito e usar também como chave idempotente se o provedor concordar. |
+| ID do fornecedor | Enviado | Não presumir que ID interno seja ID GovConnect; acordar tabela de correspondência. |
+| Nome do fornecedor | Enviado | Transmitir somente se o contrato exigir. |
+| CNPJ | Existe no cadastro, mas não é incluído no DTO atual | Só incluir com justificativa e confirmação do campo/formato externo. Nunca tratar como segredo de autenticação. |
+| Valor | Enviado | Hoje o protótipo fixa BRL. Confirmar moeda, escala, arredondamento e limites oficiais. |
+| Descrição | Enviada com validação local de tamanho | Reduzir ao mínimo necessário e impedir inclusão de PII, credenciais ou dados sigilosos. |
+| ID da solicitação e do orçamento | Não são enviados no DTO atual | Incluir somente se o contrato externo exigir e houver necessidade de negócio. |
+| Solicitante, aprovador e saldo do orçamento | Não são enviados | Permanecem internos por padrão; não transmitir sem requisito explícito. |
 
-### Fluxo de referência
+A resposta de sucesso simulada contém protocolo, referência ERP, status, instante de recebimento e indicação de que o retorno é simulado. Erros incluem status HTTP e código/mensagem quando disponíveis. O teste não confirma que o GovConnect real use esse formato ou os mesmos status.
 
-1. Usuário autorizado cria e aprova solicitação no ERP.
-2. ERP confirma pedido e baixa de orçamento localmente.
-3. Adaptador constrói DTO usando allowlist.
-4. Cliente envia com chave de idempotência e correlation ID.
-5. ERP valida resposta e armazena estado mínimo: ID externo, instante, status e código não secreto.
-6. Timeout não é sucesso. Retentativa limitada somente se segura/idempotente; erro funcional fica pendente de ação humana.
+## 5. Arquitetura e fluxo
+
+O adaptador GovConnect deve traduzir entre o domínio de compras e os DTOs externos; os DAOs não devem conhecer JSON/XML. ComprasService permanece responsável por regras e autorização.
+
+Fluxo proposto:
+
+1. Usuário autorizado aprova solicitação e o AutoBotz cria o pedido local.
+2. O adaptador monta o DTO com allowlist de campos.
+3. O cliente envia a operação com Bearer token, Idempotency-Key e X-Correlation-ID.
+4. O resultado é validado e associado à referência local.
+5. O protocolo e estado externo só devem ser persistidos quando houver uma decisão de integração aprovada para o projeto.
+
+O protótipo atual não integra a chamada à transação JDBC, não altera ComprasService e não persiste protocolo ou histórico externo. Para operação resiliente, considerar Outbox transacional e reconciliação; não estão implementados. Timeout não deve ser tratado como sucesso. Como não há retry automático, uma política futura precisa respeitar a idempotência oficial e distinguir erros temporários de erros funcionais.
 
 ## 6. Autenticação federada
 
-Separar identidade de autorização. Login do AutoBotz continua identificando e autorizando usuários locais; uma identidade GovConnect, se houver, não concede automaticamente permissões de compras no ERP.
+A implementação atual usa Client Credentials para o serviço simulado. O provedor local de teste emite token fictício; o servidor simulado apenas compara o Bearer token. Não valida assinatura JWT, issuer, audience nem introspecção. Isso não equivale à validação completa de um provedor real.
 
-- Para login delegado de usuário, preferir OpenID Connect sobre OAuth 2.0, com Authorization Code e PKCE quando suportado. Validar assinatura, issuer, audience, expiração, state e nonce.
-- Para comunicação serviço-a-serviço, avaliar credencial de cliente apenas se o provedor oferecer esse fluxo; restringir escopos e ambiente.
-- OAuth é autorização delegada e, sozinho, não padroniza identidade do usuário; OIDC acrescenta essa camada.
-- Não persistir access/refresh tokens em Git, logs ou tabelas de compras. Segredos vêm de configuração protegida do ambiente, com rotação e privilégio mínimo.
-- Se GovConnect não suportar OIDC, seguir o mecanismo oficial e registrar a decisão; não improvisar federação com bearer token estático compartilhado.
+Para integração real:
 
-Issuer, endpoints, cadastro, scopes, audience e expiração ainda precisam ser confirmados. Esta seção é proposta, não autenticação implementada.
+- usar Client Credentials somente se GovConnect documentar um fluxo de máquina para máquina; restringir scopes, ambiente e vida da credencial;
+- validar a forma de emitir e validar token indicada pelo provedor oficial; não assumir que o token seja JWT;
+- manter segredo fora do Git e dos logs, carregar por configuração protegida e rotacioná-lo;
+- se a demanda envolver login federado de usuário, avaliar OpenID Connect separado, com Authorization Code e PKCE se suportado. OAuth 2.0, sozinho, não padroniza autenticação do usuário;
+- nunca reutilizar a identidade de serviço como se fosse a identidade da pessoa que aprovou o pedido; a autorização local continua necessária.
+
+Issuer, token endpoint, scopes, audience, client registration, claims e expiração seguem pendentes de confirmação oficial.
 
 ## 7. Segurança e evidências
 
-| Risco | Controle proposto | Verificação para o protótipo |
+| Risco | Controle proposto | Evidência necessária |
 |---|---|---|
-| Token ou segredo em código/log | Segredo fora do Git; redação de cabeçalhos | Diff e logs sem credenciais. |
-| Acesso sem autorização | Validar principal/escopo e exigir permissão no serviço | Testar token inválido, escopo ausente e perfil negado. |
-| Excesso de dados | DTO com allowlist e minimização | Confirmar que campos não permitidos não são serializados. |
-| Duplicidade | Idempotency key e consulta de estado | Repetir operação sem duplicar pedido. |
-| Indisponibilidade | Timeout finito, estado pendente, retentativa limitada | Timeout não marca operação como concluída. |
-| Resposta malformada | Validar schema, tamanho e status | Testar resposta inválida. |
-| Destino indevido/interceptação | HTTPS com validação TLS e host permitido | Rejeitar host não configurado. |
-| Falta de auditoria | Correlation ID e logs estruturados mínimos | Rastrear tentativa sem token ou PII desnecessária. |
-| Estado divergente | Estados explícitos e reconciliação | Testar falha antes/depois do envio. |
+| Segredo/token exposto | Segredo fora do repositório; nunca registrar cabeçalho Authorization | Revisar diff e logs. |
+| Token ou escopo inválido | Rejeição por padrão; validar conforme contrato oficial | Testar token ausente/inválido e escopo insuficiente. |
+| Dados além do necessário | DTO allowlist e minimização | Confirmar campos serializados e rejeitar extras. |
+| Pedido duplicado | Idempotency-Key estável no POST | Reenvio retorna mesma operação no mock; confirmar semântica no serviço real. |
+| Destino ou transporte indevido | HTTPS e validação de certificado fora de loopback; endpoint em configuração confiável | Teste recusa HTTP/destino externo sem TLS. |
+| Indisponibilidade | Timeouts finitos; não marcar falha de rede como sucesso | Teste de timeout e estado pendente. |
+| Falta de rastreabilidade | X-Correlation-ID e registro mínimo sem credenciais | Rastrear sucesso/erro sem token ou payload excessivo. |
+| Divergência entre sistemas | Reconciliar estado externo e local; avaliar outbox | Testar falha antes/depois do envio e reprocessamento. |
 
-Usar somente credenciais e dados fictícios em sandbox. Não desativar validação TLS, não aceitar URL arbitrária fornecida pela interface e não registrar payload completo sem necessidade e retenção definida.
+Não desabilitar validação TLS. Usar somente dados fictícios no protótipo; qualquer escrita real exige sandbox oficialmente autorizado.
 
-## 8. Alinhamentos necessários com Alexandre
+## 8. Testes reportados pelo autor do protótipo
 
-Antes de fechar a implementação, registrar: documentação/endereço do sandbox; protocolo e contrato (OpenAPI, schema GraphQL ou WSDL/XSD); autenticação e escopos; operação remota e estado que a habilita; campos obrigatórios, moeda e limites; idempotência; erros e retentativas; retenção de logs; casos de teste e evidências do PR.
+Alexandre informa que scripts/test-d2-govconnect.sh compila e executa 11 verificações sem banco de dados e sem internet, usando um servidor local em 127.0.0.1. Os casos incluem mapeamento, emissão/cache de token, envio, reenvio idempotente, consulta, token inválido e validações. Esse resultado é evidência do protótipo com mocks, não uma execução realizada por Gabriel nem um teste contra GovConnect real.
 
-## 9. Validação desta contribuição
+## 9. Alinhamento pendente com Alexandre/provedor
 
-Esta contribuição é documental. O mapeamento foi confrontado com as tabelas e classes de compras disponíveis em main. Não foram executadas chamadas ao GovConnect, autenticação federada real, testes externos ou medições de segurança. Esses resultados só poderão ser declarados depois que Alexandre disponibilizar o contrato e ambiente de teste.
+Antes de homologação real, confirmar documentação e endereço oficiais, protocolo, campos obrigatórios, formato de moeda/CNPJ, fluxo de autenticação, issuer/token endpoint/scopes, limites, semântica de idempotência, status/códigos de erro, retentativas e política de retenção/auditoria.
 
 ## Referências
 
-- Fielding, R. T. REST, dissertação, cap. 5: https://ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm
+- Fielding, R. T. REST, dissertação, capítulo 5: https://ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm
 - IETF RFC 9110, HTTP Semantics: https://www.rfc-editor.org/rfc/rfc9110
 - GraphQL Foundation, Introduction to GraphQL: https://graphql.org/learn/
 - W3C SOAP 1.2: https://www.w3.org/TR/soap12/
