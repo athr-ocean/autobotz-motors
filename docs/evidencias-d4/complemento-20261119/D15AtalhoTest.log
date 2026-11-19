@@ -1,0 +1,8 @@
+PASS sem conteudo -> CONTEUDO_INDISPONIVEL
+PASS porta em uso -> PORTA_OCUPADA
+PASS servidor sobe e devolve a url (sem navegador no teste)
+PASS a pagina responde na url devolvida
+PASS segunda chamada reaproveita o mesmo servidor
+PASS apos parar() o servidor deixa de responder
+PASS pode abrir de novo depois de parar()
+TODOS OS TESTES PASSARAM

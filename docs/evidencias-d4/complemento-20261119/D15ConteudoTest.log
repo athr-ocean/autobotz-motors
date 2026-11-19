@@ -1,0 +1,8 @@
+PASS portal-treinamento/content/guia-rapido.md e igual a entrega/D15_GUIA_RAPIDO.md
+PASS portal-treinamento/content/roteiro-video-30-min.md e igual a entrega/D15_ROTEIRO_VIDEO_30_MIN.md
+PASS portal-treinamento/content/faq.md e igual a entrega/D15_FAQ.md
+PASS material publicado tem conteudo: guia-rapido
+PASS material publicado tem conteudo: faq
+PASS material publicado tem conteudo: roteiro-video-30-min
+PASS material publicado tem conteudo: roteiro-tutorial-3-min
+TODOS OS TESTES PASSARAM

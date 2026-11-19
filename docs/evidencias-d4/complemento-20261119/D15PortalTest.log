@@ -1,0 +1,40 @@
+PASS lista inclui material publicado
+PASS lista nao expoe rascunho nem nome de arquivo
+PASS material publicado devolve conteudo
+PASS resposta nao expoe caminho interno
+PASS slug desconhecido -> 404
+PASS material nao publicado -> 404
+PASS slug com barra -> 400
+PASS slug com maiuscula -> 400
+PASS PORTAL_OPEN -> 201
+PASS MATERIAL_VIEW valido -> 201
+PASS dois eventos validos registrados
+PASS evento de material nao publicado -> 400
+PASS MATERIAL_VIEW sem slug -> 400
+PASS PORTAL_OPEN com slug -> 400
+PASS tipo de evento invalido -> 400
+PASS sem Content-Type JSON -> 400
+PASS eventos recusados nao foram registrados
+PASS VIDEO_VIEW em material do tipo VIDEO -> 201
+PASS MATERIAL_VIEW em ROTEIRO -> 201
+PASS VIDEO_VIEW em ROTEIRO (nao e video) -> 400
+PASS VIDEO_VIEW em GUIA -> 400
+PASS MATERIAL_VIEW em material do tipo VIDEO -> 400
+PASS so os dois eventos coerentes foram registrados
+PASS metricas sem sessao -> 401
+PASS login sem Content-Type JSON -> 400
+PASS MFA sem Content-Type JSON -> 400
+PASS logout sem sessao e idempotente -> 204
+PASS logout limpa cookie da sessao
+PASS metricas com sessao sem permissao -> 403
+PASS metricas autorizadas devolvem JSON e identificam backend simulado
+PASS metricas com periodo invalido -> 400
+PASS falha de banco -> 500
+PASS falha de banco nao expoe detalhes internos
+PASS rota desconhecida -> 404
+PASS pagina inicial -> 200
+PASS arquivo fora da pasta publica -> 404
+PASS symlink externo fora da pasta publica -> 404
+PASS catalogo com caminho fora da pasta e recusado
+TODOS OS TESTES PASSARAM
+Erro no portal: java.sql.SQLException: detalhe interno do banco

@@ -1,0 +1,11 @@
+PASS claro fg 14.44:1 (mínimo 4.5:1)
+PASS claro link 7.24:1 (mínimo 4.5:1)
+PASS claro bd 3.63:1 (mínimo 3:1)
+PASS claro foco 7.24:1 (mínimo 3:1)
+PASS claro título no cabeçalho 13.29:1
+PASS escuro fg 15.16:1 (mínimo 4.5:1)
+PASS escuro link 9.24:1 (mínimo 4.5:1)
+PASS escuro bd 4.62:1 (mínimo 3:1)
+PASS escuro foco 9.24:1 (mínimo 3:1)
+PASS escuro título no cabeçalho 16.34:1
+D4_CONTRASTE_OK

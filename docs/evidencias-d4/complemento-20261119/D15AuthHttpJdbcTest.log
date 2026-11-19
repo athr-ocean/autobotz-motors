@@ -1,0 +1,15 @@
+PASS cadastro ADMIN de teste
+PASS cadastro VENDEDOR de teste
+PASS sem sessão -> HTTP 401
+PASS d15http_a_mwnxcye9 senha válida exige MFA
+PASS d15http_a_mwnxcye9 MFA válida autentica
+PASS d15http_a_mwnxcye9 recebe cookie de sessão após MFA
+PASS ADMIN autenticado após MFA -> HTTP 200
+PASS launcher usa backend JDBC persistente
+PASS d15http_v_mwnxcye9 senha válida exige MFA
+PASS d15http_v_mwnxcye9 MFA válida autentica
+PASS d15http_v_mwnxcye9 recebe cookie de sessão após MFA
+PASS VENDEDOR autenticado -> HTTP 403
+PASS logout -> HTTP 204
+PASS token ADMIN após logout -> HTTP 401
+D15_AUTH_HTTP_JDBC_OK

@@ -1,0 +1,7 @@
+src/autobotz/integracao/govconnect/GovConnectIntegracao.java:63: warning: [serial] serializable class GovConnectException has no definition of serialVersionUID
+    public static final class GovConnectException extends IOException {
+                        ^
+tests/D5RecuperacaoJdbcTest.java:130: warning: [try] auto-closeable resource ignorada is never referenced in body of corresponding try statement
+        try (Connection ignorada = novaConexao(urlIndisponivel)) {
+                        ^
+2 warnings
