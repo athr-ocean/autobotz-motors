@@ -6,10 +6,13 @@ import autobotz.model.Fornecedor;
 import autobotz.model.OrcamentoCompra;
 import autobotz.model.PedidoCompra;
 import autobotz.model.SolicitacaoCompra;
+import autobotz.service.ComprasException;
 import autobotz.service.ComprasService;
+import autobotz.service.ComprasService.Acao;
 import autobotz.util.ConexaoBanco;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
@@ -29,6 +32,7 @@ public final class GovConnectComprasJdbcTest {
     private GovConnectComprasJdbcTest() { }
 
     public static void main(String[] args) throws Exception {
+        verificarPermissaoEspecificaDeEnvio();
         validarBancoDeTeste();
         String sufixo = Long.toString(System.currentTimeMillis(), 36);
         String cnpj = String.format(Locale.ROOT, "%014d",
@@ -76,6 +80,25 @@ public final class GovConnectComprasJdbcTest {
         }
 
         System.out.println("GOVCONNECT_COMPRAS_JDBC_OK=" + aprovados);
+    }
+
+    /** A permissão de envio deve ser exigida antes de qualquer consulta ao banco ou chamada HTTP. */
+    private static void verificarPermissaoEspecificaDeEnvio() throws Exception {
+        java.util.concurrent.atomic.AtomicInteger consultas = new java.util.concurrent.atomic.AtomicInteger();
+        ComprasService semPermissaoDeEnvio = new ComprasService(acao -> {
+            if (acao == Acao.CONSULTAR) consultas.incrementAndGet();
+            return acao != Acao.ENVIAR_PEDIDO_GOVCONNECT;
+        });
+        Cliente cliente = new Cliente(URI.create("http://127.0.0.1:1"), () -> "token-nao-usado");
+        GovConnectPedidoService integracao = new GovConnectPedidoService(semPermissaoDeEnvio, cliente);
+        try {
+            integracao.enviarPedidoDaSolicitacao(1);
+            throw new AssertionError("Envio sem permissão específica foi aceito");
+        } catch (ComprasException esperado) {
+            check(esperado.getCodigo() == ComprasException.Codigo.NAO_AUTORIZADO,
+                    "D2_ENVIO_EXIGE_PERMISSAO_ESPECIFICA");
+        }
+        check(consultas.get() == 0, "D2_PERMISSAO_VERIFICADA_ANTES_DAS_CONSULTAS");
     }
 
     private static void validarBancoDeTeste() throws Exception {
