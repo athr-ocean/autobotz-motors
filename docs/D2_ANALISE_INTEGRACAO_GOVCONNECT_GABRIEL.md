@@ -42,14 +42,14 @@ A escolha final depende da especificação oficial. REST não significa apenas t
 
 ## 4. Mapeamento de dados
 
-O código integrado mapeia o pedido para um DTO com referência ERP, ID e nome do fornecedor, valor, moeda BRL e descrição. A referência é derivada do ID persistido do pedido. O cliente verifica que pedido e fornecedor correspondem e valida referência, ID positivo, nome, valor positivo com até duas casas decimais, moeda BRL e descrição.
+O código integrado mapeia o pedido para um DTO com referência ERP, nome do fornecedor, CNPJ cadastral quando disponível, valor, moeda BRL e descrição. O ID numérico local do fornecedor é usado somente para validar os vínculos internos e não é enviado como identificador externo. A referência ERP é derivada do ID persistido do pedido. O mapeamento exige solicitação no estado `PEDIDO_GERADO`, confere que pedido, solicitação e fornecedor correspondem e que o valor do pedido é igual ao valor aprovado. Valida também referência, nome, formato do CNPJ quando informado, valor positivo com até duas casas decimais, moeda BRL e descrição.
 
 | Dado interno | Situação no DTO atual | Decisão proposta para integração real |
 |---|---|---|
 | ID do pedido | Enviado como referência ERP, por exemplo AUTOBOTZ-PEDIDO-42 | Confirmar formato aceito e usar também como chave idempotente se o provedor concordar. |
-| ID do fornecedor | Enviado | Não presumir que ID interno seja ID GovConnect; acordar tabela de correspondência. |
-| Nome do fornecedor | Enviado | Transmitir somente se o contrato exigir. |
-| CNPJ | Existe no cadastro, mas não é incluído no DTO atual | Só incluir com justificativa e confirmação do campo/formato externo. Nunca tratar como segredo de autenticação. |
+| ID do fornecedor | Não enviado; usado apenas na validação dos vínculos locais | Não presumir que ID interno seja ID GovConnect; acordar tabela de correspondência se o contrato exigir. |
+| Nome do fornecedor | Enviado | Confirmar necessidade e campo no contrato oficial. |
+| CNPJ | Enviado quando disponível, com validação local de 14 dígitos | Confirmar necessidade e formato no contrato externo; nunca tratar como segredo de autenticação. |
 | Valor | Enviado | Hoje o protótipo fixa BRL. Confirmar moeda, escala, arredondamento e limites oficiais. |
 | Descrição | Enviada com validação local de tamanho | Reduzir ao mínimo necessário e impedir inclusão de PII, credenciais ou dados sigilosos. |
 | ID da solicitação e do orçamento | Não são enviados no DTO atual | Incluir somente se o contrato externo exigir e houver necessidade de negócio. |
@@ -69,7 +69,7 @@ Fluxo proposto:
 4. O resultado é validado e associado à referência local.
 5. O protocolo e estado externo só devem ser persistidos quando houver uma decisão de integração aprovada para o projeto.
 
-O protótipo atual não integra a chamada à transação JDBC, não altera ComprasService e não persiste protocolo ou histórico externo. Para operação resiliente, considerar Outbox transacional e reconciliação; não estão implementados. Timeout não deve ser tratado como sucesso. Como não há retry automático, uma política futura precisa respeitar a idempotência oficial e distinguir erros temporários de erros funcionais.
+O protótipo atual consulta dados reais do D11 por `ComprasService` e envia somente após essas consultas encerrarem suas transações JDBC; a chamada externa não integra a transação de aprovação. `GovConnectPedidoService` exige `ComprasService.Acao.ENVIAR_PEDIDO_GOVCONNECT` antes de qualquer consulta, e as leituras continuam exigindo `CONSULTAR`. Na matriz desktop atual, a permissão específica `ENVIAR_PEDIDO_GOVCONNECT` é concedida somente a ADMIN; VENDEDOR e perfil ausente são recusados. O protocolo externo não é persistido e não há Outbox, worker nem recuperação durável. Para operação resiliente, considerar Outbox transacional e reconciliação como evolução, não como funcionalidade implementada. Timeout não deve ser tratado como sucesso. Como não há retry automático, uma política futura precisa respeitar a idempotência oficial e distinguir erros temporários de erros funcionais.
 
 ## 6. Autenticação federada
 
@@ -102,7 +102,7 @@ Não desabilitar validação TLS. Usar somente dados fictícios no protótipo; q
 
 ## 8. Testes reportados pelo autor do protótipo
 
-Alexandre informa que scripts/test-d2-govconnect.sh compila e executa 11 verificações sem banco de dados e sem internet, usando um servidor local em 127.0.0.1. Os casos incluem mapeamento, emissão/cache de token, envio, reenvio idempotente, consulta, token inválido e validações. Esse resultado é evidência do protótipo com mocks, não uma execução realizada por Gabriel nem um teste contra GovConnect real.
+O teste `scripts/test-d2-govconnect.sh` executa 12 verificações sem banco de dados e sem internet, usando servidores locais em 127.0.0.1. Os casos incluem mapeamento, emissão/cache de token, envio, reenvio idempotente, consulta, token inválido e validações. O teste JDBC `GovConnectComprasJdbcTest` executa 11 verificações, incluindo recusa de envio sem a permissão específica e antes de consultas, integração com MariaDB descartável, aprovação D11, envio, reenvio idempotente e preservação do saldo/status local. Esses resultados comprovam somente os mocks e o banco de testes, não uma integração com GovConnect real.
 
 ## 9. Alinhamento pendente com Alexandre/provedor
 
