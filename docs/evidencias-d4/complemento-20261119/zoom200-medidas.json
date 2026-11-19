@@ -1,0 +1,16 @@
+{
+  "catalogoVisivel": false,
+  "clientWidth": 674,
+  "material": "Guia rápido do AutoBotz Motors",
+  "scrollWidth": 674,
+  "theme": "claro",
+  "viewport": [
+    681,
+    468
+  ],
+  "voltar": {
+    "height": 44,
+    "width": 180.1328125
+  },
+  "zoomPixelRatio": 2
+}

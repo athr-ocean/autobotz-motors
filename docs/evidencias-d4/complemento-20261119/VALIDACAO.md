@@ -84,9 +84,37 @@ Evidências desta complementação:
 ## Pendências para fechamento acadêmico
 
 - Celular físico e registro do modelo/navegador usados.
-- Revisão completa dos novos contornos em tema escuro, zoom e diferentes resoluções; o resultado desktop claro não aprova toda a matriz.
+- Revisão completa dos novos contornos em tema escuro e diferentes resoluções; zoom 200% claro foi complementado conforme seção abaixo.
 - Captura da etapa MFA sem expor código e conferência visual de logout/expiração (regras já cobertas pelos testes HTTP/JDBC).
 - Retorno do Higor com resultados reais de usabilidade e confirmação de como a gravação será organizada.
 - A execução integrada citada comprova o commit 147ee241. A alteração posterior de restauração tem testes JS locais e deve ter sua nova execução de CI conferida no PR.
 
 Esta entrega encaminha a validação técnica e os limites em 19/11, antes do prazo de 20/11. O fechamento acadêmico completo depende das pendências explicitadas.
+
+## Fechamento da complementação visual — 19/11/2026
+
+Versão do código: e8ce5fcf86d6d61f3630deebda790a2aaab76243 (PR #59). Após limpeza automática do ambiente temporário, o código foi recuperado do GitHub e compilado novamente com JDK 21. O servidor desta etapa foi PortalServer com MockPortalBackend, porta 18087, eventos somente em memória. Esta etapa complementa aparência e navegação; não é nova prova de banco, login/MFA ou sessão real. Os resultados JDBC anteriores permanecem válidos para a execução documentada acima.
+
+O Chromium bloqueou a abertura do DevTools com a mensagem “Your organization has blocked the use of DevTools on this page”. A política não foi alterada. Portanto não foi possível executar nova emulação de 320/375/768/1280 px nem emulação de tema por esse recurso. As capturas anteriores continuam identificadas como históricas.
+
+Pelos controles normais do navegador foi selecionado zoom 200% (percentual observado no indicador do Chromium). Resultado:
+
+| Verificação | Resultado observado |
+| --- | --- |
+| Zoom real do navegador | 200%; devicePixelRatio 2 |
+| Área útil em CSS | viewport 681 × 468; clientWidth 674 |
+| Rolagem horizontal | scrollWidth 674 = clientWidth 674, na lista e no guia |
+| Leitura | guia com texto e títulos legíveis e quebrando linhas; catálogo oculto durante leitura nessa largura |
+| Busca com/sem acento | rápido e rapido: 1 material encontrado em ambos |
+| Teclado | Tab da busca chegou a Todos com contorno rgb(11, 90, 104); Enter no link abriu o guia |
+| Voltar por teclado | Enter em Voltar aos materiais retornou à lista e focou catalogo-titulo |
+| Alvo Voltar | 180,13 × 44 CSS px |
+
+Capturas novas:
+- [Guia com zoom 200%, tema claro](guia-zoom200-claro.jpg).
+- [Lista com zoom 200%, tema claro](lista-zoom200-claro.jpg).
+- [Medições do DOM em zoom 200%](zoom200-medidas.json).
+
+Ao terminar, o zoom foi restaurado a 100%. D4ContrasteTest, D4SessaoInterfaceTest, sintaxe do app.js, links Markdown e diff --check foram reexecutados e aprovados nesta retomada. Não houve nova alteração de código após e8ce5fc: esta complementação acrescenta documentação e imagens.
+
+Permanecem externos ao que foi comprovado: celular físico; nova matriz responsiva e tema escuro renderizado (emulação bloqueada); conferência visual de logout/expiração e captura segura da etapa MFA; resultados com participantes e organização da gravação solicitados ao Higor. O catálogo continua identificando os materiais como roteiros não gravados. A entrega técnica está encaminhada para revisão do Arthur com esses limites, sem declarar concluídas as verificações indisponíveis.
