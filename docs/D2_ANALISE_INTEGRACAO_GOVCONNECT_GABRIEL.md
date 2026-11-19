@@ -102,7 +102,7 @@ Não desabilitar validação TLS. Usar somente dados fictícios no protótipo; q
 
 ## 8. Testes reportados pelo autor do protótipo
 
-O teste `scripts/test-d2-govconnect.sh` executa 12 verificações sem banco de dados e sem internet, usando servidores locais em 127.0.0.1. Os casos incluem mapeamento, emissão/cache de token, envio, reenvio idempotente, consulta, token inválido e validações. O teste JDBC `GovConnectComprasJdbcTest` executa 11 verificações, incluindo recusa de envio sem a permissão específica e antes de consultas, integração com MariaDB descartável, aprovação D11, envio, reenvio idempotente e preservação do saldo/status local. Esses resultados comprovam somente os mocks e o banco de testes, não uma integração com GovConnect real.
+O teste `scripts/test-d2-govconnect.sh` executa 12 verificações sem banco de dados e sem internet, usando servidores locais em 127.0.0.1. Os casos incluem mapeamento, emissão/cache de token, envio, reenvio idempotente, consulta, token inválido e validações. O teste JDBC `GovConnectComprasJdbcTest` executa 12 verificações, incluindo recusa de envio sem a permissão específica e antes de consultas, integração com MariaDB descartável, aprovação D11, envio, reenvio idempotente e preservação do saldo/status local. Esses resultados comprovam somente os mocks e o banco de testes, não uma integração com GovConnect real.
 
 ## 9. Alinhamento pendente com Alexandre/provedor
 
