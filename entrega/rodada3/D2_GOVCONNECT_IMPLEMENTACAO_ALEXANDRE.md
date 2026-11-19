@@ -28,7 +28,7 @@ O enunciado acadêmico não forneceu especificação oficial do GovConnect, Open
 
 O mapeamento `PedidoRequest.de(PedidoCompra, SolicitacaoCompra, Fornecedor)` exige uma solicitação no estado `PEDIDO_GERADO`, confere os vínculos entre pedido, solicitação e fornecedor, usa a descrição da solicitação e transmite o CNPJ cadastral quando disponível. O ID numérico interno do fornecedor é usado apenas para validação local e não é enviado como identificador da contraparte externa. A moeda BRL é uma hipótese exclusiva do protótipo, pois o modelo D11 não possui campo de moeda.
 
-A classe `GovConnectPedidoService` conecta o D11 ao cliente GovConnect: consulta a solicitação, o pedido persistido e o fornecedor pelo `ComprasService`, depois realiza a chamada HTTP somente após as consultas terem encerrado suas transações JDBC. A integração não altera a aprovação, o saldo ou o status de compras. O teste `GovConnectComprasJdbcTest` demonstra esse fluxo em MariaDB descartável `autobotz_*_test`; os registros criados pelo teste são removidos ao final. O protocolo externo ainda não é persistido no banco, e não há Outbox ou recuperação durável nesta entrega.
+A classe `GovConnectPedidoService` exige primeiro a ação `ComprasService.Acao.ENVIAR_PEDIDO_GOVCONNECT`; só depois consulta a solicitação, o pedido persistido e o fornecedor, cada consulta ainda protegida por `CONSULTAR`. A matriz de autorização atual concede `AutorizacaoService.Permissao.ENVIAR_PEDIDO_GOVCONNECT` apenas ao perfil ADMIN; VENDEDOR e perfil ausente são recusados. O chamador do serviço deve mapear a ação de envio para essa permissão específica, nunca reutilizar `ACESSAR_COMPRAS` como autorização de envio. A chamada HTTP ocorre somente após as consultas encerrarem suas transações JDBC. A integração não altera aprovação, saldo ou status de compras. O teste `GovConnectComprasJdbcTest` demonstra o fluxo em MariaDB descartável `autobotz_*_test`, com limpeza dos registros criados ao final. O protocolo externo não é persistido e não há Outbox ou recuperação durável nesta entrega.
 
 ## Como executar
 
@@ -70,11 +70,15 @@ O teste sem banco executa 12 verificações:
 11. Bloqueio de HTTP para token endpoint externo.
 12. Bloqueio de envio antes do status `PEDIDO_GERADO`.
 
-O teste JDBC adicional valida conexão com banco descartável, criação de fornecedor/orçamento/solicitação, aprovação D11, envio e reenvio idempotente ao GovConnect simulado, recebimento de protocolo e preservação do saldo/status local.
+O teste JDBC adicional executa 11 verificações: duas de autorização (envio negado sem a ação específica e negação antes de qualquer consulta), conexão com banco descartável, criação de fornecedor/orçamento/solicitação, aprovação D11, envio e reenvio idempotente ao GovConnect simulado, recebimento de protocolo e preservação do saldo/status local.
 
 ## Alinhamento com a análise de Gabriel
 
 A escolha REST/JSON permanece provisória, condicionada ao contrato oficial. O OAuth 2.0 Client Credentials implementado cobre somente comunicação máquina-a-máquina, se esse grant for aceito pelo provedor; não implementa login federado de usuário. Para autenticação delegada de pessoas, a análise de Gabriel recomenda avaliar OpenID Connect com Authorization Code + PKCE, caso suportado pelo órgão. Issuer, audience, scopes, assinatura/introspecção e credenciais continuam pendentes de confirmação. O CNPJ é o identificador cadastral enviado quando disponível; o ID numérico interno do fornecedor não é presumido como ID externo. A moeda BRL é apenas um dado de teste, não um requisito confirmado.
+
+## Autorização do envio externo
+
+O envio é uma ação de negócio independente da consulta. `ComprasService.Acao.ENVIAR_PEDIDO_GOVCONNECT` é verificada antes de consultar solicitação, pedido ou fornecedor. O mapeamento desktop concede a permissão correspondente apenas ao perfil ADMIN na matriz atual; VENDEDOR e perfil ausente não podem enviar. As consultas subsequentes continuam exigindo `CONSULTAR`. O teste JDBC inclui uma tentativa sem a permissão de envio e verifica que nenhuma consulta é iniciada.
 
 ## Segurança e próximos passos
 
