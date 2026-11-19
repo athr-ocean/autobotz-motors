@@ -210,8 +210,10 @@ async function iniciar() {
 
 // A sessão web do D14 usa cookie HttpOnly. O browser não lê ou armazena o token.
 const auth = { desafioId: null };
+let revisaoAutenticacao = 0;
 function statusAuth(mensagem) { $("auth-status").textContent = mensagem; }
 function atualizarAutenticacao(autenticado) {
+  revisaoAutenticacao++;
   $("login-form").hidden = autenticado;
   $("mfa-form").hidden = true;
   $("sair").hidden = !autenticado;
@@ -307,6 +309,30 @@ async function consultarMetricas(evento) {
       " (permissão ADMIN necessária).";
   }
 }
+async function restaurarSessao() {
+  const revisao = revisaoAutenticacao;
+  const parametros = new URLSearchParams({
+    inicio: $("inicio").value + "T00:00:00",
+    fim: diaSeguinte($("fim").value) + "T00:00:00"
+  });
+  try {
+    // O cookie HttpOnly é enviado pelo navegador; nenhum token é lido pelo JS.
+    const resposta = await fetch(BASE + "/metricas?" + parametros);
+    if (revisao !== revisaoAutenticacao) return;
+    if (resposta.ok || resposta.status === 403) {
+      atualizarAutenticacao(true);
+      statusAuth(resposta.ok
+        ? "Sessão autenticada. Consulte as métricas se o perfil for ADMIN."
+        : "Sessão autenticada, mas as métricas exigem perfil ADMIN.");
+    } else if (resposta.status !== 401) {
+      statusAuth("Não foi possível verificar a sessão existente. Tente recarregar a página.");
+    }
+  } catch (_) {
+    if (revisao === revisaoAutenticacao) {
+      statusAuth("Não foi possível verificar a sessão existente. Tente recarregar a página.");
+    }
+  }
+}
 function iniciarDashboard() {
   const hoje = new Date();
   $("fim").value = [
@@ -322,6 +348,7 @@ function iniciarDashboard() {
   $("sair").addEventListener("click", sair);
   $("metricas-form").addEventListener("submit", consultarMetricas);
   atualizarAutenticacao(false);
+  restaurarSessao();
 }
 
 iniciarDashboard();

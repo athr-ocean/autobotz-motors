@@ -6,8 +6,7 @@ Data da execução: 19/11/2026. Responsável pela complementação técnica: Mau
 
 Ambiente Linux descartável na nuvem, OpenJDK 21.0.13, MariaDB 11.8.6 e Connector/J 4.0.0 já incluído no projeto. Código compilado pelo módulo jdk.compiler da distribuição disponível. Banco isolado recém-criado, com schema.sql e migrações 011–016, usando exclusivamente `autobotz_d15_test` e `autobotz_d5_test`. Contas fictícias e permissões limitadas a essas bases. Nenhuma credencial ou dado de produção foi usado.
 
-A tentativa de abrir o portal em `http://127.0.0.1:18087/` no navegador da nuvem retornou `ERR_CONNECTION_REFUSED`. O servidor e as bases funcionaram no contexto de execução dos testes HTTP/JDBC. A ferramenta de registro do erro do navegador também recusou a página interna de erro. A execução visual de login/MFA/dashboard e novas capturas ficaram bloqueadas. Nenhuma captura antiga é apresentada como prova desta execução.
-
+O bloqueio inicial ERR_CONNECTION_REFUSED foi resolvido ao executar o servidor e o MariaDB no mesmo ambiente de rede do navegador da nuvem. A complementação visual foi realizada em Chromium, viewport 1363 × 936 CSS px, sobre a base acima com as alterações do PR #59. Mauro concluiu manualmente o login/MFA com conta fictícia; a consulta administrativa funcionou no backend JDBC real de teste. Não foram registrados senhas, cookies ou códigos MFA nas capturas.
 Celular físico não está acessível nesta sessão. Essa validação permanece pendente de aparelho e execução real.
 
 ## Ajustes necessários encontrados
@@ -27,7 +26,7 @@ Referências usadas para os critérios de contraste:
 - https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
 - https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html
 
-O CSS também passou a declarar largura mínima de 44 px, além da altura mínima já existente, para botões, campos, links do catálogo e o atalho de pular conteúdo. O atalho passou a usar display inline-block para que suas dimensões mínimas se apliquem. A declaração CSS está verificada por inspeção. A medição de todos os retângulos renderizados continua pendente do navegador.
+O CSS também passou a declarar largura mínima de 44 px, além da altura mínima já existente, para botões, campos, links do catálogo e o atalho de pular conteúdo. O atalho passou a usar display inline-block para que suas dimensões mínimas se apliquem. No navegador desktop foram medidos os campos de busca/login/datas, os quatro filtros, quatro links de materiais e os botões Entrar/Sair/Consultar: todos tinham altura mínima de 44 px e largura superior a 44 px. Isso não substitui medição em celular físico e de todos os estados responsivos.
 
 ## Validações desta execução
 
@@ -46,15 +45,15 @@ O CSS também passou a declarar largura mínima de 44 px, além da altura mínim
 | Recuperação de logs no MariaDB de teste D5 | D5RecuperacaoJdbcTest aprovado | D5RecuperacaoJdbcTest.log |
 | Contraste após ajustes | D4ContrasteTest aprovado | D4ContrasteTest.log |
 
-O fluxo JDBC verifica senha válida exigindo MFA, cookie emitido após MFA, ADMIN recebendo HTTP 200 nas métricas, VENDEDOR recebendo 403 e cookie invalidado após logout recebendo 401. Isso comprova protocolo e persistência. A aparência e interação visual dos formulários e dashboard permanecem pendentes.
+O fluxo JDBC verifica senha válida exigindo MFA, cookie emitido após MFA, ADMIN recebendo HTTP 200 nas métricas, VENDEDOR recebendo 403 e cookie invalidado após logout recebendo 401. Isso comprova protocolo e persistência. A complementação visual confirmou o formulário antes do login, a sessão autenticada e o dashboard com dados reais de execução. A etapa MFA foi concluída manualmente por Mauro; não foi capturada a tela com o código de demonstração.
 
 A auditoria SQL complementar é uma verificação de persistência de chamadas HTTP isoladas. Ela não mede duplicidade em navegação real do navegador nesta execução.
 
-Compilação concluída com dois avisos preexistentes, documentados em compilacao.log. Sintaxe do app.js, git diff --check e verificador de links Markdown passaram. O ensaio completo de backup/restauração do D5 tem guarda específica para o CI e deve ser conferido na regressão do PR. Essa execução local cobriu integridade, rollback do portal e recuperação JDBC.
+Compilação concluída com dois avisos preexistentes, documentados em compilacao.log. Sintaxe do app.js, git diff --check e verificador de links Markdown passaram. O ensaio completo de backup/restauração do D5 tem guarda específica para o CI. Foi aprovado no GitHub Actions, commit 147ee24106234446b72e4781ca57faeab44eeed7, execução 44595959177 (Integrated ERP Regression), junto à regressão integrada. Essa execução local cobriu integridade, rollback do portal e recuperação JDBC.
 
 ## Evidências anteriores preservadas
 
-Os testes de busca com e sem acento, navegação por link direto/recarga/histórico, teclado no guia, zoom 200%, temas e capturas de 320/375/768/1280 px já estão documentados na entrega integrada do PR #49. Foram preservados como histórico e não repetidos sem necessidade. As correções atuais de contraste exigem nova inspeção visual quando houver acesso ao portal no navegador.
+Os testes de busca com e sem acento, navegação por link direto/recarga/histórico, teclado no guia, zoom 200%, temas e capturas de 320/375/768/1280 px já estão documentados na entrega integrada do PR #49. Foram preservados como histórico e não repetidos sem necessidade. O tema claro e o foco de teclado foram observados nesta complementação desktop. A matriz completa em tema escuro, zoom e resoluções com os novos tokens continua pendente.
 
 ## Alinhamento com Higor
 
@@ -66,12 +65,28 @@ Os slugs roteiro-tutorial-3-min e roteiro-video-30-min continuam no catálogo co
 
 A solicitação ao Higor também pede responsável, previsão de gravação/revisão e confirmação de arquivo efetivamente produzido. Até o retorno, o que está entregue é o roteiro textual. A gravação e publicação do vídeo permanecem pendentes, conforme entrega/D15_LANCAMENTO_E_MATERIAIS.md.
 
+## Complementação visual e correção da restauração da sessão
+
+A consulta de métricas foi executada no período 21/10/2026 a 19/11/2026 (fim inclusivo). O dashboard mostrou origem DADOS_REAIS_DE_EXECUCAO. Abrir guia-rapido, usar Voltar aos materiais, Avançar e recarregar preservou um único MATERIAL_VIEW. A consulta SQL final no banco descartável confirmou MATERIAL_VIEW/guia-rapido = 1 e PORTAL_OPEN = 3. Cada recarga completa registra uma nova abertura do portal; isso não foi confundido com duplicação da leitura.
+
+Foi reproduzida uma falha: após recarregar, a interface escondia o dashboard e apresentava login, embora a sessão continuasse válida e a rota de métricas devolvesse os dados. O achado e a abordagem foram registrados no PR antes da alteração no fluxo compartilhado. O frontend passou a consultar a rota existente ao iniciar e restaurar a apresentação da sessão: 200 restaura ADMIN, 403 informa ausência de permissão ADMIN e 401 mantém login. Uma revisão do estado impede que resposta atrasada desfaça um logout. Nenhuma rota ou regra de autorização foi alterada.
+
+O teste D4SessaoInterfaceTest.js cobre 200/401/403/500, falha de rede e resposta atrasada após logout. A correção foi conferida visualmente recarregando o link do guia com sessão aberta e consultando novamente as métricas. O guia e o acesso ao dashboard foram preservados. O teste usa DOM mínimo simulado e não substitui os testes HTTP/JDBC de autorização.
+
+Também foi verificada a mensagem de período invertido: “O fim precisa ser igual ou posterior ao início.” A consulta válida voltou a exibir os dados. Tab do botão Sair alcançou o campo De, com foco visível rgb(11, 90, 104). Foi observado o mesmo contorno ao navegar entre os campos de login antes da autenticação. A página não apresentou largura horizontal excedente em 1363 CSS px (scrollWidth = 1363).
+
+Evidências desta complementação:
+- [Dashboard com sessão restaurada e métricas](dashboard-sessao-restaurada.jpg).
+- [Formulário antes da autenticação](login-antes-autenticacao.jpg).
+- [Teste da restauração da interface](D4SessaoInterfaceTest.log).
+- [Conferência SQL após a navegação](D4NavegadorBanco.log).
+
 ## Pendências para fechamento acadêmico
 
 - Celular físico e registro do modelo/navegador usados.
-- Inspeção visual do login/MFA, sessão e dashboard administrativo sobre o banco de teste, com capturas.
-- Medição dos alvos renderizados e revisão visual dos novos contornos nos temas e resoluções, incluindo zoom e teclado nos formulários.
+- Revisão completa dos novos contornos em tema escuro, zoom e diferentes resoluções; o resultado desktop claro não aprova toda a matriz.
+- Captura da etapa MFA sem expor código e conferência visual de logout/expiração (regras já cobertas pelos testes HTTP/JDBC).
 - Retorno do Higor com resultados reais de usabilidade e confirmação de como a gravação será organizada.
-- Conferência do CI integrado do PR, incluindo o backup/restauração exclusivo do CI.
+- A execução integrada citada comprova o commit 147ee241. A alteração posterior de restauração tem testes JS locais e deve ter sua nova execução de CI conferida no PR.
 
-Esta entrega encaminha a validação técnica e os bloqueios em 19/11, antes do prazo de 20/11. O fechamento acadêmico completo depende das pendências explicitadas.
+Esta entrega encaminha a validação técnica e os limites em 19/11, antes do prazo de 20/11. O fechamento acadêmico completo depende das pendências explicitadas.
