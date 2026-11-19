@@ -70,7 +70,7 @@ O teste sem banco executa 12 verificações:
 11. Bloqueio de HTTP para token endpoint externo.
 12. Bloqueio de envio antes do status `PEDIDO_GERADO`.
 
-O teste JDBC adicional executa 11 verificações: duas de autorização (envio negado sem a ação específica e negação antes de qualquer consulta), conexão com banco descartável, criação de fornecedor/orçamento/solicitação, aprovação D11, envio e reenvio idempotente ao GovConnect simulado, recebimento de protocolo e preservação do saldo/status local.
+O teste JDBC adicional executa 12 verificações: duas de autorização (envio negado sem a ação específica e negação antes de qualquer consulta), conexão com banco descartável, criação de fornecedor/orçamento/solicitação, aprovação D11, envio e reenvio idempotente ao GovConnect simulado, recebimento de protocolo e preservação do saldo/status local.
 
 ## Alinhamento com a análise de Gabriel
 
