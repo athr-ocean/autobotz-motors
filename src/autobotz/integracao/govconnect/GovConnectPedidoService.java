@@ -9,6 +9,7 @@ import autobotz.model.SolicitacaoCompra;
 import autobotz.model.StatusSolicitacao;
 import autobotz.service.ComprasException;
 import autobotz.service.ComprasService;
+import autobotz.service.ComprasService.Acao;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -31,10 +32,12 @@ public final class GovConnectPedidoService {
 
     /**
      * Envia um pedido já persistido e gerado pelo fluxo de aprovação D11.
-     * Exige que o usuário/serviço tenha permissão CONSULTAR no ComprasService.
+     * Exige ENVIAR_PEDIDO_GOVCONNECT antes de consultar dados ou chamar a rede.
+     * As consultas subsequentes ainda exigem CONSULTAR separadamente.
      */
     public PedidoResponse enviarPedidoDaSolicitacao(int solicitacaoId)
             throws ComprasException, SQLException, IOException, InterruptedException {
+        compras.exigirPermissao(Acao.ENVIAR_PEDIDO_GOVCONNECT);
         if (solicitacaoId <= 0) throw new IllegalArgumentException("solicitacaoId deve ser positivo");
 
         SolicitacaoCompra solicitacao = compras.consultarSolicitacao(solicitacaoId);
