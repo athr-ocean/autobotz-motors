@@ -42,7 +42,9 @@ public class AutorizacaoService {
         CONSULTAR_METRICAS_TREINAMENTO,
 
         // D11: acesso ao fluxo de compras. Restrito a ADMIN até a matriz ser validada pela equipe.
-        ACESSAR_COMPRAS
+        ACESSAR_COMPRAS,
+        // D2: envio de pedidos a sistema externo; distinto de consultar compras.
+        ENVIAR_PEDIDO_GOVCONNECT
     }
 
     private final Map<PerfilUsuario, Set<Permissao>> matriz;

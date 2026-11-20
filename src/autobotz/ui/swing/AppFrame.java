@@ -1106,8 +1106,10 @@ final class AppFrame extends JFrame {
       SwingSupport.error(this, SwingSupport.text("gui.no_permission"));
       return dashboard();
     }
-    ComprasService service = new ComprasService(
-        acao -> allowed(AutorizacaoService.Permissao.ACESSAR_COMPRAS));
+    ComprasService service = new ComprasService(acao -> switch (acao) {
+      case ENVIAR_PEDIDO_GOVCONNECT -> allowed(AutorizacaoService.Permissao.ENVIAR_PEDIDO_GOVCONNECT);
+      default -> allowed(AutorizacaoService.Permissao.ACESSAR_COMPRAS);
+    });
     return new ComprasPanel(service);
   }
 

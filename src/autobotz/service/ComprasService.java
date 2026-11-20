@@ -32,7 +32,8 @@ public class ComprasService {
         CONSULTAR,
         SOLICITAR,
         APROVAR,
-        GERENCIAR_CADASTROS
+        GERENCIAR_CADASTROS,
+        ENVIAR_PEDIDO_GOVCONNECT
     }
 
     @FunctionalInterface
@@ -242,6 +243,12 @@ public class ComprasService {
     }
 
     // ---------- infraestrutura interna ----------
+
+    /** Verifica uma ação protegida para fluxos de aplicação que não são consultas CRUD. */
+    public void exigirPermissao(Acao acao) throws ComprasException {
+        Objects.requireNonNull(acao, "acao");
+        exigir(acao);
+    }
 
     private void exigir(Acao acao) throws ComprasException {
         if (!autorizador.permite(acao)) {

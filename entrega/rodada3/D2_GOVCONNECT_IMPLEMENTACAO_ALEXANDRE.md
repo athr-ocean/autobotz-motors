@@ -21,10 +21,14 @@ O enunciado acadêmico não forneceu especificação oficial do GovConnect, Open
 
 - `src/autobotz/integracao/govconnect/GovConnectIntegracao.java`: DTOs, cliente HTTP, erros tipados, validações e servidor simulado.
 - `src/autobotz/integracao/govconnect/OAuth2ClientCredentialsTokenProvider.java`: requisição e cache de token OAuth 2.0.
-- `tests/GovConnectIntegracaoTest.java`: testes automatizados e relatório de execução no terminal.
-- `scripts/test-d2-govconnect.sh`: compilação e execução isolada, sem banco e sem internet.
+- `src/autobotz/integracao/govconnect/GovConnectPedidoService.java`: ponte entre consultas do D11 e o cliente GovConnect.
+- `tests/GovConnectIntegracaoTest.java`: testes automatizados de protocolo e segurança, sem banco.
+- `tests/GovConnectComprasJdbcTest.java`: integração D11 + D2 em MariaDB descartável.
+- `scripts/test-d2-govconnect.sh`: compilação e execução isolada dos testes sem banco e sem internet.
 
-O mapeamento `PedidoRequest.de(PedidoCompra, Fornecedor, descricao)` valida que o pedido já possui ID e que o fornecedor corresponde ao ID registrado no pedido. A prova de conceito ainda não consulta o MariaDB, não altera `ComprasService` e não persiste protocolo ou histórico externo.
+O mapeamento `PedidoRequest.de(PedidoCompra, SolicitacaoCompra, Fornecedor)` exige uma solicitação no estado `PEDIDO_GERADO`, confere os vínculos entre pedido, solicitação e fornecedor, usa a descrição da solicitação e transmite o CNPJ cadastral quando disponível. O ID numérico interno do fornecedor é usado apenas para validação local e não é enviado como identificador da contraparte externa. A moeda BRL é uma hipótese exclusiva do protótipo, pois o modelo D11 não possui campo de moeda.
+
+A classe `GovConnectPedidoService` exige primeiro a ação `ComprasService.Acao.ENVIAR_PEDIDO_GOVCONNECT`; só depois consulta a solicitação, o pedido persistido e o fornecedor, cada consulta ainda protegida por `CONSULTAR`. A matriz de autorização atual concede `AutorizacaoService.Permissao.ENVIAR_PEDIDO_GOVCONNECT` apenas ao perfil ADMIN; VENDEDOR e perfil ausente são recusados. O chamador do serviço deve mapear a ação de envio para essa permissão específica, nunca reutilizar `ACESSAR_COMPRAS` como autorização de envio. A chamada HTTP ocorre somente após as consultas encerrarem suas transações JDBC. A integração não altera aprovação, saldo ou status de compras. O teste `GovConnectComprasJdbcTest` demonstra o fluxo em MariaDB descartável `autobotz_*_test`, com limpeza dos registros criados ao final. O protocolo externo não é persistido e não há Outbox ou recuperação durável nesta entrega.
 
 ## Como executar
 
@@ -38,10 +42,10 @@ O script compila somente as classes de domínio necessárias e a integração D2
 
 ## Resultado esperado
 
-O teste mostra cada verificação com `[PASS]` ou `[FAIL]`, apresenta um resumo do pedido fictício e termina com algo como:
+O teste unitário mostra cada verificação com `[PASS]` ou `[FAIL]`, apresenta um resumo do pedido fictício e termina com algo como:
 
 ```text
-RESULTADO: 11/11 verificações aprovadas
+RESULTADO: 12/12 verificações aprovadas
 STATUS: SUCESSO
 ATENÇÃO: o resultado comprova somente o protótipo com mocks locais;
          não comprova comunicação com o GovConnect governamental real.
@@ -51,7 +55,9 @@ O protocolo e o horário exibidos são gerados dinamicamente pelo servidor simul
 
 ## Verificações realizadas
 
-1. Mapeamento de `PedidoCompra` e `Fornecedor` para o DTO.
+O teste sem banco executa 12 verificações:
+
+1. Mapeamento de `PedidoCompra`, `SolicitacaoCompra` e `Fornecedor` para o DTO.
 2. OAuth 2.0 Client Credentials e emissão do token pelo IdP local.
 3. Cache e reutilização do token.
 4. Envio do pedido e recebimento de protocolo simulado.
@@ -62,6 +68,17 @@ O protocolo e o horário exibidos são gerados dinamicamente pelo servidor simul
 9. Correspondência entre pedido e fornecedor.
 10. Bloqueio de HTTP para API externa.
 11. Bloqueio de HTTP para token endpoint externo.
+12. Bloqueio de envio antes do status `PEDIDO_GERADO`.
+
+O teste JDBC adicional executa 12 verificações: duas de autorização (envio negado sem a ação específica e negação antes de qualquer consulta), conexão com banco descartável, criação de fornecedor/orçamento/solicitação, aprovação D11, envio e reenvio idempotente ao GovConnect simulado, recebimento de protocolo e preservação do saldo/status local.
+
+## Alinhamento com a análise de Gabriel
+
+A escolha REST/JSON permanece provisória, condicionada ao contrato oficial. O OAuth 2.0 Client Credentials implementado cobre somente comunicação máquina-a-máquina, se esse grant for aceito pelo provedor; não implementa login federado de usuário. Para autenticação delegada de pessoas, a análise de Gabriel recomenda avaliar OpenID Connect com Authorization Code + PKCE, caso suportado pelo órgão. Issuer, audience, scopes, assinatura/introspecção e credenciais continuam pendentes de confirmação. O CNPJ é o identificador cadastral enviado quando disponível; o ID numérico interno do fornecedor não é presumido como ID externo. A moeda BRL é apenas um dado de teste, não um requisito confirmado.
+
+## Autorização do envio externo
+
+O envio é uma ação de negócio independente da consulta. `ComprasService.Acao.ENVIAR_PEDIDO_GOVCONNECT` é verificada antes de consultar solicitação, pedido ou fornecedor. O mapeamento desktop concede a permissão correspondente apenas ao perfil ADMIN na matriz atual; VENDEDOR e perfil ausente não podem enviar. As consultas subsequentes continuam exigindo `CONSULTAR`. O teste JDBC inclui uma tentativa sem a permissão de envio e verifica que nenhuma consulta é iniciada.
 
 ## Segurança e próximos passos
 

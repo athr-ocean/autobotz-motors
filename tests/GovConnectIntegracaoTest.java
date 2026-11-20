@@ -3,6 +3,8 @@ import autobotz.integracao.govconnect.GovConnectIntegracao.*;
 import autobotz.integracao.govconnect.OAuth2ClientCredentialsTokenProvider;
 import autobotz.model.Fornecedor;
 import autobotz.model.PedidoCompra;
+import autobotz.model.SolicitacaoCompra;
+import autobotz.model.StatusSolicitacao;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
@@ -49,10 +51,15 @@ public class GovConnectIntegracaoTest {
             executar("Mapeamento de PedidoCompra e Fornecedor para DTO", () -> {
                 PedidoCompra persistido = new PedidoCompra(42, 9, 3, 7, new BigDecimal("250.00"));
                 Fornecedor fornecedor = new Fornecedor(7, "Fornecedor Exemplo", "12345678000199");
-                pedido[0] = PedidoRequest.de(persistido, fornecedor, "Compra de peças de reposição");
+                SolicitacaoCompra solicitacao = new SolicitacaoCompra(9, 3, 7,
+                        "Compra de peças de reposição", new BigDecimal("250.00"),
+                        StatusSolicitacao.PEDIDO_GERADO, "solicitante", "aprovador", null);
+                pedido[0] = PedidoRequest.de(persistido, solicitacao, fornecedor);
                 exigir("AUTOBOTZ-PEDIDO-42".equals(pedido[0].referenciaERP()), "Referência ERP incorreta");
-                exigir(pedido[0].fornecedorId() == 7, "ID do fornecedor incorreto");
+                exigir("12345678000199".equals(pedido[0].fornecedorCnpj()), "CNPJ do fornecedor não foi mapeado");
                 exigir(pedido[0].valor().compareTo(new BigDecimal("250.00")) == 0, "Valor incorreto");
+                exigir("Compra de peças de reposição".equals(pedido[0].descricao()),
+                        "Descrição não veio da solicitação D11");
             });
 
             executar("Autenticação OAuth2 Client Credentials", () -> {
@@ -93,15 +100,30 @@ public class GovConnectIntegracaoTest {
             });
             executar("Validação de dados obrigatórios e valor", () -> {
                 try {
-                    new PedidoRequest("pedido ruim", 0, "", new BigDecimal("-1"), "USD", "");
+                    new PedidoRequest("pedido ruim", "", "cnpj-inválido",
+                            new BigDecimal("-1"), "USD", "");
                     throw new AssertionError("Dados inválidos foram aceitos");
+                } catch (IllegalArgumentException esperado) { }
+            });
+            executar("Bloqueio de envio antes do status PEDIDO_GERADO", () -> {
+                PedidoCompra persistido = new PedidoCompra(44, 11, 4, 7, new BigDecimal("100.00"));
+                SolicitacaoCompra pendente = new SolicitacaoCompra(11, 4, 7, "Peças",
+                        new BigDecimal("100.00"), StatusSolicitacao.PENDENTE,
+                        "solicitante", null, null);
+                Fornecedor fornecedor = new Fornecedor(7, "Fornecedor Exemplo", "12345678000199");
+                try {
+                    PedidoRequest.de(persistido, pendente, fornecedor);
+                    throw new AssertionError("Solicitação pendente foi aceita para envio");
                 } catch (IllegalArgumentException esperado) { }
             });
             executar("Validação de correspondência do fornecedor", () -> {
                 PedidoCompra persistido = new PedidoCompra(43, 10, 4, 8, new BigDecimal("100.00"));
+                SolicitacaoCompra solicitacao = new SolicitacaoCompra(10, 4, 8, "Peças",
+                        new BigDecimal("100.00"), StatusSolicitacao.PEDIDO_GERADO,
+                        "solicitante", "aprovador", null);
                 Fornecedor divergente = new Fornecedor(7, "Fornecedor Exemplo", "12345678000199");
                 try {
-                    PedidoRequest.de(persistido, divergente, "Peças");
+                    PedidoRequest.de(persistido, solicitacao, divergente);
                     throw new AssertionError("Fornecedor divergente foi aceito");
                 } catch (IllegalArgumentException esperado) { }
             });
@@ -166,8 +188,9 @@ public class GovConnectIntegracaoTest {
             return;
         }
         System.out.println("Referência ERP       : " + pedido.referenciaERP());
-        System.out.println("Fornecedor           : " + pedido.fornecedorNome()
-                + " (ID " + pedido.fornecedorId() + ")");
+        System.out.println("Fornecedor           : " + pedido.fornecedorNome());
+        System.out.println("CNPJ                 : " + (pedido.fornecedorCnpj() == null
+                ? "não informado" : pedido.fornecedorCnpj()));
         System.out.println("Valor                : R$ " + pedido.valor().toPlainString());
         System.out.println("Descrição            : " + pedido.descricao());
         System.out.println("Protocolo externo    : " + resposta.protocolo());
