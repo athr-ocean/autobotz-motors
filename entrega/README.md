@@ -16,8 +16,11 @@
 
 ## Terceira rodada
 
-- D1: [Responsabilidade algorítmica](rodada3/D1_RESPONSABILIDADE_ALGORITMICA.md)
-- D2: [Integração demonstrativa GovConnect](rodada3/D2_GOVCONNECT_IMPLEMENTACAO_ALEXANDRE.md)
-- D5: [Plano de recuperação](rodada3/D5_PLANO_RECUPERACAO.md)
+- [Síntese das entregas D1–D5](rodada3/SINTESE_TERCEIRA_RODADA.md)
+- D1: [Responsabilidade algorítmica](rodada3/D1_RESPONSABILIDADE_ALGORITMICA.md) · [Política de explicabilidade](rodada3/D1_POLITICA_EXPLICABILIDADE.md)
+- D2: [Integração demonstrativa GovConnect](rodada3/D2_GOVCONNECT_IMPLEMENTACAO_ALEXANDRE.md) · [Análise técnica](../docs/D2_ANALISE_INTEGRACAO_GOVCONNECT_GABRIEL.md)
+- D3: [Análise da concorrência](../docs/D3_CONCORRENCIA.md)
+- D4: [Análise de usabilidade](../docs/D4_FEEDBACK_CLIENTE.md) · [Validação registrada](../docs/REGISTRO_VALIDACAO_HIGOR_20-11.md)
+- D5: [Plano de recuperação](rodada3/D5_PLANO_RECUPERACAO.md) · [Fechamento e demonstração](rodada3/D5_FECHAMENTO_E_DEMONSTRACAO.md)
 
 Documentos complementares permanecem nesta pasta. Arquivos em pull requests ainda não integrados à `main` não constam deste índice.
