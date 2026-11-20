@@ -2,6 +2,9 @@
 
 Esta pasta reúne planos, instrumentos de avaliação e evidências de interface.
 
+- [Análise de concorrência do D3](D3_CONCORRENCIA.md)
+- [Registro de validação D4/D15 de Higor](REGISTRO_VALIDACAO_HIGOR_20-11.md)
+- [Validação manual do portal por Mauro](evidencias-d4/manual-local/VALIDACAO.md)
 - [Plano de testes de usabilidade do D4](D4_PLANO_TESTES_USABILIDADE.md)
 - [Instrumento de feedback do D4](D4_INSTRUMENTO_FEEDBACK.md)
 - [Análise de feedback do D4](D4_FEEDBACK_CLIENTE.md)
