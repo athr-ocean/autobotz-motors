@@ -15,8 +15,8 @@ O professor apresenta a **Lei de Responsabilidade Algorítmica como parte do cen
 
 Dois limites desta versão:
 
-- O texto integral do enunciado não está no repositório. Não há, portanto, artigos, prazos ou penalidades da lei hipotética citados aqui. Os requisitos usados como régua de análise são os indicados pela coordenação: registrar responsável, regra aplicada, versão, motivo, resultado e vínculo com a operação, além de permitir contestação e revisão humana. **Pendência:** mapear cada requisito ao artigo correspondente do enunciado antes da entrega final.
-- A coordenação informou que o enunciado destaca os módulos **fiscal** e **de crédito**. Eles são tratados na seção 5.
+- O enunciado da terceira rodada descreve a Lei de Responsabilidade Algorítmica como uma situação hipotética, sem apresentar artigos, prazos ou penalidades. A análise usa os objetivos indicados pelo professor — transparência e rastreabilidade das decisões, sobretudo nas áreas fiscal e de crédito — para propor registros auditáveis e política de explicabilidade. Não há artigos numerados a mapear.
+- O enunciado destaca os módulos **fiscal** e **de crédito**. Eles são tratados na seção 5.
 
 A LGPD e outras normas aparecem apenas como **referências complementares** (seção 2). Este documento é uma análise acadêmica: não é parecer jurídico e **não afirma conformidade regulatória do AutoBotz**.
 
@@ -251,10 +251,10 @@ grep -n "ACESSAR_COMPRAS" src/autobotz/ui/swing/AppFrame.java
 grep -rniE "fiscal|imposto|tribut|credito|financiamento|score" src schema.sql db
 ```
 
-Pendências conhecidas:
+Questões registradas para eventual continuidade:
 
-1. Mapear os requisitos da seção 1 aos artigos do enunciado completo.
-2. Alinhar com o Alexandre a correção da identidade do aprovador (seção 6).
-3. Abrir os links 1 e 4 da seção 2 antes da entrega final.
-4. Confirmar que o commit citado no cabeçalho é o mesmo do PR após a integração de outras mudanças.
-5. Para uso comercial, revisão por profissional jurídico e pelo responsável por proteção de dados.
+1. A identidade do aprovador de compras ainda precisa ser vinculada à sessão autenticada caso a proposta de auditoria seja implementada no produto (seção 6).
+2. As referências externas devem ser conferidas na data de utilização, pois a tramitação de projetos de lei pode mudar.
+3. Uma implantação comercial exigiria revisão jurídica e avaliação do responsável pela proteção de dados.
+
+O commit indicado no cabeçalho é a referência histórica usada na análise, não a versão final do repositório.
