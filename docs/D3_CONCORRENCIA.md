@@ -21,7 +21,7 @@ O enunciado define apenas que o concorrente usa IA generativa para criar relató
 
 ## 3. O AutoBotz hoje
 
-Descrição baseada no código atual, conforme a revisão do grupo. O README do repositório está desatualizado (fala em console e arquivos `.txt`): o sistema tem interface em Java Swing e usa banco de dados.
+O AutoBotz utiliza Java Swing na operação principal e MariaDB para persistência. Também possui um portal web local voltado ao treinamento. Os recursos abaixo foram conferidos na versão atual do projeto.
 
 Módulos e recursos que já existem:
 
@@ -47,17 +47,17 @@ Ainda faltam, segundo o grupo: gráficos gerenciais mais avançados, filtros com
 | Perguntas em linguagem natural | Sim | Não existe | Lacuna |
 | Compras, assinaturas, oficina e CRM | Não definido no enunciado | Módulos existentes | Ponto forte do AutoBotz a destacar |
 | Auditoria e segurança | Não definido no enunciado | Módulos existentes | Ponto forte; importante ao enviar dados a uma IA externa |
-| Interface | Web | Java Swing (desktop) | Diferença: só roda como aplicativo no computador |
+| Interface | Web (hipótese) | ERP operacional em Java Swing; portal web para treinamento | A operação principal continua voltada ao desktop |
 
 ## 5. Cenários de uso
 
-Situações reais de uma concessionária, respondidas pelos dois sistemas. A coluna do AutoIA Pro é simulada. A do AutoBotz segue a revisão do código feita pelo grupo.
+Exemplos de situações de uma concessionária, comparados nos dois sistemas. A coluna do AutoIA Pro é simulada. A do AutoBotz segue a revisão do código feita pelo grupo.
 
 | Situação | AutoIA Pro (simulado) | AutoBotz hoje | Conclusão |
 | --- | --- | --- | --- |
 | "Quanto faturamos no mês passado?" | Responde com o total e um gráfico | Relatório de faturamento por período existe; sem gráfico gerencial avançado | Parcial |
 | "Qual marca ou modelo vende mais?" | Mostra ranking com gráfico | Relatório de vendas por marca e modelo existe | Coberto; falta o gráfico |
-| "Quais veículos estão parados no estoque?" | Lista por tempo em estoque | Relatório de estoque existe; filtro por tempo parado **\[confirmar\]** | A confirmar |
+| "Quais veículos estão parados no estoque?" | Lista por tempo em estoque | Relatório de estoque existe; filtro por tempo em estoque não demonstrado no relatório atual | A confirmar |
 | "Quero um resumo para a reunião de segunda" | Gera texto com os destaques da semana | Não existe | Lacuna |
 
 ## 6. Lacunas do AutoBotz
@@ -66,7 +66,7 @@ Situações reais de uma concessionária, respondidas pelos dois sistemas. A col
 2. **Filtros completos:** as consultas existem, mas não cobrem todas as combinações (período, marca, cliente, status).
 3. **Sem resumo automático em texto:** os números aparecem, mas ninguém os interpreta.
 4. **Sem perguntas em linguagem natural:** o gestor precisa navegar até o relatório certo.
-5. **Interface só desktop:** o sistema roda como aplicativo no computador, sem acesso pelo navegador.
+5. **Operação principal no desktop:** os módulos operacionais são acessados pelo Swing; o portal web existente atende ao treinamento, não substitui as telas de gestão.
 
 ## 7. Melhorias propostas
 
