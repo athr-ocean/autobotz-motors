@@ -2,169 +2,119 @@
 
 **Projeto:** AutoBotz Motors — Equipe B  
 **Responsável pela proposta:** João  
-**Versão:** 1.0 — 17 de novembro de 2026  
-**Status:** proposta de política para revisão e aprovação da equipe; não representa certificação jurídica ou funcional.
+**Versão:** 1.1 — 19 de novembro de 2026  
+**Status:** proposta para revisão e aprovação da equipe. Não é certificação jurídica nem declaração de conformidade com a lei hipotética do desafio.  
+**Código de referência:** `main`, commit `b00bc55c267edaa893f39dee9a850fc8f0abc46f`.
 
-## 1. Objetivo
+Os códigos R1–R9 (regras automáticas) e H1–H3 (decisões de usuários) vêm da [análise do D1](D1_RESPONSABILIDADE_ALGORITMICA.md), que também descreve o modelo de registro de auditoria. Este documento trata do que a pessoa afetada deve receber e de como contestar.
 
-Definir como o AutoBotz Motors deverá informar, registrar e permitir a contestação de resultados produzidos por regras automatizadas ou apoiados por sistemas computacionais. A política procura tornar compreensível o motivo de um resultado sem expor dados pessoais, credenciais, segredos comerciais ou detalhes que comprometam a segurança do ERP.
+## 1. Objetivo e abrangência
 
-## 2. Abrangência
+Definir como o AutoBotz deve informar o resultado de uma decisão automatizada, explicar seus motivos e permitir contestação e revisão, sem expor dados pessoais, credenciais, segredos comerciais ou detalhes que enfraqueçam a segurança.
 
-Aplica-se a:
+Aplica-se a regras automáticas que alterem valores, disponibilidade, acesso ou atendimento (R1–R9), a decisões de usuários condicionadas por regras do sistema (H1–H3) e a qualquer módulo ou integração que venha a ser adicionado. A política distingue regra determinística, controle de acesso, decisão humana assistida e sistema de IA: um `if/else` ou um cálculo não deve ser descrito como inteligência artificial.
 
-- regras automáticas que alterem valores, elegibilidade, disponibilidade, acesso ou atendimento;
-- sistemas que recomendem ou classifiquem pessoas, clientes, funcionários, fornecedores ou operações;
-- decisões humanas cuja execução seja condicionada por regras automatizadas do ERP;
-- novas integrações ou modelos de terceiros que venham a ser adicionados ao AutoBotz.
+## 2. Princípios
 
-A política diferencia regra de negócio determinística, controle de acesso, decisão humana assistida e sistema de IA. Não se deve descrever uma simples condição `if/else`, cálculo ou validação como inteligência artificial.
-
-## 3. Princípios
-
-1. **Transparência:** a pessoa afetada deve saber quando um resultado relevante é produzido ou apoiado por automação.
-2. **Explicação compreensível:** informar o resultado e seus motivos em linguagem simples, com os principais fatores efetivamente utilizados.
-3. **Proporcionalidade:** quanto maior o possível impacto sobre direitos ou interesses, mais completa deve ser a explicação e mais forte a revisão.
-4. **Não discriminação:** não usar critérios proibidos, abusivos ou substitutos injustificados; investigar resultados desproporcionais.
-5. **Qualidade dos dados:** permitir correção de dados inexatos e reavaliar o resultado quando a correção alterar os critérios de entrada.
-6. **Supervisão responsável:** a revisão humana deve ser feita por pessoa capacitada e autorizada a alterar a decisão.
+1. **Transparência:** a pessoa afetada sabe quando um resultado relevante foi produzido ou condicionado por automação.
+2. **Explicação compreensível:** resultado e motivos em linguagem simples, com os fatores realmente usados.
+3. **Proporcionalidade:** quanto maior o impacto possível, mais completa a explicação e mais forte a revisão.
+4. **Não discriminação:** não usar critérios proibidos ou substitutos injustificados.
+5. **Qualidade dos dados:** permitir corrigir dado inexato e refazer o resultado.
+6. **Supervisão responsável:** o revisor humano pode alterar a decisão.
 7. **Minimização e segurança:** não repetir dados pessoais desnecessários em mensagens ou logs.
-8. **Rastreabilidade:** cada decisão auditável deve indicar a versão da regra, o motivo e a operação relacionada. A identidade do responsável humano deve vir da sessão autenticada, e não de um nome digitado livremente em formulário.
+8. **Rastreabilidade:** cada decisão auditável indica regra, versão, motivo e operação. O responsável humano vem da **sessão autenticada**, nunca de nome digitado em formulário.
+
+## 3. O que funciona hoje e o que é proposta
+
+Esta tabela evita apresentar como pronto o que ainda é proposta.
+
+| Item | Hoje no ERP (commit `b00bc55`) | Proposta |
+|---|---|---|
+| Mensagem de bloqueio de login com tempo restante (R3) | **Existe** (`login.bloqueado`, `gui.login_blocked`) | Informar que o motivo é o número de tentativas e orientar o contato com o administrador |
+| Mensagem de veículo indisponível (R2) | **Existe**, texto genérico ("Veiculo nao esta disponivel.") | Mostrar o status usado e como corrigi-lo |
+| Detalhe da garantia (R1) | **Parcial**: o item aparece com valor zerado e a marca "garantia" | Mostrar dias desde a venda, prazo e motivo |
+| Registro da decisão com regra, versão e motivo | **Não existe** (`logs_auditoria` sem uso pelos serviços) | Registro estruturado (análise, seção 4) |
+| Identidade do aprovador de compras pela sessão (H1) | **Não funciona como deveria**: campo de texto editável | Correção descrita na análise, seção 6, dependente do responsável pelo módulo |
+| Texto de transparência para os usuários do ERP | **Não existe** | Seção 9 deste documento |
+| Solicitação de explicação pela pessoa afetada | **Não existe** | Seção 7 |
+| Contestação e revisão humana | **Não existe** | Seção 7 |
+| Prazos de atendimento e revisão | **Não existem** | Sugestão interna da equipe (seção 7) |
 
 ## 4. Informação antes e durante o uso
 
-Quando uma automação tiver potencial de afetar interesses de uma pessoa, a interface, contrato, aviso ou material de suporte deverá informar:
+Quando uma automação puder afetar interesses de uma pessoa, a interface, o aviso ou o material de suporte deve informar: que há regra automática no fluxo; a finalidade; as categorias de dados usadas; se o resultado é automático, uma recomendação ou uma decisão humana apoiada pelo sistema; e como pedir explicação, correção ou revisão. A informação deve estar em português claro e nos demais idiomas do ERP (EN-US), e não apenas em documento técnico.
 
-- que existe uma regra ou sistema automatizado no fluxo;
-- a finalidade da automação;
-- as categorias de dados relevantes utilizadas;
-- se o resultado é automático, recomendação ou decisão humana apoiada pelo sistema;
-- como consultar uma explicação, corrigir dados ou solicitar revisão.
+## 5. Conteúdo mínimo da explicação
 
-A informação deverá ser fornecida em português claro e, quando aplicável ao público atendido, também nos demais idiomas suportados pelo ERP. Não basta colocar a informação apenas em um documento técnico inacessível ao usuário final.
-
-## 5. Conteúdo mínimo da explicação individual
-
-Quando solicitada ou apresentada em uma decisão relevante, a explicação deverá conter:
-
-1. **Resultado:** o que foi permitido, negado, calculado, recomendado ou alterado.
+1. **Resultado:** o que foi permitido, negado, calculado ou alterado.
 2. **Motivo principal:** a regra ou condição que levou ao resultado.
-3. **Dados considerados:** as categorias de dados e os valores pertinentes, com mascaramento quando necessário.
-4. **Critério e versão:** regra, limite ou versão aplicada, quando isso for útil para compreender o caso.
-5. **Limitações:** informação sobre dados ausentes, incerteza ou exceções que possam alterar o resultado.
-6. **Próxima ação:** o que a pessoa pode corrigir, apresentar ou solicitar.
-7. **Revisão:** canal e procedimento para contestar, inclusive revisão humana quando aplicável.
+3. **Dados considerados:** categorias e valores pertinentes, com mascaramento quando necessário.
+4. **Regra e versão:** quando ajudar a compreender o caso.
+5. **Limitações:** dados ausentes ou exceções que possam mudar o resultado.
+6. **Próxima ação:** o que a pessoa pode corrigir ou solicitar.
+7. **Revisão:** canal e procedimento, quando existirem.
 
-A explicação deve representar o que realmente ocorreu. Não pode inventar uma justificativa posterior nem afirmar que uma pessoa revisou uma decisão quando isso não aconteceu.
+A explicação deve refletir o que realmente ocorreu. Não pode ser inventada depois nem afirmar que uma pessoa revisou algo que não foi revisado.
 
-## 6. Exemplos no AutoBotz Motors
+## 6. Exemplos de mensagens propostas
 
-### 6.1 Regra de garantia da Oficina
+As mensagens abaixo são **sugestões** e ainda não estão nos arquivos `messages_*.properties`.
 
-**Exemplo de mensagem ao cliente:**
+**R1 — Garantia da revisão.** "A revisão foi coberta pela garantia porque a venda ocorreu há 120 dias e o prazo desta regra é de 365 dias. Se a data da venda estiver incorreta, peça a conferência do registro."
 
-> O serviço de revisão foi considerado coberto pela garantia porque a venda registrada ocorreu há 120 dias e o prazo configurado para esta regra é de 365 dias. A cobertura depende da data e dos dados da venda associados ao veículo. Caso essas informações estejam incorretas, solicite a conferência do registro.
+**R2 — Veículo indisponível.** "A venda não foi registrada porque o veículo está com o status [status]. Confira o cadastro do veículo."
 
-A interface deverá mostrar os dados relevantes da operação, sem revelar informações pessoais de terceiros. A trilha de auditoria deverá guardar a versão da regra, a quantidade de dias calculada, a categoria do serviço, o resultado e os códigos de motivo — não o cadastro completo do cliente.
+**R3 — Bloqueio de login.** "Por segurança, este usuário foi bloqueado temporariamente após 5 tentativas sem sucesso. Tente de novo em [tempo]. Se não foi você, avise o administrador." Não informar se o nome de usuário existe.
 
-### 6.2 Veículo indisponível para venda
+**R7 — Pagamento simulado (operador).** Quando liberado: "Liberado porque a nota fiscal foi marcada como validada, o vencimento chegou e o contrato não está encerrado." Quando não liberado: listar apenas as condições não atendidas entre as quatro que a regra exige.
 
-**Exemplo de mensagem ao operador:**
+**H1 — Compra aprovada.** "Solicitação aprovada por [usuário da sessão]. O sistema verificou o saldo e a situação pendente; a aprovação foi decisão do usuário." Na rejeição, mostrar o motivo informado. O relatório não deve atribuir ao algoritmo uma escolha feita por uma pessoa.
 
-> A venda não foi registrada porque o veículo selecionado não está marcado como disponível. Confira o status do veículo e atualize o cadastro, caso esteja incorreto.
+**R9 — Acesso negado.** "Seu perfil não tem permissão para esta ação. Fale com o administrador se acredita que deveria ter."
 
-O sistema deve apresentar o status utilizado na validação e permitir que um usuário autorizado corrija o cadastro, mantendo o histórico da mudança.
+## 7. Solicitação de explicação, contestação e revisão (proposta)
 
-### 6.3 Aprovação de solicitação de compra
+**Nada deste fluxo existe no ERP.** É uma proposta de funcionamento.
 
-**Exemplo de mensagem interna:**
+A pessoa afetada ou o usuário autorizado deveria poder: identificar a operação questionada; informar o motivo; corrigir ou apresentar evidência de dado inexato; receber confirmação do recebimento; e obter resposta fundamentada, com o resultado da revisão registrado e ligado à decisão original, sem apagar o histórico.
 
-> A solicitação foi aprovada por [usuário autorizado] após a validação do saldo disponível e da situação pendente da solicitação. A aprovação foi uma decisão do usuário; o sistema realizou as verificações e a gravação transacional.
+Para decisões de impacto econômico relevante, a revisão deveria ser feita por pessoa que possa **manter, corrigir ou reverter** o resultado, e que não seja quem operou a decisão contestada. Falhas sistêmicas vão para a equipe técnica.
 
-Em caso de rejeição, registrar o motivo informado pelo aprovador. A interface e os relatórios não devem atribuir ao algoritmo uma escolha que foi feita por uma pessoa.
-
-### 6.4 Negação de permissão (RBAC)
-
-**Exemplo de mensagem ao usuário:**
-
-> Seu perfil atual não possui permissão para acessar este módulo. Solicite ao administrador responsável a verificação do seu perfil ou da matriz de permissões.
-
-A explicação deve apontar a permissão ausente sem revelar dados de outros usuários, credenciais ou detalhes internos desnecessários.
-
-## 7. Contestação e revisão
-
-O ERP deverá oferecer um canal acessível para que a pessoa afetada ou o usuário autorizado:
-
-- identifique a operação ou decisão questionada;
-- informe o motivo da contestação;
-- corrija ou apresente evidência sobre dados inexatos;
-- receba confirmação do recebimento e orientação sobre as próximas etapas;
-- obtenha uma resposta fundamentada e o registro do resultado da revisão.
-
-Para decisões com impacto econômico relevante ou potencial de restringir direitos, recomenda-se revisão humana por pessoa que não esteja limitada a confirmar a saída automática. O revisor deverá poder manter, corrigir ou reverter o resultado, registrar a justificativa e encaminhar falhas sistêmicas à equipe técnica.
-
-**Prazo interno proposto:** confirmar o recebimento em até 2 dias úteis e concluir a análise em até 15 dias úteis, salvo necessidade justificada de prazo adicional, comunicada à pessoa solicitante. Esses prazos são uma meta interna sugerida para o protótipo; não são apresentados como prazo legal geral. Prazos legais ou regulamentares aplicáveis sempre prevalecem.
+**Prazos sugeridos pela equipe (não são obrigações legais).** Confirmar o recebimento em até 2 dias úteis e concluir a análise em até 15 dias úteis, com prazo adicional justificado e comunicado. Foram escolhidos como meta interna para o protótipo, sem base em norma. Prazos legais ou regulamentares prevalecem sempre. Um exemplo: o regulamento do Cadastro Positivo consultado (art. 19) fixa sete dias úteis para o resultado da revisão de decisão exclusivamente automatizada baseada em consulta a esse cadastro; o ERP não tem módulo de crédito, mas o exemplo mostra que um módulo desse tipo teria prazo próprio, a conferir no texto vigente.
 
 ## 8. Limites de divulgação
 
-A explicação deverá ser suficiente para compreender o resultado, mas não precisa revelar:
+A explicação deve bastar para a pessoa entender o resultado, mas não precisa revelar: código-fonte, credenciais, chaves ou tokens; dados pessoais de terceiros; parâmetros cuja divulgação permita fraude; segredos comerciais protegidos por lei. Segredo comercial não deve servir como resposta automática para negar toda explicação; se houver conflito entre transparência, proteção de dados e segredo, a decisão exige revisão jurídica.
 
-- código-fonte integral, credenciais, chaves, tokens ou segredos de segurança;
-- dados pessoais de terceiros;
-- parâmetros cuja divulgação permita fraude ou exploração do sistema;
-- segredos comerciais e industriais protegidos por lei.
+## 9. Texto curto de transparência (modelo)
 
-A existência de segredo comercial não deve servir como resposta automática para negar toda explicação. A equipe deverá fornecer os critérios e procedimentos em nível adequado, com revisão jurídica quando houver conflito entre transparência, proteção de dados e segredo empresarial.
+> **Sobre decisões automatizadas no AutoBotz Motors**  
+> Alguns fluxos do ERP usam regras automáticas para validar operações e calcular resultados, como a disponibilidade de veículos e a cobertura de garantia de revisões. Essas regras têm finalidade operacional e seguem critérios definidos pela equipe. Quando um resultado puder afetar seus interesses, você poderá consultar os motivos, pedir correção de dados e solicitar revisão pelo canal indicado pela organização.
 
-## 9. Registro e proteção das explicações
+O modelo deve ser ajustado aos fluxos ativos e aos canais reais antes de ser publicado. Enquanto o canal da seção 7 não existir, o texto não deve prometer revisão.
 
-Toda decisão classificada para auditoria deverá produzir um registro com identificador da regra, versão, data/hora, módulo, resultado, código de motivo e referência da operação. Quando houver explicação exibida ao usuário, deve ser possível recuperar a versão efetivamente apresentada.
+## 10. Registro das explicações
 
-Os registros deverão:
+Cada decisão auditável deve gerar registro com regra, versão, data e hora, módulo, resultado, código de motivo e referência da operação, mais a versão da explicação exibida. Os campos e os exemplos completos (garantia e compras) estão na [análise, seção 4](D1_RESPONSABILIDADE_ALGORITMICA.md). Regras gerais: referência pseudonimizada ao titular quando possível; sem senhas, tokens, códigos MFA, chaves ou cópia de cadastros; edição e exclusão proibidas a usuários comuns; consulta e exportação restritas; retenção justificada pela finalidade e pela obrigação aplicável, a definir pela equipe.
 
-- usar referência pseudonimizada ao titular, sempre que possível;
-- limitar a entrada a dados necessários para explicar a decisão;
-- impedir edição e exclusão por usuários comuns;
-- ter acesso e exportação restritos;
-- possuir prazo de retenção justificado pela finalidade e pelas obrigações aplicáveis;
-- permitir relacionar a decisão original à revisão, sem apagar o histórico.
-
-Não registrar senhas, tokens, códigos MFA, chaves criptográficas ou cópias integrais de cadastros pessoais em mensagens de explicação ou detalhes livres de auditoria.
-
-## 10. Responsabilidades
+## 11. Responsabilidades
 
 | Papel | Responsabilidade |
 |---|---|
-| Responsável de negócio pelo módulo | Definir a finalidade da regra, confirmar os critérios e aprovar o texto da explicação. |
-| Desenvolvimento | Versionar regras, manter logs estruturados, executar testes e corrigir falhas. Garantir que regras de negócio usem identificadores/categorias estáveis e que o ator venha da sessão autenticada. |
-| Segurança | Controlar acesso aos registros, proteger integridade e tratar incidentes. |
-| Encarregado/responsável por privacidade | Avaliar direitos dos titulares, minimização, retenção e atendimento a pedidos. |
-| Revisor humano designado | Analisar contestação, verificar evidências e registrar decisão fundamentada. |
-| Auditoria/gestão | Acompanhar indicadores, exceções, reclamações e correções. |
+| Responsável de negócio do módulo | Definir finalidade e critérios da regra e aprovar o texto da explicação |
+| Desenvolvimento | Versionar regras, usar categorias estáveis, gravar o responsável a partir da sessão e testar |
+| Segurança | Controlar acesso aos registros e proteger a integridade |
+| Responsável por privacidade | Avaliar direitos dos titulares, minimização e retenção |
+| Revisor humano designado | Analisar contestações e registrar decisão fundamentada |
+| Auditoria e gestão | Acompanhar indicadores, exceções e correções |
 
-Em um projeto acadêmico, uma pessoa pode acumular mais de um papel, desde que isso seja declarado e que a revisão de decisões relevantes não seja tratada como mera confirmação automática.
+Em um projeto acadêmico, uma pessoa pode acumular papéis, desde que declare isso e que a revisão de decisões relevantes não seja mera confirmação automática.
 
-## 11. Monitoramento e atualização
+## 12. Revisão da política
 
-A política deverá ser revisada:
-
-- antes da ativação de nova decisão automatizada;
-- quando a regra, seus dados de entrada ou sua finalidade forem alterados;
-- quando houver novo fornecedor, API ou modelo de terceiros;
-- após incidente, reclamação recorrente ou indício de resultado discriminatório;
-- ao menos uma vez por ano, como controle interno proposto.
-
-Indicadores recomendados: quantidade de decisões automatizadas por tipo, contestações recebidas, tempo de revisão, percentual de resultados alterados, erros identificados, versões de regra em uso e incidentes relacionados. Indicadores por grupos de pessoas só devem ser produzidos quando houver base legal, necessidade e proteção adequada dos dados utilizados.
-
-## 12. Texto curto de transparência para os usuários do ERP
-
-> **Sobre decisões automatizadas no AutoBotz Motors**  
-> Alguns fluxos do ERP utilizam regras automáticas para validar operações e calcular resultados, como disponibilidade de veículos e cobertura de garantia. Essas regras têm finalidade operacional e seguem critérios definidos pela equipe responsável. Quando um resultado puder afetar seus interesses, você poderá consultar os motivos relevantes, solicitar correção de dados e pedir revisão pelo canal de atendimento indicado pela organização. O AutoBotz Motors não deve utilizar dados pessoais para produzir decisões discriminatórias ou sem finalidade informada.
-
-Este texto é um modelo e deve ser ajustado aos fluxos efetivamente ativados, aos canais reais de atendimento e à configuração de cada organização cliente antes de ser publicado.
+Revisar antes de ativar nova decisão automatizada; quando mudarem regra, dados de entrada ou finalidade; quando entrar integração ou modelo de terceiros; após incidente, reclamação recorrente ou indício de resultado discriminatório; e ao menos uma vez por ano, como controle interno proposto. Indicadores sugeridos: decisões por tipo, contestações recebidas, tempo de revisão, percentual de resultados alterados, erros e versões de regra em uso. Indicadores por grupo de pessoas só com base legal, necessidade e proteção adequada.
 
 ## 13. Aprovação e vigência
 
-Esta é uma proposta para discussão e aprovação pela equipe do AutoBotz Motors. Antes de se tornar política operacional, deverá receber responsável formal, canal de contestação real, prazo aprovado, definição de retenção e validação jurídica conforme o contexto de uso.
-
-**Documento relacionado:** [`D1_RESPONSABILIDADE_ALGORITMICA.md`](D1_RESPONSABILIDADE_ALGORITMICA.md).
+Esta é uma proposta para discussão. Antes de virar política operacional, precisa de responsável formal, canal real de contestação, prazos aprovados, definição de retenção e validação jurídica conforme o contexto de uso.

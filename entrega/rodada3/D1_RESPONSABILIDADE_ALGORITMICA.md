@@ -3,230 +3,258 @@
 **Projeto:** AutoBotz Motors — Equipe B  
 **Responsável:** João  
 **Rodada:** 3ª rodada — novembro de 2026  
-**Tipo de entrega:** análise regulatória, avaliação de impacto no ERP e proposta de governança, auditoria e explicabilidade.
+**Versão:** 1.1 — 19 de novembro de 2026  
+**Tipo de entrega:** análise (A) — enquadramento regulatório, impacto no ERP, proposta de registros auditáveis e política de explicabilidade.  
+**Código analisado:** branch `main`, commit `b00bc55c267edaa893f39dee9a850fc8f0abc46f`. Qualquer integrante confere os mesmos arquivos com `git checkout b00bc55`.
 
-## 1. Objetivo e limite do material recebido
+Documento relacionado: [`D1_POLITICA_EXPLICABILIDADE.md`](D1_POLITICA_EXPLICABILIDADE.md).
 
-Esta entrega analisa como o AutoBotz Motors deve tratar decisões produzidas ou apoiadas por regras automatizadas. O objetivo é permitir que a equipe identifique o que o sistema decide, por que decide, quais dados utiliza, quais pessoas podem ser afetadas e como uma decisão pode ser contestada e revisada.
+## 1. Enquadramento
 
-**Limite documental:** a imagem recebida com a divisão de tarefas identifica a atividade como “Lei de Responsabilidade Algorítmica”, mas não contém o texto integral do enunciado, o número da norma, a jurisdição ou seus artigos. Por isso, este documento não inventa artigos nem atribui obrigações específicas a uma lei cujo texto não foi disponibilizado. A análise utiliza o direito brasileiro vigente e propostas legislativas oficiais relacionadas ao tema. Caso o enunciado completo apresente uma norma fictícia ou uma versão específica de outro país, seus dispositivos deverão ser confrontados com esta análise antes da entrega definitiva.
+O professor apresenta a **Lei de Responsabilidade Algorítmica como parte do cenário hipotético do desafio**. Esta análise parte dessa situação: pergunta o que uma lei desse tipo mudaria no AutoBotz, sem procurar uma lei real equivalente.
 
-## 2. Identificação da referência regulatória
+Dois limites desta versão:
 
-### 2.1 Brasil: LGPD como base jurídica vigente
+- O texto integral do enunciado não está no repositório. Não há, portanto, artigos, prazos ou penalidades da lei hipotética citados aqui. Os requisitos usados como régua de análise são os indicados pela coordenação: registrar responsável, regra aplicada, versão, motivo, resultado e vínculo com a operação, além de permitir contestação e revisão humana. **Pendência:** mapear cada requisito ao artigo correspondente do enunciado antes da entrega final.
+- A coordenação informou que o enunciado destaca os módulos **fiscal** e **de crédito**. Eles são tratados na seção 5.
 
-A Lei nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais — LGPD) é a principal referência brasileira já vigente para decisões automatizadas que utilizam dados pessoais.
+A LGPD e outras normas aparecem apenas como **referências complementares** (seção 2). Este documento é uma análise acadêmica: não é parecer jurídico e **não afirma conformidade regulatória do AutoBotz**.
 
-O art. 6º exige que o tratamento observe, entre outros, os princípios de finalidade, adequação, necessidade, qualidade dos dados, transparência, segurança, prevenção, não discriminação e responsabilização/prestação de contas. Para o AutoBotz, isso significa que uma regra automatizada não deve usar dados sem finalidade definida, nem produzir resultados sem possibilidade de demonstrar como a organização controla seus riscos.
+## 2. Referências complementares e seu status
 
-O art. 20 garante ao titular o direito de solicitar revisão de decisões tomadas unicamente com base em tratamento automatizado de dados pessoais que afetem seus interesses. O dispositivo também exige, quando solicitado, informações claras e adequadas sobre os critérios e procedimentos usados. Se essas informações não forem fornecidas sob justificativa de segredo comercial ou industrial, a ANPD poderá auditar aspectos discriminatórios do tratamento automatizado.
+Fontes consultadas em 19/11/2026. A coluna "Status" separa norma vigente de projeto.
 
-Há uma distinção importante: o texto vigente do art. 20 assegura o direito de solicitar revisão, mas não deve ser descrito como se determinasse, em todos os casos, que a revisão seja necessariamente feita por uma pessoa. A revisão humana é recomendada nesta proposta como salvaguarda de governança, sobretudo para decisões de maior impacto.
+| Referência | Status | Uso neste trabalho |
+|---|---|---|
+| Lei de Responsabilidade Algorítmica (enunciado) | **Cenário hipotético do desafio**; não é norma vigente nem projeto real identificado | Referência principal do D1 |
+| Lei nº 13.709/2018 (LGPD), arts. 6º e 20 | **Vigente** | Princípios de tratamento (art. 6º) e direito de solicitar revisão de decisão tomada unicamente por tratamento automatizado de dados pessoais, com informações claras sobre critérios e procedimentos (art. 20). O texto vigente não exige que a revisão seja feita por pessoa natural; essa exigência foi vetada em 2019. A revisão humana é adotada aqui como boa prática |
+| Lei nº 12.414/2011 (Cadastro Positivo), art. 5º, incisos IV e VI | **Vigente** | Só relevante se houver análise de crédito com consulta a cadastro positivo: conhecer os principais elementos e critérios da análise de risco e solicitar revisão de decisão exclusivamente automatizada. Não se aplica ao ERP atual, que não tem módulo de crédito |
+| PL nº 2.338/2023 (marco legal de IA) | **Projeto de lei.** Aprovado pelo Senado, em análise em comissão especial da Câmara dos Deputados | Comparação de governança (explicação, contestação, avaliação de impacto para alto risco). Nenhuma de suas obrigações é tratada como lei em vigor |
+| Algorithmic Accountability Act of 2025 (S. 2164 no Senado e H.R. 5511 na Câmara dos EUA) | **Projetos de lei dos EUA**, em comissão, sem aprovação | Comparação sobre avaliação de impacto de sistemas automatizados. Não é a lei do enunciado |
+| Regulamento (UE) 2024/1689 (AI Act) | **Em vigor na União Europeia**, com aplicação escalonada. As obrigações de sistemas de alto risco foram adiadas pela alteração conhecida como Digital Omnibus: 2/12/2027 para os sistemas do Anexo III e 2/8/2028 para os embutidos em produtos regulados | Comparação: crédito de pessoas naturais é um dos usos classificados como alto risco. Incidência sobre o AutoBotz exigiria contexto territorial e comercial na UE |
 
-A LGPD não transforma toda validação de software em decisão automatizada sujeita automaticamente ao art. 20. É necessário avaliar se há tratamento de dados pessoais, se a decisão é tomada unicamente com base nesse tratamento e se afeta interesses do titular. Mesmo quando o art. 20 não incidir, os princípios do art. 6º continuam relevantes para o tratamento de dados pessoais.
+Links:
 
-### 2.2 Brasil: PL nº 2.338/2023 — proposta de marco legal de IA
+1. LGPD: https://www2.camara.leg.br/legin/fed/lei/2018/lei-13709-14-agosto-2018-787077-normaatualizada-pl.html
+2. PL 2.338/2023, tramitação no Senado: https://www25.senado.leg.br/web/atividade/materias/-/materia/157233
+3. S. 2164 (GovInfo): https://www.govinfo.gov/app/details/BILLS-119s2164is
+4. AI Act: https://eur-lex.europa.eu/eli/reg/2024/1689
 
-O PL nº 2.338/2023, conhecido como proposta de Marco Legal da Inteligência Artificial, não deve ser apresentado como lei já vigente. Na consulta realizada em **17/11/2026**, a ficha oficial da Câmara dos Deputados ainda indicava a proposição aguardando parecer do relator na Comissão Especial sobre Inteligência Artificial.
+Os links 2 e 3 foram localizados por busca em 19/11/2026; os links 1 e 4 vêm da versão anterior e devem ser abertos antes da entrega final. O status de projetos muda; a data da consulta acompanha esta tabela.
 
-O texto legislativo em discussão é relevante como referência de governança. A versão final aprovada em comissão consultada para esta análise prevê informação sobre a interação com sistemas de IA e não discriminação; para sistemas de alto risco, prevê explicação, contestação e revisão humana. Também prevê avaliação de impacto algorítmico quando o sistema ou seu uso for classificado como de alto risco. Esses pontos são tratados aqui como **conteúdo de proposta legislativa**, e não como obrigação já incorporada à legislação brasileira vigente.
+## 3. O que o ERP decide e o que as pessoas decidem
 
-### 2.3 Possível referência estrangeira: Algorithmic Accountability Act dos Estados Unidos
+A leitura do código no commit `b00bc55` não encontrou modelo de aprendizado de máquina, IA generativa, classificador treinado ou perfilamento de clientes. Tudo o que existe são **regras determinísticas**, **controles de acesso** e **decisões de usuários apoiadas por validações**. Regra automática não é sinônimo de IA, e a documentação deve manter essa distinção.
 
-O título traduzido “Lei de Responsabilidade Algorítmica” também pode se referir ao *Algorithmic Accountability Act of 2025* (S. 2164), dos Estados Unidos. O registro oficial do Government Publishing Office identifica a medida como projeto apresentado no Senado em 25/06/2025, lido duas vezes e encaminhado à Comissão de Comércio, Ciência e Transporte. O registro consultado não a apresenta como lei promulgada.
+### 3.1 Regras automáticas (o sistema decide sozinho)
 
-Se essa for a referência utilizada pelo professor, o trabalho deve descrevê-la como projeto de lei norte-americano e analisar suas propostas de avaliação de impacto de sistemas automatizados, sem afirmar que ela se aplica automaticamente a uma empresa brasileira.
-
-### 2.4 Referência comparativa: Regulamento Europeu de IA
-
-O Regulamento (UE) 2024/1689 adota uma abordagem baseada em níveis de risco. Para sistemas de IA de alto risco, contém requisitos de registro automático de eventos, supervisão humana e conservação de logs sob determinadas condições. É uma referência útil caso o AutoBotz venha a ser oferecido ou utilizado em contexto sujeito ao direito da União Europeia. Sua incidência deve ser verificada pelo contexto territorial e comercial; não se deve importar automaticamente todos os seus prazos e obrigações para a operação brasileira.
-
-## 3. Diagnóstico do AutoBotz Motors
-
-A leitura do snapshot `autobotz-motors-main(10).zip` mostra que a versão atual **não contém modelo de aprendizado de máquina, sistema de IA generativa, classificador treinado ou mecanismo de perfilamento automatizado de clientes**. O que existe são regras de negócio determinísticas, validações de consistência e controles de acesso. Essa distinção deve permanecer explícita na documentação: regra de negócio automatizada não é sinônimo de inteligência artificial.
-
-| Área / arquivo | Comportamento encontrado | Natureza da decisão | Relevância para D1 |
+| Código | Regra | Onde está | Efeito |
 |---|---|---|---|
-| `src/autobotz/service/ServicoService.java` | Calcula se a venda está dentro de 365 dias e concede desconto de mão de obra para serviços cujo nome é identificado como revisão. A identificação atual usa `nomeServico.toLowerCase().contains("revis")`. | Regra determinística que pode alterar o valor cobrado do cliente. | **Prioridade de auditoria:** erro na data da venda ou na classificação do serviço pode gerar cobrança ou desconto incorreto. A classificação por trecho do nome é frágil: renomear ou traduzir o serviço pode alterar a decisão sem alterar a regra de negócio pretendida. |
-| `src/autobotz/dao/VendaDAO.java` | Verifica o estado do veículo e impede registrar venda quando ele não está disponível. | Validação automática de estoque/transação. | Baixo impacto direto sobre direitos pessoais, mas deve ter motivo claro e rastro técnico para diagnóstico. |
-| `src/autobotz/service/ComprasService.java` e `src/autobotz/ui/swing/ComprasPanel.java` | Um usuário autorizado escolhe aprovar ou rejeitar uma solicitação. O serviço verifica permissão, saldo, status e transições válidas antes de gravar a operação. A tela envia `aprovador.getText()` como identificação de quem decidiu. | **Decisão humana apoiada por regras automáticas**, não aprovação autônoma por IA. | A identificação do aprovador vem de um campo de texto editável, não da sessão autenticada. Isso permite atribuição incorreta ou autodeclarada; o ator deve ser obtido da sessão e persistido com seu ID. |
-| `src/autobotz/AutorizacaoService.java` | Permite ou nega operações conforme perfil e permissão. | Controle determinístico de acesso (RBAC). | Registrar negações relevantes e mudanças da matriz de permissões. Não confundir RBAC com perfil algorítmico de cliente. |
-| `src/autobotz/service/AssinaturaService.java` | Calcula métricas agregadas, como churn, para análise de assinaturas. | Indicador analítico agregado. | Não deve ser usado para negar atendimento ou classificar individualmente clientes sem nova avaliação de impacto. |
-| `src/autobotz/service/CRMService.java` | Reúne histórico de compras e total gasto pelo cliente. | Consulta e consolidação de dados. | Não há, no snapshot, recomendação automatizada ou decisão de elegibilidade baseada nesse histórico. |
+| R1 | Cobertura de garantia da revisão | `ServicoService.calcular`, `estaDentroDaGarantia`, `ehRevisao` | Se a venda tem de 0 a 364 dias (`DIAS_GARANTIA = 365`) e o nome do serviço contém `revis`, o valor do item vira desconto. Sem data de venda, não há garantia. O cálculo usa `LocalDate.now()` |
+| R2 | Veículo indisponível para venda | `VendaDAO` (`disponivel`) | Recusa a venda e desfaz a transação quando o status não é "DISPONIVEL" |
+| R3 | Bloqueio de login | `AuthService` | 5 falhas em janela móvel de 10 minutos bloqueiam o nome de usuário |
+| R4 | Segundo fator | `MfaService` | Código de 6 dígitos, validade de 5 minutos, 3 tentativas (MFA demonstrativo) |
+| R5 | Expiração da sessão web | `SessaoWebService` | 30 minutos de ociosidade ou 8 horas de duração |
+| R6 | Alerta de vencimento de contrato | `ContratoService.registrarAlertasVencimento` | Alerta único para contratos não encerrados que vencem em até 10 dias |
+| R7 | Liberação de pagamento simulado | `ContratoService.podeLiberarPagamento` | Libera se a nota fiscal foi marcada como validada, o vencimento chegou, o pagamento ainda não foi liberado e o contrato não está encerrado. A API de simulação só libera se essa regra local também permitir |
+| R8 | Validações da aprovação de compras | `ComprasService.aprovar` | Exige solicitação pendente e saldo suficiente; baixa de saldo, pedido e mudança de status ocorrem em uma única transação |
+| R9 | Controle de acesso por perfil | `AutorizacaoService`, `SessaoWebService.autorizar` | Nega a operação sem a permissão do perfil e registra `ACESSO_NEGADO` na trilha de segurança |
 
-### 3.1 Auditoria existente e lacunas
+Indicadores e simulações (MRR, churn e simulador 30/50/20 em `AssinaturaService`) não decidem sobre uma pessoa; o simulador usa dados fictícios.
 
-O projeto já possui uma base inicial de auditoria:
+### 3.2 Decisões de usuários (a pessoa decide; o sistema valida e grava)
 
-- `schema.sql` cria a tabela `logs_auditoria`, com usuário, ação, entidade, identificador, detalhes e data/hora;
-- `src/autobotz/dao/AuditoriaDAO.java` permite registrar e consultar eventos;
-- `src/autobotz/model/LogAuditoria.java` representa os registros;
-- `src/autobotz/service/RelatorioService.java` e `src/autobotz/ui/RelatorioMenu.java` disponibilizam a consulta de logs recentes.
+| Código | Decisão | Quem pode | O que o sistema faz |
+|---|---|---|---|
+| H1 | Aprovar ou rejeitar solicitação de compra | Perfil com `ACESSAR_COMPRAS` (hoje, ADMIN) | Aplica R8 e grava aprovador, motivo e data (ver 6) |
+| H2 | Marcar a nota fiscal de um contrato como validada | Usuário autorizado em `ContratoService` | Grava um indicador booleano e um evento no ledger; **não confere o documento fiscal** (ver 5.1) |
+| H3 | Alterar o estado de um contrato | Usuário autorizado | Valida a transição permitida e grava evento no ledger |
 
-Entretanto, essa estrutura registra eventos genéricos. Ela não identifica de forma estruturada a regra executada, sua versão, os critérios considerados, a saída calculada, a justificativa padronizada, a versão do aplicativo ou eventual revisão humana. Além disso, no snapshot examinado, `AuditoriaDAO.registrarAcao` não aparece conectado aos fluxos de decisão acima. Portanto, a existência da tabela e da tela de consulta **não comprova que as decisões automatizadas já estejam sendo auditadas**.
+A tela e os relatórios não devem atribuir ao algoritmo uma escolha feita por uma pessoa, nem esconder que a validação automática precedeu a decisão.
 
-Há rastros próprios em outros módulos: por exemplo, a tabela `solicitacoes_compra` mantém aprovador, motivo de rejeição e data da decisão; e `ResultadoOS` mantém detalhes do cálculo da ordem de serviço para apresentação na interface. Esses dados ajudam a explicar o resultado, mas ainda não constituem um registro completo e versionado de decisão automatizada. Além disso, em `ComprasPanel`, o nome do aprovador/rejeitador é enviado a partir de `aprovador.getText()`. Como esse campo é informado na interface, não comprova por si só a identidade da pessoa autenticada. A correção recomendada é obter o identificador do ator diretamente de `SessaoUsuario`/sessão autenticada e usar esse ID no registro da decisão, deixando o nome apenas como dado de exibição quando necessário.
+### 3.3 Fragilidades encontradas
 
-### 3.2 Fragilidades específicas das regras encontradas
+- **R1 depende do texto do nome do serviço.** `nomeServico.toLowerCase().contains("revis")` liga uma regra financeira a um rótulo de tela. Renomear, traduzir ou errar a grafia muda a cobertura sem mudar a regra pretendida. Recomenda-se uma categoria persistida (por exemplo, `categoria_servico = REVISAO`), com migração e testes.
+- **R1 não deixa rastro do cálculo.** `calcularTotalOS` devolve um `ResultadoOS` exibido na tela; não encontrei gravação dos dias contados, do prazo aplicado ou do resultado.
+- **A identidade do aprovador em H1 vem de um campo de texto** (seção 6).
 
-A leitura do método `ehRevisao` em `ServicoService` revelou que a classificação do serviço depende de o nome conter o trecho `revis`. Essa estratégia funciona para os rótulos atuais, mas acopla uma regra financeira a um texto de apresentação. Uma alteração de nome, tradução, abreviação ou erro de digitação pode mudar a cobertura da garantia sem uma alteração intencional da regra. Recomenda-se substituir essa inferência por um campo categórico persistido (por exemplo, `categoria_servico = REVISAO`) ou por um identificador de tipo de serviço controlado, com migração dos registros existentes e testes dos casos de revisão e não revisão. A regra também deve registrar sua versão e os valores efetivamente considerados.
+## 4. Auditoria das decisões
 
-Na aprovação de compras, o serviço aplica controles de autorização e consistência, mas a interface fornece a identificação do aprovador por um campo editável. Para fins de responsabilização, o identificador do usuário deve vir da sessão autenticada, nunca de texto livre digitado na tela. O evento deve distinguir `ator_humano` (usuário que tomou a decisão) e `validacoes_automaticas` (saldo, status e permissões verificadas), mantendo o motivo informado pelo responsável como justificativa separada.
+### 4.1 O que existe hoje e o que falta
 
-## 4. Impactos regulatórios e operacionais no ERP
+| Mecanismo | Evidência no código | Cobre decisões automatizadas? |
+|---|---|---|
+| `logs_auditoria` com usuário, ação, entidade, detalhes e data | `schema.sql`, `AuditoriaDAO` | **Não.** `registrarAcao` não é chamado por nenhum serviço; só há consulta (`listarRecentes`) no relatório e na tela. A tabela existe, mas nada grava nela |
+| `eventos_seguranca` | `AuthService`, `MfaService`, `SessaoWebService` | **Parcialmente**, para R3, R4 e R9 (tipo, sucesso, causa, usuário, origem). A expiração da sessão (R5) não gera evento |
+| Ledger de contratos com hash SHA-256 | `ContratoService`, `LedgerContratoHash` | **Parcialmente**, para R6, R7 e H2/H3. Registra eventos e integridade, mas não o motivo padronizado nem a versão da regra. Uma recusa de liberação (R7) não é registrada |
+| `solicitacoes_compra` com `aprovador`, `motivo_rejeicao`, `decidido_em` | `schema.sql`, `ComprasService` | **Parcialmente**, para H1. O aprovador é texto, não identificador de usuário |
+| `ResultadoOS.detalhes` | `ServicoService` | **Não.** É apresentação em tela; não é gravada |
 
-### 4.1 Dados e qualidade da entrada
+Conclusão: a tabela e a tela de consulta de auditoria **não comprovam** que as decisões estejam auditadas. Hoje há rastros isolados por módulo, nenhum com regra, versão, motivo padronizado e vínculo com a operação ao mesmo tempo.
 
-Uma regra só pode ser explicada e auditada se os dados que a alimentaram forem confiáveis. O ERP deve registrar a origem operacional e a versão dos dados relevantes, controlar correções e evitar que campos desatualizados produzam resultado incorreto. Para o cálculo de garantia, por exemplo, é necessário preservar a referência da venda e a data considerada, sem copiar CPF, telefone ou e-mail para o log.
+### 4.2 Informações que cada registro deve conter
 
-### 4.2 Transparência e explicação
+| Informação | Como seria preenchida | Situação hoje |
+|---|---|---|
+| Responsável | ID do usuário da **sessão autenticada**; para regra automática, o usuário que disparou a operação e o responsável pela regra | Parcial: `logs_auditoria.id_usuario` existe e `AuditoriaDAO.registrarAcao` já lê a sessão, mas não é usado. Em compras, o responsável é texto digitado |
+| Regra aplicada | Código estável (`R1`, `R7`...) | Não existe |
+| Versão da regra | Constante versionada, alterada a cada mudança de limite ou condição | Não existe |
+| Dados utilizados | Resumo mínimo dos valores que entraram na regra, sem CPF, telefone ou e-mail | Não existe (R1); parcial (R7, no campo de detalhes do ledger) |
+| Resultado | Valor padronizado (`COBERTA`, `NAO_COBERTA`, `LIBERADO`...) | Parcial (estados em contratos e compras) |
+| Motivo | Código de motivo e texto curto | Parcial: mensagens de erro e `motivo_rejeicao`; sem padronização |
+| Vínculo com a operação | `resource_type` e `resource_id` (ordem de serviço, venda, solicitação, contrato) | Parcial: `entidade` e `entidade_id` em `logs_auditoria`; nos demais, a própria tabela da operação |
+| Contestação e revisão | Pedido, revisor, desfecho, ligação com a decisão original | **Não existe** |
 
-Uma mensagem genérica como “operação não permitida” pode ser insuficiente para uma decisão que afeta valores ou acesso a um serviço. O sistema deve mostrar a regra aplicada, os dados relevantes utilizados e o motivo objetivo do resultado, em linguagem acessível. A explicação não precisa revelar código-fonte, segredo comercial ou detalhes exploráveis de segurança; deve, porém, ser suficiente para que a pessoa compreenda o resultado e possa contestar dados incorretos.
+Proposta de implementação: um registro estruturado de decisões, relacionável a `logs_auditoria` (tabela nova ou colunas novas, a definir pela equipe), gravado **na mesma transação** da operação quando resultado e trilha não puderem se separar. Evitar duplicar dados pessoais. Um hash isolado não impede adulteração por quem altera dado e hash; o encadeamento do ledger de contratos pode servir de modelo.
 
-### 4.3 Não discriminação e tratamento proporcional
+### 4.3 Exemplo completo A — garantia da revisão (regra automática R1)
 
-O sistema não deve usar atributos sensíveis ou substitutos injustificados para decidir acesso, preço, elegibilidade ou prioridade de atendimento. Quando uma decisão tiver potencial de afetar grupos de pessoas, a equipe deve avaliar a qualidade e a representatividade dos dados, procurar resultados desproporcionais e documentar as limitações do teste. A coleta de dados sensíveis apenas para medir viés não deve ocorrer sem base legal, necessidade e salvaguardas apropriadas.
+Cenário fictício: ordem de serviço 45, com um item "Revisão 10 mil km" de R$ 300,00, para um veículo vendido há 120 dias.
 
-### 4.4 Supervisão, contestação e correção
+| Campo | Valor no exemplo | Existe hoje? |
+|---|---|---|
+| Dados utilizados | data da venda (há 120 dias), nome do serviço, preço e quantidade do item | **Sim**, lidos de `vendas` e `servicos`; **não gravados** como evidência do cálculo |
+| Regra aplicada | `R1 — cobertura de garantia da revisão` | Existe a lógica em `ServicoService`; **não há código de regra** |
+| Versão | `1.0.0` (prazo de 365 dias; serviço identificado por categoria) | **Não existe** |
+| Resultado | `COBERTA`, desconto de R$ 300,00 | Calculado e exibido; **não gravado** |
+| Motivo | `DENTRO_DO_PRAZO` e `SERVICO_E_REVISAO` | Parcial: a tela mostra o item com a marca "garantia"; sem dias nem prazo |
+| Responsável | usuário da sessão que abriu o cálculo; responsável pela regra: a equipe da Oficina | **Não existe** |
+| Vínculo com a operação | `ordem_servico` 45 | O ID existe; o vínculo com um registro de decisão não |
 
-O titular deve dispor de um canal para questionar um resultado, corrigir dados e pedir reavaliação. Para decisões com impacto econômico relevante, a política proposta prevê revisão humana independente da regra original. Quando houver indício de erro sistêmico, a equipe deve poder suspender a regra e encaminhar o processo a um fluxo manual seguro.
-
-### 4.5 Segurança e minimização dos logs
-
-Logs de decisão podem conter dados pessoais e não devem virar uma segunda base de cadastro. O registro deve usar identificadores internos ou pseudonimizados, armazenar apenas os dados estritamente necessários e restringir a consulta por perfil. Senhas, tokens, códigos MFA, CPF completo, dados de pagamento e conteúdo pessoal desnecessário não devem ser registrados nos detalhes da decisão.
-
-## 5. Proposta de auditoria das decisões automatizadas
-
-A proposta aproveita a estrutura atual de `AuditoriaDAO` e `logs_auditoria`, mas recomenda um registro específico para decisões que possa ser correlacionado ao log geral. A tabela genérica pode continuar registrando ações do usuário; o novo registro deverá guardar a evidência técnica da regra que produziu o resultado.
-
-### 5.1 Inventário obrigatório antes de ativar uma regra
-
-Para cada regra ou sistema automatizado, manter uma ficha com:
-
-1. identificador, nome, finalidade e módulo do ERP;
-2. responsável de negócio e responsável técnico;
-3. pessoas ou grupos potencialmente afetados;
-4. entradas utilizadas e origem dos dados;
-5. resultado possível e operação desencadeada;
-6. versão da regra, data de entrada em vigor e histórico de alterações;
-7. classificação de risco, impacto possível e salvaguardas;
-8. existência de revisão humana, contestação e procedimento de contingência.
-
-### 5.2 Campos mínimos de cada evento de decisão
-
-| Campo proposto | Finalidade |
-|---|---|
-| `decision_id` e `correlation_id` | Identificar o evento e relacioná-lo à operação que o originou. |
-| `occurred_at` com fuso/UTC | Reconstruir a sequência temporal sem ambiguidade. |
-| `module` e `decision_type` | Identificar módulo e natureza da decisão (regra automática, validação ou decisão humana assistida). |
-| `rule_id` e `rule_version` | Identificar exatamente a regra executada. |
-| `subject_ref` pseudonimizado | Relacionar o evento ao titular sem repetir dados pessoais diretamente. |
-| `resource_type` e `resource_id` | Identificar a venda, ordem de serviço, solicitação ou registro afetado. |
-| `input_summary` minimizado | Preservar somente os valores necessários para explicar e reproduzir o resultado. |
-| `outcome` e `reason_codes` | Registrar resultado e códigos padronizados de motivo. |
-| `explanation` | Armazenar a explicação em linguagem de negócio apresentada ao usuário. |
-| `actor_id`, `reviewer_id` e `override_reason` | Diferenciar a regra automática da intervenção humana. |
-| `application_version` | Relacionar o resultado à versão do software em execução. |
-
-Não armazenar a cópia integral do cadastro do cliente. Quando for indispensável consultar uma evidência maior, guardar uma referência controlada ao registro original, com autorização e prazo de retenção definidos. Um hash isolado não torna o log anônimo nem garante, sozinho, que ninguém possa adulterar o registro.
-
-### 5.3 Fluxo operacional proposto
-
-1. **Antes da implantação:** inventariar a regra, definir sua finalidade, avaliar riscos e documentar critérios, entradas e resultados esperados.
-2. **Na execução:** gerar um evento de decisão junto com a operação, usando o mesmo identificador de correlação. A gravação do evento deve ocorrer na mesma transação quando a consistência exigir que resultado e trilha não se separem.
-3. **Na explicação:** mostrar ao usuário o motivo objetivo e os fatores relevantes. Guardar o código de motivo e a versão da regra no evento.
-4. **Na revisão:** registrar pedido, responsável, evidências consultadas, resultado da revisão e eventual substituição da decisão anterior, sem apagar o histórico original.
-5. **Na auditoria periódica:** verificar amostras, decisões contestadas, exceções, mudanças de resultado, falhas e possíveis diferenças injustificadas entre grupos, quando essa análise for legítima e necessária.
-6. **Na mudança de regra:** criar nova versão, executar testes de regressão e impacto antes da publicação e manter a versão anterior disponível para reconstrução histórica.
-7. **No incidente:** suspender a regra quando houver dano ou erro sistêmico relevante, aplicar fluxo manual de contingência, preservar evidências e documentar correções.
-
-### 5.4 Controles de integridade e acesso
-
-- A escrita dos eventos deve ser restrita aos serviços responsáveis; operadores comuns não devem poder editar ou apagar registros históricos.
-- A consulta de auditoria deve ser limitada a pessoas autorizadas, com registro das consultas administrativas relevantes.
-- Exportações devem usar filtros, mascaramento e finalidade documentada.
-- Backups e controles de integridade devem ser testados periodicamente. Se houver assinatura ou hash encadeado, a chave deve ficar fora do banco e do repositório; a verificação criptográfica complementa, mas não substitui, controle de acesso e cópias protegidas.
-- O prazo de retenção deve ser definido por finalidade, risco, obrigação aplicável e necessidade de defesa de direitos. Não copiar automaticamente o prazo europeu de seis meses para todos os logs no Brasil.
-
-### 5.5 Exemplo ilustrativo de evento
-
-O exemplo abaixo é fictício e demonstra o nível de explicação desejado. Os valores de entrada são minimizados e não contêm dados pessoais diretos.
+O que precisaria ser acrescentado: constante de versão da regra; categoria de serviço persistida no lugar do `contains("revis")`; gravação do registro de decisão ao calcular; e mensagem com os dias e o prazo. Registro ilustrativo (formato proposto, não implementado):
 
 ```json
 {
-  "decision_id": "d1-demo-000123",
-  "correlation_id": "os-demo-000045",
-  "occurred_at": "2026-11-17T14:30:00Z",
-  "module": "OFICINA",
-  "decision_type": "BUSINESS_RULE",
-  "rule_id": "WARRANTY.REVISION_COVERAGE",
+  "correlation_id": "os-45",
+  "occurred_at": "2026-11-19T14:30:00Z",
+  "rule_id": "R1",
   "rule_version": "1.0.0",
-  "subject_ref": "cliente-pseudo-8f21",
+  "actor_id": 3,
   "resource_type": "ordem_servico",
   "resource_id": 45,
-  "input_summary": {
-    "days_since_sale": 120,
-    "service_category": "REVISAO",
-    "warranty_limit_days": 365
-  },
-  "outcome": "COVERED",
-  "reason_codes": ["WITHIN_WARRANTY_PERIOD", "SERVICE_IS_REVISION"],
-  "explanation": "A revisão foi coberta porque a venda ocorreu há 120 dias e o prazo configurado é de 365 dias.",
-  "human_review": "NOT_REQUESTED",
-  "application_version": "d1-demo"
+  "input_summary": { "days_since_sale": 120, "warranty_limit_days": 365, "service_category": "REVISAO" },
+  "outcome": "COBERTA",
+  "reason_codes": ["DENTRO_DO_PRAZO", "SERVICO_E_REVISAO"],
+  "human_review": "NAO_SOLICITADA"
 }
 ```
 
-## 6. Política de explicabilidade
+### 4.4 Exemplo completo B — aprovação de compra (decisão de usuário H1 com validações R8)
 
-A política completa está em [`D1_POLITICA_EXPLICABILIDADE.md`](D1_POLITICA_EXPLICABILIDADE.md). Em resumo, toda funcionalidade que produza ou recomende um resultado com potencial de afetar uma pessoa deverá informar quando há automação, qual a finalidade, quais categorias de dados e critérios relevantes são utilizados, qual foi o resultado e como solicitar correção ou revisão.
-
-A explicação deverá ser proporcional ao impacto. Uma validação simples de estoque pode usar uma mensagem curta com o motivo; uma decisão que afete preço, elegibilidade, acesso a serviço ou perfil de cliente exige explicação mais completa e canal de contestação. Quando a legislação ou a classificação de risco exigir revisão humana, ela deverá ser feita por pessoa com autoridade para alterar o resultado, e não apenas confirmar automaticamente a saída do sistema.
-
-## 7. Plano de adequação para o AutoBotz
-
-| Etapa | Ação proposta | Evidência de conclusão |
+| Campo | Valor no exemplo | Existe hoje? |
 |---|---|---|
-| 1 — Inventário | Listar regras automatizadas, validações, recomendações e decisões humanas apoiadas pelo ERP. | Catálogo com responsável, finalidade, dados, saída e risco por regra. |
-| 2 — Classificação | Identificar decisões que afetam interesses de clientes ou funcionários e avaliar a incidência da LGPD art. 20. | Matriz de risco e justificativa documentada. |
-| 3 — Registro | Integrar os fluxos selecionados à trilha estruturada de decisões. | Eventos de teste com regra, versão, resultado e motivo. |
-| 4 — Explicação | Padronizar mensagens e criar canal de contestação e revisão. | Exemplos de explicação, formulário/canal e procedimento de revisão. |
-| 5 — Testes | Testar entradas válidas, inválidas, limites, dados corrigidos, regras antigas e novas, revisão e integridade dos logs. | Relatório de testes com evidências reproduzíveis. |
-| 6 — Monitoramento | Revisar amostras, reclamações, exceções, erros e alterações de desempenho. | Relatório periódico e plano de correção. |
-| 7 — Comunicação | Informar clientes e usuários do ERP sobre automações relevantes e como pedir revisão. | Aviso de transparência, FAQ e material de orientação. |
+| Dados utilizados | valor da solicitação, saldo do orçamento, status da solicitação | Sim, lidos dentro da transação; o saldo anterior à baixa não é guardado |
+| Regra aplicada | `R8 — saldo suficiente e solicitação pendente` | Existe a lógica; sem código de regra |
+| Versão | `1.0.0` | Não existe |
+| Resultado | `APROVADA` e pedido gerado, ou `REJEITADA` com motivo | **Sim**: status, `decidido_em`, `motivo_rejeicao` e `pedidos_compra` |
+| Motivo | Na rejeição, o texto do aprovador; na aprovação, nenhum (opcional) | Parcial |
+| Responsável | ID e nome do usuário **autenticado** que decidiu | **Parcial, com falha:** `aprovador` é texto digitado (seção 6) |
+| Vínculo com a operação | `solicitacao_id` → `pedido_compra` | Sim |
+| Separação | Decisão humana (H1) distinta das validações automáticas (R8) | Não registrada de forma distinta |
 
-### 7.1 Testes de aceitação propostos
+## 5. Módulos fiscal e de crédito
 
-- Uma decisão repetida com os mesmos dados e a mesma versão da regra deve gerar resultado consistente.
-- Uma alteração de dado relevante deve refletir-se na explicação e no resultado, sem apagar o evento anterior.
-- Cada decisão de garantia deve permitir reconstruir data de venda, categoria de serviço, prazo e motivo do resultado sem expor dados pessoais desnecessários.
-- A venda de veículo indisponível deve registrar o motivo da recusa e o identificador do veículo.
-- Aprovação e rejeição de compras devem identificar o aprovador por ID da sessão autenticada (não por campo de texto livre), além de motivo, data e validações automáticas aplicadas.
-- A classificação de serviços para cobertura de garantia deve usar categoria/identificador estável, não palavras contidas no nome exibido; alterações de categoria devem ser versionadas e testadas.
-- Um pedido de revisão deve gerar novo evento vinculado ao original, mantendo o histórico.
-- Usuário sem permissão não deve consultar nem exportar trilhas detalhadas de decisão.
-- Uma mudança de regra deve receber nova versão e testes de regressão antes de ser ativada.
-- Quando uma falha sistemática for identificada, deve existir procedimento testado para suspender a regra e encaminhar operações a uma revisão manual.
+O enunciado destaca essas duas áreas. A busca no código (`src`, `schema.sql`, `db/migrations`, portal) por termos como imposto, tributo, ICMS, NF-e, CFOP, crédito, financiamento, parcela, score, juros e inadimplência **não encontrou regra automatizada em nenhuma das duas**. O que existe é descrito a seguir; nada foi inventado para preencher a lacuna.
 
-## 8. Conclusão
+### 5.1 Fiscal: ausente
 
-O D1 não exige que o AutoBotz seja apresentado como um produto de inteligência artificial que ele não é. O diagnóstico do snapshot aponta regras determinísticas de negócio, controle de acesso e decisões humanas apoiadas pelo sistema. A responsabilidade regulatória começa por identificar corretamente essas funções, compreender quando elas afetam pessoas e manter evidências suficientes para explicar, contestar e revisar seus resultados.
+- Não há cálculo de tributos, emissão ou consulta de documentos fiscais, nem integração com órgão fazendário.
+- O único elemento relacionado é `nota_fiscal_validada`, um indicador booleano em `contratos_fornecedor`. Ele é marcado por um usuário (H2) e alimenta R7. O sistema não lê o documento, não confere valores nem chave de acesso; apenas guarda que alguém marcou a validação.
+- Consequência para a análise: R7 libera pagamento (simulado) com base em uma validação humana que o ERP não verifica.
 
-A estrutura genérica de auditoria já existente é um ponto de partida, mas ainda não demonstra a auditoria de decisões automatizadas: faltam dados estruturados de regra, versão, motivo, resultado, vínculo com a operação e revisão. A recomendação é evoluir a trilha atual sem duplicar dados pessoais, priorizar a regra de garantia por seu efeito financeiro sobre o cliente e adotar uma política de explicabilidade com revisão humana proporcional ao risco.
+Se um módulo fiscal fosse implementado, seriam necessários, no mínimo:
 
-Esta entrega é uma análise técnica-acadêmica, não um parecer jurídico nem uma declaração de conformidade. A versão final deve ser validada contra o texto integral do enunciado e, para implantação comercial, revisada por profissional jurídico e pelo responsável por proteção de dados.
+| Controle | Registro |
+|---|---|
+| Parâmetros fiscais versionados com vigência | Versão e período de vigência usados em cada cálculo |
+| Memória de cálculo por documento | Base, alíquota, regra e resultado de cada tributo |
+| Imutabilidade do documento emitido | Correção e cancelamento por evento novo, sem sobrescrever o original |
+| Separação de funções | Quem altera parâmetros fiscais não é quem emite documentos |
+| Responsável técnico e fiscal | Usuário e papel de cada alteração de regra |
+| Retenção conforme a obrigação aplicável | Prazo definido por norma fiscal, não por padrão do sistema |
 
-## 9. Referências normativas e fontes oficiais
+### 5.2 Crédito: ausente
 
-1. **Brasil. Lei nº 13.709/2018 — LGPD**, texto atualizado na Câmara dos Deputados. Especialmente arts. 3º, 6º, 18, 20 e 46.  
-   https://www2.camara.leg.br/legin/fed/lei/2018/lei-13709-14-agosto-2018-787077-normaatualizada-pl.html
-2. **Câmara dos Deputados. PL nº 2.338/2023 — ficha de tramitação.** Situação consultada em 17/11/2026: aguardando parecer do relator na Comissão Especial sobre Inteligência Artificial.  
-   https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=2487262
-3. **Câmara dos Deputados. Texto final aprovado em comissão do PL nº 2.338/2023.** Referência de proposta legislativa, não de lei vigente; especialmente arts. 5º a 8º e 25.  
-   https://www.camara.leg.br/proposicoesWeb/prop_mostrarintegra?codteor=2868197&filename=PL+2338%2F2023
-4. **U.S. Government Publishing Office. Algorithmic Accountability Act of 2025, S. 2164 (IS).** Registro oficial de projeto apresentado e encaminhado à comissão em 25/06/2025.  
-   https://www.govinfo.gov/app/details/BILLS-119s2164is
-5. **União Europeia. Regulamento (UE) 2024/1689 — Artificial Intelligence Act.** Especialmente arts. 12, 14 e 19, relativos a registro de eventos, supervisão humana e conservação de logs em sistemas de alto risco.  
-   https://eur-lex.europa.eu/eli/reg/2024/1689
+- Não há concessão de crédito, limite, financiamento, parcelamento, pontuação de risco nem consulta a bureau.
+- Os "eventos financeiros" do D12 são indicadores de assinatura com dados fictícios; o simulador não decide sobre clientes reais. O pagamento do D13 é simulado.
 
-**Data da consulta às fontes:** 17 de novembro de 2026.
+Se um módulo de crédito fosse implementado, a decisão de conceder, negar ou limitar crédito seria de alto impacto. Seriam necessários, no mínimo:
+
+| Controle | Registro |
+|---|---|
+| Finalidade e base de tratamento dos dados | Documentadas antes da ativação (LGPD art. 6º) |
+| Dados proibidos e substitutos injustificados | Lista de atributos que a regra não pode usar, com teste automatizado |
+| Regra ou modelo versionado | Versão, critérios e limites efetivamente aplicados |
+| Explicação ao solicitante | Principais fatores e resultado, sem expor dado de terceiros |
+| Revisão por pessoa com autoridade para reverter | Pedido, revisor, evidências e desfecho vinculados à decisão original |
+| Registro de consulta a fontes externas | Fonte, data e finalidade |
+| Avaliação de impacto antes da ativação | Riscos, grupos afetados e salvaguardas |
+| Alçada e separação de funções | Quem aprova exceções não é quem configura a regra |
+
+Estes controles são **requisitos para uma eventual implementação**. Não fazem parte do ERP atual, e o D1 (análise) não exige criá-los.
+
+## 6. Ponto técnico: identidade do aprovador em compras
+
+**Achado.** A identidade de quem aprova ou rejeita uma compra vem de texto digitado.
+
+- `ComprasService.aprovar(int solicitacaoId, String aprovador)` e `rejeitar(int, String aprovador, String motivo)` recebem o nome como parâmetro. O serviço só confere que o texto não está vazio e tem até 60 caracteres, e o grava em `solicitacoes_compra.aprovador`.
+- Em `ComprasPanel`, o campo `aprovador` é preenchido com o usuário da sessão, mas continua editável, e os botões enviam `aprovador.getText()`. O campo `solicitante` segue o mesmo padrão.
+- A permissão é verificada, mas ela vale para qualquer ação de compras: `AppFrame` passa `acao -> allowed(ACESSAR_COMPRAS)`. A pessoa autorizada pode registrar a decisão em nome de outra.
+- O banco guarda só o nome (`VARCHAR(60)`), sem ID de usuário. Decisões antigas não podem ser atribuídas com segurança.
+
+**Correção proposta (não aplicada neste trabalho).**
+
+1. `ComprasService` obtém o ator da sessão autenticada (por exemplo, um fornecedor de identidade injetado pelo construtor, como já ocorre com o autorizador), e os métodos deixam de receber o nome.
+2. Nova coluna `aprovador_id` com chave estrangeira para `usuarios`, por migração repetível e aplicada também ao `schema.sql`; o nome fica como cópia para exibição.
+3. `ComprasPanel` mostra o aprovador como rótulo, sem campo editável; o mesmo vale para o solicitante.
+4. Atualizar `D11ComprasTest`, `D11ComprasJdbcTest` e `D11ComprasSwingTest`, que hoje passam o nome como argumento, e incluir um teste: uma tentativa de informar outro nome não altera o responsável gravado.
+5. Se criar uma migração nova, incluí-la nas listas do workflow `integration-regression.yml` e em `db/migrations/README.md`, que hoje cobrem 011 a 016.
+
+**Pendência com o responsável.** O módulo de compras é do Alexandre (D11, conforme o README). A correção precisa ser alinhada com ele antes de qualquer alteração de código; este PR altera apenas documentação.
+
+**Observação.** `solicitante` e `aprovador` partem do mesmo usuário e nada impede que a mesma pessoa solicite e aprove. Isso é uma decisão de governança a discutir (separação de funções), não um defeito de implementação.
+
+## 7. Contestação e revisão humana
+
+Nada disso existe no ERP. Não há canal para a pessoa afetada questionar uma decisão, registro de pedido de revisão nem papel de revisor. A aprovação de compras (H1) é uma decisão tomada por uma pessoa; **não deve ser apresentada como revisão humana de uma decisão automatizada**. O fluxo de contestação e revisão está descrito como proposta em [`D1_POLITICA_EXPLICABILIDADE.md`](D1_POLITICA_EXPLICABILIDADE.md), seção 7.
+
+## 8. Resumo: o que funciona e o que é proposta
+
+| Item | Situação |
+|---|---|
+| Regras R1–R9 identificadas no código | **Funciona hoje** (código na `main`) |
+| Trilha de segurança (R3, R4, R9) | **Funciona hoje**, sem versão de regra |
+| Ledger de contratos (R6, R7, H2, H3) | **Funciona hoje**, sem motivo padronizado nem registro de recusa |
+| Registro do aprovador de compras | **Funciona com falha**: nome digitado (seção 6) |
+| Gravação em `logs_auditoria` pelos fluxos de decisão | **Não existe**; a tabela está sem uso pelos serviços |
+| Registro estruturado de decisões (regra, versão, motivo, resultado, vínculo) | **Proposta** |
+| Categoria persistida para a regra de garantia | **Proposta** |
+| Identidade do aprovador pela sessão | **Proposta**, dependente do responsável pelo módulo |
+| Contestação e revisão humana | **Proposta** |
+| Módulos fiscal e de crédito | **Não existem**; controles descritos na seção 5 são requisitos futuros |
+
+Esta análise **não comprova conformidade** do AutoBotz com a lei hipotética nem com qualquer norma citada.
+
+## 9. Validação realizada e pendências
+
+Conferido em 19/11/2026 sobre o commit `b00bc55`:
+
+- as afirmações sobre o código foram checadas por leitura dos arquivos citados e por busca textual; os comandos estão abaixo;
+- `python3 scripts/check-doc-links.py` valida os links relativos entre documentos;
+- o status das normas externas foi consultado por busca (seção 2); links externos não são verificados pelo script.
+
+```bash
+grep -n "DIAS_GARANTIA\|contains(\"revis\")" src/autobotz/service/ServicoService.java
+grep -rn "registrarAcao" src --include=*.java
+grep -n "aprovador" src/autobotz/service/ComprasService.java src/autobotz/ui/swing/ComprasPanel.java
+grep -n "ACESSAR_COMPRAS" src/autobotz/ui/swing/AppFrame.java
+grep -rniE "fiscal|imposto|tribut|credito|financiamento|score" src schema.sql db
+```
+
+Pendências conhecidas:
+
+1. Mapear os requisitos da seção 1 aos artigos do enunciado completo.
+2. Alinhar com o Alexandre a correção da identidade do aprovador (seção 6).
+3. Abrir os links 1 e 4 da seção 2 antes da entrega final.
+4. Confirmar que o commit citado no cabeçalho é o mesmo do PR após a integração de outras mudanças.
+5. Para uso comercial, revisão por profissional jurídico e pelo responsável por proteção de dados.
