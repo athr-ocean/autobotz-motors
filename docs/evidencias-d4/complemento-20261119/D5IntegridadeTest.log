@@ -1,0 +1,13 @@
+PASS manifestos das duas copias
+PASS copias com os mesmos hashes
+PASS captura somente arquivos log
+PASS restauracao recupera o conteudo
+PASS nao sobrescreve destino existente
+PASS detecta conteudo alterado na primeira regiao
+PASS segunda regiao continua valida
+PASS detecta diferenca entre origem e captura
+PASS detecta arquivo ausente
+PASS recusa destino dentro da origem
+PASS recusa captura vazia
+PASS recusa link simbolico
+D5_INTEGRIDADE_OK checks=12

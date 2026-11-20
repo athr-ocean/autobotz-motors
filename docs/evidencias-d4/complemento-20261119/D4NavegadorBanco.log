@@ -1,0 +1,7 @@
+Banco descartável: autobotz_d15_test
+Consulta SQL: SELECT tipo_evento,COALESCE(material_slug,'-') AS material,COUNT(*) AS total FROM treinamento_eventos GROUP BY tipo_evento,material_slug ORDER BY tipo_evento,material_slug;
+tipo_evento	material	total
+MATERIAL_VIEW	guia-rapido	1
+PORTAL_OPEN	-	3
+Sequência: abrir guia-rapido; Voltar aos materiais; Avançar; recarregar; voltar de consulta direta de métricas; recarregar para conferir correção.
+MATERIAL_VIEW permaneceu 1; PORTAL_OPEN corresponde às três cargas completas.

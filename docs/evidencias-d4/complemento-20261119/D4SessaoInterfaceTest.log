@@ -1,0 +1,7 @@
+PASS restauração HTTP 200
+PASS restauração HTTP 401
+PASS restauração HTTP 403
+PASS restauração HTTP 500
+PASS falha de rede não simula sessão autenticada
+PASS resposta atrasada não desfaz logout
+D4_SESSAO_INTERFACE_OK

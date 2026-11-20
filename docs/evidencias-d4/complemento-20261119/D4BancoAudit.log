@@ -1,0 +1,6 @@
+HTTP evento 1 -> 201
+HTTP evento 2 -> 201
+HTTP evento 3 -> 400
+BANCO MATERIAL_VIEW guia-rapido 1
+BANCO PORTAL_OPEN - 1
+D4_BANCO_AUDIT_OK

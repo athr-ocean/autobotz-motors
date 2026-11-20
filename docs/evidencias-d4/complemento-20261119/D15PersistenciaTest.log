@@ -1,0 +1,12 @@
+PASS migration 015 aplica e e idempotente
+PASS eventos gravados no banco com ids crescentes
+PASS slug invalido e recusado pelo servico
+PASS tres grupos de metricas (abertura, material, video)
+PASS totais por tipo e material corretos
+PASS periodo sem eventos devolve vazio
+PASS periodo invertido e recusado
+PASS POST /eventos grava no banco (201)
+PASS POST com material inexistente -> 400
+PASS evento enviado pelo HTTP aparece nas metricas
+PASS evento recusado nao foi gravado
+TODOS OS TESTES PASSARAM
